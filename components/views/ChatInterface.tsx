@@ -177,13 +177,15 @@ const MessageBubble = ({
            <div className="flex flex-col mt-0.5">
              <div className="flex items-center gap-2">
                 <span className="font-bold text-[#5a4a42] text-sm leading-tight">Wade</span>
-                {/* QUICK TTS BUTTON */}
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text); }}
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[#d58f99] hover:bg-[#fff0f3] active:bg-[#d58f99] active:text-white transition-colors"
-                >
-                  <Icons.Volume />
-                </button>
+                {/* QUICK TTS BUTTON (Hidden in Archive Mode) */}
+                {msg.mode !== 'archive' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text); }}
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[#d58f99] hover:bg-[#fff0f3] active:bg-[#d58f99] active:text-white transition-colors"
+                  >
+                    <Icons.Volume />
+                  </button>
+                )}
              </div>
              <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
                 <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
@@ -295,6 +297,7 @@ export const ChatInterface: React.FC = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const smsDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const messagesRef = useRef(messages);
   useEffect(() => {
@@ -589,6 +592,8 @@ export const ChatInterface: React.FC = () => {
   const canBranch = selectedMsg && activeMode !== 'sms' && activeMode !== 'archive';
 
   const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
+    abortControllerRef.current = new AbortController();
+
     if (regenMsgId) setRegenerating(regenMsgId, true);
     else {
       setIsTyping(true);
@@ -612,8 +617,8 @@ export const ChatInterface: React.FC = () => {
       }).slice(-15);
 
       let modePrompt = settings.wadePersonality;
-      if (activeMode === 'sms') modePrompt += "\n STYLE: Short text messages. Use emojis...";
-      else if (activeMode === 'roleplay') modePrompt += "\n STYLE: Descriptive roleplay...";
+      if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES]\n- Write SHORT text messages (1-2 sentences each)\n- Use emojis naturally\n- You can split your reply into MULTIPLE separate text bubbles by using ||| as separator\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Each part separated by ||| will appear as a separate text message with a small delay\n- This makes the conversation feel more natural and realistic";
+      else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
 
       const isRegeneration = !!regenMsgId;
       const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
@@ -683,6 +688,10 @@ export const ChatInterface: React.FC = () => {
         setLastInputText('');
       }
     } catch (error: any) {
+      if (error?.name === 'AbortError' || !abortControllerRef.current) {
+        return;
+      }
+
       console.error("Chat Error", error);
       const errorMsg = error?.message || "Failed to generate response. Please check your API settings.";
       if (errorMsg.includes("API Key")) {
@@ -707,10 +716,17 @@ export const ChatInterface: React.FC = () => {
       setIsTyping(false);
       setLastSentMessageId(null);
       setLastInputText('');
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
   const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
     setIsTyping(false);
     setWaitingForSMS(false);
     if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
@@ -1058,9 +1074,7 @@ export const ChatInterface: React.FC = () => {
             />
             <Button
               onClick={(isTyping || waitingForSMS) ? handleCancel : handleSend}
-              className={`w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all ${
-                (isTyping || waitingForSMS) ? 'bg-red-500 hover:bg-red-600' : ''
-              }`}
+              className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
             >
                {(isTyping || waitingForSMS) ? <Icons.Stop /> : <Icons.Send />}
             </Button>
