@@ -786,13 +786,16 @@ export const ChatInterface: React.FC = () => {
            </div>
            <div>
               <div className="font-bold text-[#5a4a42] text-sm">
-                {activeMode === 'archive' 
-                  ? (displayMessages.length > 0 
-                      ? new Date(displayMessages[0].timestamp).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date(displayMessages[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : (activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive Reader' : 'Archive Reader'))
+                {activeMode === 'archive'
+                  ? (activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive Reader' : 'Archive Reader')
                   : 'Wade'}
               </div>
-              <div className="text-[#917c71] text-[10px] uppercase tracking-wider font-bold">{isTyping ? 'Typing...' : waitingForSMS ? 'Read now' : activeMode}</div>
+              <div className="text-[#917c71] text-[10px] uppercase tracking-wider font-bold">
+                {isTyping ? 'Typing...' : waitingForSMS ? 'Read now' :
+                  activeMode === 'archive' && displayMessages.length > 0
+                    ? `ARCHIVE • ${new Date(displayMessages[displayMessages.length - 1].timestamp).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })} - ${new Date(displayMessages[0].timestamp).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })}`
+                    : activeMode}
+              </div>
            </div>
         </div>
       </div>
