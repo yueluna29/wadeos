@@ -801,14 +801,12 @@ export const ChatInterface: React.FC = () => {
       <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center gap-4 z-20">
         <button onClick={handleBack} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"><Icons.Back /></button>
         <div className="flex items-center gap-3">
-           <div className="relative">
-             {activeMode === 'archive' ? (
-                <div className="w-10 h-10 rounded-full bg-[#eae2e8] flex items-center justify-center text-lg">📚</div>
-             ) : (
-                <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-[#eae2e8]" />
-             )}
-             {(isTyping || waitingForSMS) && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>}
-           </div>
+           {activeMode !== 'archive' && (
+             <div className="relative">
+               <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-[#eae2e8]" />
+               {(isTyping || waitingForSMS) && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>}
+             </div>
+           )}
            <div>
               <div className="font-bold text-[#5a4a42] text-sm">
                 {activeMode === 'archive'
