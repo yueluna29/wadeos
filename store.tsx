@@ -55,16 +55,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [ttsPresets, setTtsPresets] = useState<TtsPreset[]>([]);
   
   // Sessions State
-  const [sessions, setSessions] = useState<ChatSession[]>(() => {
-    const saved = localStorage.getItem('wade_sessions');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = localStorage.getItem('wade_messages');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
 
   // NEW: Memories & Archives
   const [coreMemories, setCoreMemories] = useState<CoreMemory[]>([]);
@@ -232,6 +226,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchArchives();
 
+        // Clear old localStorage data after successful sync
+        localStorage.removeItem('wade_sessions');
+        localStorage.removeItem('wade_messages');
+        console.log("[DB] Cleared old localStorage data after sync");
+
       } catch (err: any) {
         console.error("Supabase Sync Failed:", err);
         setSyncError(err.message || "Unknown DB Error");
@@ -260,9 +259,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     ];
   });
 
-  // Persistence Effects
-  useEffect(() => localStorage.setItem('wade_messages', JSON.stringify(messages)), [messages]);
-  useEffect(() => localStorage.setItem('wade_sessions', JSON.stringify(sessions)), [sessions]);
+  // Persistence Effects (sessions/messages now persisted in Supabase only)
   useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
   useEffect(() => localStorage.setItem('wade_capsules', JSON.stringify(capsules)), [capsules]);

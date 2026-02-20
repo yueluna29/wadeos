@@ -616,6 +616,9 @@ export const ChatInterface: React.FC = () => {
       const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
       const apiKey = activeLlm?.apiKey;
 
+      console.log("[API] Active LLM:", activeLlm);
+      console.log("[API] API Key present:", !!apiKey);
+
       if (!apiKey) {
         throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
       }
