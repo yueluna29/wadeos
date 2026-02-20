@@ -55,15 +55,16 @@ export const Settings: React.FC = () => {
     provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '',
     // LLM Specific Parameters
     temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0,
-    // TTS Specific
-    voiceId: '', emotion: '', speed: 1.0
+    // TTS Specific (Minimax)
+    voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0,
+    sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1
   });
 
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [fetchingModels, setFetchingModels] = useState(false);
 
   const resetForm = () => {
-    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0, voiceId: '', emotion: '', speed: 1.0 });
+    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
     setIsFormOpen(false);
     setEditingId(null);
     setAvailableModels([]);
@@ -120,7 +121,13 @@ export const Settings: React.FC = () => {
       presencePenalty: item.presencePenalty ?? 0,
       voiceId: item.voiceId || '',
       emotion: item.emotion || '',
-      speed: item.speed || 1.0
+      speed: item.speed || 1.0,
+      vol: item.vol ?? 1.0,
+      pitch: item.pitch ?? 0,
+      sampleRate: item.sampleRate || 32000,
+      bitrate: item.bitrate || 128000,
+      format: item.format || 'mp3',
+      channel: item.channel || 1
     });
     setEditingId(item.id);
     setActiveTab(type);
@@ -150,9 +157,19 @@ export const Settings: React.FC = () => {
       else await addLlmPreset(payload);
     } else if (activeTab === 'tts') {
       const payload = {
-        name: formData.name, model: formData.model, apiKey: formData.apiKey,
-        baseUrl: cleanBaseUrl, voiceId: formData.voiceId,
-        emotion: formData.emotion, speed: formData.speed
+        name: formData.name,
+        model: formData.model,
+        apiKey: formData.apiKey,
+        baseUrl: cleanBaseUrl,
+        voiceId: formData.voiceId,
+        emotion: formData.emotion,
+        speed: formData.speed,
+        vol: formData.vol,
+        pitch: formData.pitch,
+        sampleRate: formData.sampleRate,
+        bitrate: formData.bitrate,
+        format: formData.format,
+        channel: formData.channel
       };
       if (editingId) await updateTtsPreset(editingId, payload);
       else await addTtsPreset(payload);
@@ -441,17 +458,82 @@ export const Settings: React.FC = () => {
 
               {activeTab === 'tts' && (
                 <>
-                  <input className="input-field" placeholder="Voice ID (e.g. Kore)" value={formData.voiceId} onChange={e => setFormData({...formData, voiceId: e.target.value})} />
-                  <input className="input-field" placeholder="Emotion" value={formData.emotion} onChange={e => setFormData({...formData, emotion: e.target.value})} />
-                  <div className="col-span-2 md:col-span-1 flex items-center gap-2 bg-[#f9f6f7] rounded-lg px-2 border border-[#eae2e8]">
-                     <span className="text-[10px] text-[#917c71] whitespace-nowrap">Speed:</span>
-                     <input
-                       className="bg-transparent text-[11px] text-[#5a4a42] w-full outline-none py-1.5"
-                       type="number"
-                       step="0.01"
-                       value={formData.speed}
-                       onChange={e => setFormData({...formData, speed: parseFloat(e.target.value)})}
-                     />
+                  <input className="input-field" placeholder="Voice ID (e.g. English_expressive_narrator)" value={formData.voiceId} onChange={e => setFormData({...formData, voiceId: e.target.value})} />
+                  <select className="input-field" value={formData.emotion} onChange={e => setFormData({...formData, emotion: e.target.value})}>
+                    <option value="">Emotion (Auto)</option>
+                    <option value="happy">Happy</option>
+                    <option value="sad">Sad</option>
+                    <option value="angry">Angry</option>
+                    <option value="fearful">Fearful</option>
+                    <option value="disgusted">Disgusted</option>
+                    <option value="surprised">Surprised</option>
+                    <option value="calm">Calm</option>
+                    <option value="fluent">Fluent</option>
+                  </select>
+
+                  <div className="col-span-2 space-y-3 mt-2 p-3 bg-[#f9f6f7] rounded-lg">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Speed</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.speed.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="0.5" max="2" step="0.01" value={formData.speed} onChange={e => setFormData({...formData, speed: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Volume</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.vol.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="0.1" max="10" step="0.1" value={formData.vol} onChange={e => setFormData({...formData, vol: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Pitch</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.pitch}</span>
+                      </div>
+                      <input type="range" min="-12" max="12" step="1" value={formData.pitch} onChange={e => setFormData({...formData, pitch: parseInt(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Sample Rate</label>
+                        <select className="input-field text-[10px] py-1" value={formData.sampleRate} onChange={e => setFormData({...formData, sampleRate: parseInt(e.target.value)})}>
+                          <option value={8000}>8000</option>
+                          <option value={16000}>16000</option>
+                          <option value={22050}>22050</option>
+                          <option value={24000}>24000</option>
+                          <option value={32000}>32000</option>
+                          <option value={44100}>44100</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Bitrate</label>
+                        <select className="input-field text-[10px] py-1" value={formData.bitrate} onChange={e => setFormData({...formData, bitrate: parseInt(e.target.value)})}>
+                          <option value={32000}>32k</option>
+                          <option value={64000}>64k</option>
+                          <option value={128000}>128k</option>
+                          <option value={256000}>256k</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Format</label>
+                        <select className="input-field text-[10px] py-1" value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})}>
+                          <option value="mp3">MP3</option>
+                          <option value="pcm">PCM</option>
+                          <option value="flac">FLAC</option>
+                          <option value="wav">WAV</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Channel</label>
+                        <select className="input-field text-[10px] py-1" value={formData.channel} onChange={e => setFormData({...formData, channel: parseInt(e.target.value)})}>
+                          <option value={1}>Mono (1)</option>
+                          <option value={2}>Stereo (2)</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}

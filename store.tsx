@@ -124,7 +124,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             baseUrl: p.base_url,
             voiceId: p.voice_id,
             emotion: p.emotion,
-            speed: p.speed
+            speed: p.speed,
+            vol: p.vol ?? 1.0,
+            pitch: p.pitch ?? 0,
+            sampleRate: p.sample_rate || 32000,
+            bitrate: p.bitrate || 128000,
+            format: p.format || 'mp3',
+            channel: p.channel || 1
           })));
         }
 
@@ -348,17 +354,54 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
   const addTtsPreset = async (p: Omit<TtsPreset, 'id'>) => {
     const { data, error } = await supabase.from('tts_presets').insert({
-      name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl, voice_id: p.voiceId, emotion: p.emotion, speed: p.speed
+      name: p.name,
+      model: p.model,
+      api_key: p.apiKey,
+      base_url: p.baseUrl,
+      voice_id: p.voiceId,
+      emotion: p.emotion,
+      speed: p.speed,
+      vol: p.vol,
+      pitch: p.pitch,
+      sample_rate: p.sampleRate,
+      bitrate: p.bitrate,
+      format: p.format,
+      channel: p.channel
     }).select().single();
     if (data && !error) {
       setTtsPresets(prev => [...prev, {
-        id: data.id, name: data.name, model: data.model, apiKey: data.api_key, baseUrl: data.base_url, voiceId: data.voice_id, emotion: data.emotion, speed: data.speed
+        id: data.id,
+        name: data.name,
+        model: data.model,
+        apiKey: data.api_key,
+        baseUrl: data.base_url,
+        voiceId: data.voice_id,
+        emotion: data.emotion,
+        speed: data.speed,
+        vol: data.vol,
+        pitch: data.pitch,
+        sampleRate: data.sample_rate,
+        bitrate: data.bitrate,
+        format: data.format,
+        channel: data.channel
       }]);
     }
   };
   const updateTtsPreset = async (id: string, p: Partial<TtsPreset>) => {
     const { error } = await supabase.from('tts_presets').update({
-      name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl, voice_id: p.voiceId, emotion: p.emotion, speed: p.speed
+      name: p.name,
+      model: p.model,
+      api_key: p.apiKey,
+      base_url: p.baseUrl,
+      voice_id: p.voiceId,
+      emotion: p.emotion,
+      speed: p.speed,
+      vol: p.vol,
+      pitch: p.pitch,
+      sample_rate: p.sampleRate,
+      bitrate: p.bitrate,
+      format: p.format,
+      channel: p.channel
     }).eq('id', id);
     if (!error) {
       setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));

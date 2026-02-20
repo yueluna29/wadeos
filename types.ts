@@ -130,8 +130,14 @@ export interface TtsPreset {
   apiKey: string;
   baseUrl: string;
   voiceId: string;
-  emotion: string;
+  emotion?: string;
   speed: number;
+  vol?: number; // Volume (0-10)
+  pitch?: number; // Pitch (-12 to 12)
+  sampleRate?: number; // 8000, 16000, 22050, 24000, 32000, 44100
+  bitrate?: number; // 32000, 64000, 128000, 256000
+  format?: string; // mp3, pcm, flac, wav
+  channel?: number; // 1 or 2
 }
 
 export interface AppSettings {

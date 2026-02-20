@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { generateTextResponse, generateTTS, generateChatTitle } from '../../services/geminiService';
+import { generateMinimaxTTS } from '../../services/minimaxService';
 import { Message, ChatMode, ArchiveMessage, ChatArchive } from '../../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -550,7 +551,29 @@ export const ChatInterface: React.FC = () => {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      const base64Audio = await generateTTS(text);
+
+      const activeTts = settings.activeTtsId ? ttsPresets.find(p => p.id === settings.activeTtsId) : null;
+
+      let base64Audio: string;
+      if (activeTts) {
+        base64Audio = await generateMinimaxTTS(text, {
+          apiKey: activeTts.apiKey,
+          baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
+          model: activeTts.model || 'speech-2.8-hd',
+          voiceId: activeTts.voiceId || 'English_expressive_narrator',
+          speed: activeTts.speed || 1,
+          vol: activeTts.vol || 1,
+          pitch: activeTts.pitch || 0,
+          emotion: activeTts.emotion,
+          sampleRate: activeTts.sampleRate || 32000,
+          bitrate: activeTts.bitrate || 128000,
+          format: activeTts.format || 'mp3',
+          channel: activeTts.channel || 1
+        });
+      } else {
+        base64Audio = await generateTTS(text);
+      }
+
       const binaryString = atob(base64Audio);
       const len = binaryString.length;
       const bytes = new Uint8Array(len);
