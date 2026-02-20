@@ -426,18 +426,28 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     if (newMessage.sessionId && newMessage.mode !== 'archive') {
       const tableName = getTableName(newMessage.mode);
+      console.log('[DB] Attempting to save message:', {
+        table: tableName,
+        id: newMessage.id,
+        sessionId: newMessage.sessionId,
+        role: newMessage.role
+      });
 
       (async () => {
-        await safeDbInsert(tableName, {
-           id: newMessage.id,
-           session_id: newMessage.sessionId,
-           role: newMessage.role,
-           content: newMessage.text,
-           variants: newMessage.variants,
-           variants_thinking: newMessage.variantsThinking,
-           selected_index: 0,
-           created_at: new Date(newMessage.timestamp).toISOString()
-        });
+        try {
+          await safeDbInsert(tableName, {
+             id: newMessage.id,
+             session_id: newMessage.sessionId,
+             role: newMessage.role,
+             content: newMessage.text,
+             variants: newMessage.variants,
+             variants_thinking: newMessage.variantsThinking,
+             selected_index: 0,
+             created_at: new Date(newMessage.timestamp).toISOString()
+          });
+        } catch (err) {
+          console.error('[DB] Failed to save message:', err);
+        }
       })();
       
       setSessions(prev => prev.map(s => s.id === newMessage.sessionId ? { ...s, updatedAt: Date.now() } : s));
