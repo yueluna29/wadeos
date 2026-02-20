@@ -110,11 +110,17 @@ export interface ArchiveMessage {
 
 export interface LlmPreset {
   id: string;
+  provider: string; // 'Gemini' | 'Claude' | 'OpenAI' | 'DeepSeek' | 'OpenRouter' | 'Custom'
   name: string;
   model: string;
   apiKey: string;
   baseUrl: string;
   apiPath: string;
+  temperature?: number; // 0.0 - 2.0
+  topP?: number; // 0.0 - 1.0
+  topK?: number;
+  frequencyPenalty?: number; // -2.0 to 2.0
+  presencePenalty?: number; // -2.0 to 2.0
 }
 
 export interface TtsPreset {

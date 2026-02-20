@@ -98,11 +98,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         if (lData) {
           setLlmPresets(lData.map(p => ({
             id: p.id,
+            provider: p.provider || 'Custom',
             name: p.name,
             model: p.model,
             apiKey: p.api_key,
             baseUrl: p.base_url,
-            apiPath: p.api_path
+            apiPath: p.api_path,
+            temperature: p.temperature ?? 1.0,
+            topP: p.top_p ?? 1.0,
+            topK: p.top_k ?? 40,
+            frequencyPenalty: p.frequency_penalty ?? 0,
+            presencePenalty: p.presence_penalty ?? 0
           })));
         }
 
@@ -289,17 +295,48 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   // ... (LLM/TTS Presets CRUD - Kept same)
   const addLlmPreset = async (p: Omit<LlmPreset, 'id'>) => {
     const { data, error } = await supabase.from('llm_presets').insert({
-      name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl, api_path: p.apiPath
+      provider: p.provider,
+      name: p.name,
+      model: p.model,
+      api_key: p.apiKey,
+      base_url: p.baseUrl,
+      api_path: p.apiPath,
+      temperature: p.temperature,
+      top_p: p.topP,
+      top_k: p.topK,
+      frequency_penalty: p.frequencyPenalty,
+      presence_penalty: p.presencePenalty
     }).select().single();
     if (data && !error) {
       setLlmPresets(prev => [...prev, {
-        id: data.id, name: data.name, model: data.model, apiKey: data.api_key, baseUrl: data.base_url, apiPath: data.api_path
+        id: data.id,
+        provider: data.provider,
+        name: data.name,
+        model: data.model,
+        apiKey: data.api_key,
+        baseUrl: data.base_url,
+        apiPath: data.api_path,
+        temperature: data.temperature,
+        topP: data.top_p,
+        topK: data.top_k,
+        frequencyPenalty: data.frequency_penalty,
+        presencePenalty: data.presence_penalty
       }]);
     }
   };
   const updateLlmPreset = async (id: string, p: Partial<LlmPreset>) => {
     const { error } = await supabase.from('llm_presets').update({
-       name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl, api_path: p.apiPath
+      provider: p.provider,
+      name: p.name,
+      model: p.model,
+      api_key: p.apiKey,
+      base_url: p.baseUrl,
+      api_path: p.apiPath,
+      temperature: p.temperature,
+      top_p: p.topP,
+      top_k: p.topK,
+      frequency_penalty: p.frequencyPenalty,
+      presence_penalty: p.presencePenalty
     }).eq('id', id);
     if (!error) {
       setLlmPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));

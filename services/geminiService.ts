@@ -23,10 +23,17 @@ export const generateTextResponse = async (
   systemInstruction: string,
   lunaInfo?: string,
   exampleDialogue?: string,
-  coreMemories: CoreMemory[] = [], // NEW: Accept Core Memories
+  coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
   chatMode?: 'deep' | 'sms' | 'roleplay',
-  apiKey?: string
+  apiKey?: string,
+  modelParams?: {
+    temperature?: number;
+    topP?: number;
+    topK?: number;
+    frequencyPenalty?: number;
+    presencePenalty?: number;
+  }
 ): Promise<GeminiResponse> => {
   const ai = getClient(apiKey);
   
@@ -94,6 +101,13 @@ export const generateTextResponse = async (
     model: modelName || 'gemini-3-flash-preview',
     config: {
       systemInstruction: fullSystemPrompt,
+      ...(modelParams && {
+        temperature: modelParams.temperature,
+        topP: modelParams.topP,
+        topK: modelParams.topK,
+        frequencyPenalty: modelParams.frequencyPenalty,
+        presencePenalty: modelParams.presencePenalty
+      })
     },
     history: formattedHistory
   });

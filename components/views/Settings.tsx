@@ -23,6 +23,16 @@ const THEMES = [
   { color: '#8eacbb', name: 'Serenity' },
 ];
 
+// Provider Presets
+const PROVIDERS = [
+  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com', defaultModel: 'gemini-2.0-flash-exp' },
+  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com', defaultModel: 'claude-3-5-sonnet-20241022' },
+  { value: 'OpenAI', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
+  { value: 'DeepSeek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat' },
+  { value: 'OpenRouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', defaultModel: '' },
+  { value: 'Custom', label: 'Custom', baseUrl: '', defaultModel: '' }
+];
+
 export const Settings: React.FC = () => {
   const { 
     settings, updateSettings, 
@@ -40,27 +50,76 @@ export const Settings: React.FC = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Form State - Removed apiPath
-  const [formData, setFormData] = useState({ 
+  const [formData, setFormData] = useState({
     // Common
-    name: '', model: '', apiKey: '', baseUrl: '', 
+    provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '',
+    // LLM Specific Parameters
+    temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0,
     // TTS Specific
-    voiceId: '', emotion: '', speed: 1.0 
+    voiceId: '', emotion: '', speed: 1.0
   });
 
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+
   const resetForm = () => {
-    setFormData({ name: '', model: '', apiKey: '', baseUrl: '', voiceId: '', emotion: '', speed: 1.0 });
+    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0, voiceId: '', emotion: '', speed: 1.0 });
     setIsFormOpen(false);
     setEditingId(null);
+    setAvailableModels([]);
+  };
+
+  const fetchModelsFromProvider = async (provider: string, apiKey: string, baseUrl: string) => {
+    if (provider !== 'OpenRouter' || !apiKey) return;
+    setFetchingModels(true);
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+      const data = await response.json();
+      if (data.data && Array.isArray(data.data)) {
+        const models = data.data.map((m: any) => m.id);
+        setAvailableModels(models);
+      }
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
+  const handleProviderChange = (provider: string) => {
+    const preset = PROVIDERS.find(p => p.value === provider);
+    if (preset) {
+      setFormData(prev => ({
+        ...prev,
+        provider,
+        baseUrl: preset.baseUrl,
+        model: preset.defaultModel,
+        name: prev.name || preset.label
+      }));
+      if (provider === 'OpenRouter' && formData.apiKey) {
+        fetchModelsFromProvider(provider, formData.apiKey, preset.baseUrl);
+      }
+    }
   };
 
   const handleEdit = (type: 'llm' | 'tts', item: any) => {
     setFormData({
-      name: item.name, 
-      model: item.model || '', 
-      apiKey: item.apiKey || '', 
+      provider: item.provider || 'Custom',
+      name: item.name,
+      model: item.model || '',
+      apiKey: item.apiKey || '',
       baseUrl: item.baseUrl || '',
-      voiceId: item.voiceId || '', 
-      emotion: item.emotion || '', 
+      temperature: item.temperature ?? 1.0,
+      topP: item.topP ?? 1.0,
+      topK: item.topK ?? 40,
+      frequencyPenalty: item.frequencyPenalty ?? 0,
+      presencePenalty: item.presencePenalty ?? 0,
+      voiceId: item.voiceId || '',
+      emotion: item.emotion || '',
       speed: item.speed || 1.0
     });
     setEditingId(item.id);
@@ -74,17 +133,26 @@ export const Settings: React.FC = () => {
     const cleanBaseUrl = formData.baseUrl.replace(/\/$/, ''); // Remove trailing slash
 
     if (activeTab === 'llm') {
-      const payload = { 
-        name: formData.name, model: formData.model, apiKey: formData.apiKey, 
-        baseUrl: cleanBaseUrl, apiPath: '' 
+      const payload = {
+        provider: formData.provider,
+        name: formData.name,
+        model: formData.model,
+        apiKey: formData.apiKey,
+        baseUrl: cleanBaseUrl,
+        apiPath: '',
+        temperature: formData.temperature,
+        topP: formData.topP,
+        topK: formData.topK,
+        frequencyPenalty: formData.frequencyPenalty,
+        presencePenalty: formData.presencePenalty
       };
       if (editingId) await updateLlmPreset(editingId, payload);
       else await addLlmPreset(payload);
     } else if (activeTab === 'tts') {
-      const payload = { 
-        name: formData.name, model: formData.model, apiKey: formData.apiKey, 
-        baseUrl: cleanBaseUrl, voiceId: formData.voiceId, 
-        emotion: formData.emotion, speed: formData.speed 
+      const payload = {
+        name: formData.name, model: formData.model, apiKey: formData.apiKey,
+        baseUrl: cleanBaseUrl, voiceId: formData.voiceId,
+        emotion: formData.emotion, speed: formData.speed
       };
       if (editingId) await updateTtsPreset(editingId, payload);
       else await addTtsPreset(payload);
@@ -289,23 +357,100 @@ export const Settings: React.FC = () => {
           <div className="bg-white p-4 rounded-xl shadow-sm border border-[#eae2e8] animate-fade-in mb-5">
             <h3 className="font-bold text-[#5a4a42] text-xs mb-3">{editingId ? 'Edit Connection' : 'New Connection'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {activeTab === 'llm' && (
+                <select
+                  className="input-field col-span-2"
+                  value={formData.provider}
+                  onChange={e => handleProviderChange(e.target.value)}
+                >
+                  {PROVIDERS.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              )}
+
               <input className="input-field" placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-              <input className="input-field" placeholder="Model (e.g. gemini-3-flash)" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
-              <input className="input-field col-span-2" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => setFormData({...formData, apiKey: e.target.value})} />
+
+              {activeTab === 'llm' && availableModels.length > 0 ? (
+                <select
+                  className="input-field"
+                  value={formData.model}
+                  onChange={e => setFormData({...formData, model: e.target.value})}
+                >
+                  <option value="">Select Model...</option>
+                  {availableModels.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              ) : (
+                <input className="input-field" placeholder="Model (e.g. gemini-3-flash)" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
+              )}
+
+              <input className="input-field col-span-2" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => {
+                setFormData({...formData, apiKey: e.target.value});
+                if (activeTab === 'llm' && formData.provider === 'OpenRouter' && e.target.value) {
+                  fetchModelsFromProvider('OpenRouter', e.target.value, formData.baseUrl);
+                }
+              }} />
               <input className="input-field col-span-2" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
-              
+
+              {activeTab === 'llm' && (
+                <>
+                  <div className="col-span-2 space-y-3 mt-2 p-3 bg-[#f9f6f7] rounded-lg">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Temperature</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.temperature.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="0" max="2" step="0.01" value={formData.temperature} onChange={e => setFormData({...formData, temperature: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Top P</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.topP.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="0" max="1" step="0.01" value={formData.topP} onChange={e => setFormData({...formData, topP: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Top K</span>
+                        <input type="number" value={formData.topK} onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})} className="w-16 text-[10px] text-[#5a4a42] bg-white border border-[#eae2e8] rounded px-2 py-0.5 text-right" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Frequency Penalty</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.frequencyPenalty.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="-2" max="2" step="0.01" value={formData.frequencyPenalty} onChange={e => setFormData({...formData, frequencyPenalty: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-[#917c71] font-bold">Presence Penalty</span>
+                        <span className="text-[10px] text-[#5a4a42]">{formData.presencePenalty.toFixed(2)}</span>
+                      </div>
+                      <input type="range" min="-2" max="2" step="0.01" value={formData.presencePenalty} onChange={e => setFormData({...formData, presencePenalty: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
+                    </div>
+                  </div>
+                </>
+              )}
+
               {activeTab === 'tts' && (
                 <>
                   <input className="input-field" placeholder="Voice ID (e.g. Kore)" value={formData.voiceId} onChange={e => setFormData({...formData, voiceId: e.target.value})} />
                   <input className="input-field" placeholder="Emotion" value={formData.emotion} onChange={e => setFormData({...formData, emotion: e.target.value})} />
                   <div className="col-span-2 md:col-span-1 flex items-center gap-2 bg-[#f9f6f7] rounded-lg px-2 border border-[#eae2e8]">
                      <span className="text-[10px] text-[#917c71] whitespace-nowrap">Speed:</span>
-                     <input 
-                       className="bg-transparent text-[11px] text-[#5a4a42] w-full outline-none py-1.5" 
-                       type="number" 
-                       step="0.01" 
-                       value={formData.speed} 
-                       onChange={e => setFormData({...formData, speed: parseFloat(e.target.value)})} 
+                     <input
+                       className="bg-transparent text-[11px] text-[#5a4a42] w-full outline-none py-1.5"
+                       type="number"
+                       step="0.01"
+                       value={formData.speed}
+                       onChange={e => setFormData({...formData, speed: parseFloat(e.target.value)})}
                      />
                   </div>
                 </>

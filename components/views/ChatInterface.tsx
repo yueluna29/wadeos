@@ -649,7 +649,14 @@ export const ChatInterface: React.FC = () => {
         coreMemories,
         isRegeneration,
         activeMode as any,
-        apiKey
+        apiKey,
+        activeLlm ? {
+          temperature: activeLlm.temperature,
+          topP: activeLlm.topP,
+          topK: activeLlm.topK,
+          frequencyPenalty: activeLlm.frequencyPenalty,
+          presencePenalty: activeLlm.presencePenalty
+        } : undefined
       );
 
       const responseText = response.text;
