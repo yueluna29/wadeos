@@ -353,9 +353,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }).select().single();
 
     if (error) {
-      console.error("Create session error", error);
+      console.error("[DB] Create session error:", error);
+      throw new Error(`Failed to create session: ${error.message}`);
     } else {
-      console.log("Session created successfully:", data);
+      console.log("[DB] Session created successfully:", data);
     }
     return tempId;
   };
