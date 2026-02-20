@@ -15,6 +15,9 @@ export interface ChatSession {
   title: string;
   createdAt: number;
   updatedAt: number;
+  isPinned?: boolean;
+  customLlmId?: string;
+  customPrompt?: string;
 }
 
 export interface Message {

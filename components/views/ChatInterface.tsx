@@ -126,10 +126,10 @@ const MessageBubble = ({
     return (
       <div className={`flex flex-col group ${isLuna ? 'items-end' : 'items-start'} relative`}>
         <div className={`relative max-w-[85%] ${isLuna ? 'flex flex-row-reverse' : 'flex'} gap-2 items-end`}>
-          <div 
+          <div
             {...longPressHandlers}
             style={{ WebkitTouchCallout: 'none' }}
-            className={`px-4 py-2.5 relative ${bubbleClasses} min-w-[60px] cursor-pointer active:scale-95 transition-transform select-none`}
+            className={`px-4 py-2.5 relative ${bubbleClasses} min-w-[60px] cursor-pointer select-none`}
           >
              {thinkingContent && (
                <div className="absolute -top-3 right-0">
@@ -275,6 +275,7 @@ export const ChatInterface: React.FC = () => {
   const [waitingForSMS, setWaitingForSMS] = useState(false);
   const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
   const [lastInputText, setLastInputText] = useState('');
+  const [delayTimer, setDelayTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   
   // Archive Viewer State
   const [archiveMessages, setArchiveMessages] = useState<ArchiveMessage[]>([]);
@@ -291,6 +292,7 @@ export const ChatInterface: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -463,7 +465,13 @@ export const ChatInterface: React.FC = () => {
 
   const handleCopy = () => {
     if (selectedMsg) {
-      navigator.clipboard.writeText(selectedMsg.text);
+      let textToCopy = selectedMsg.text;
+      const idx = selectedMsg.selectedIndex || 0;
+      const thinking = selectedMsg.variantsThinking?.[idx];
+      if (thinking) {
+        textToCopy = `[Thinking]\n${thinking}\n\n[Response]\n${selectedMsg.text}`;
+      }
+      navigator.clipboard.writeText(textToCopy);
       closeActions();
     }
   };
@@ -727,6 +735,11 @@ export const ChatInterface: React.FC = () => {
       abortControllerRef.current = null;
     }
 
+    if (delayTimer) {
+      clearTimeout(delayTimer);
+      setDelayTimer(null);
+    }
+
     setIsTyping(false);
     setWaitingForSMS(false);
     if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
@@ -787,9 +800,10 @@ export const ChatInterface: React.FC = () => {
       }, 60000);
     } else {
       setIsTyping(true);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (targetSessionId) triggerAIResponse(targetSessionId);
-      }, 600);
+      }, 15000);
+      setDelayTimer(timer);
     }
   };
 
@@ -896,30 +910,46 @@ export const ChatInterface: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-[#f9f6f7] relative">
       {/* Immersive Header */}
-      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center gap-4 z-20">
+      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center justify-between z-20">
         <button onClick={handleBack} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"><Icons.Back /></button>
-        <div className="flex items-center gap-3">
-           {activeMode !== 'archive' && (
-             <div className="relative">
-               <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-[#eae2e8]" />
-               {(isTyping || waitingForSMS) && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>}
-             </div>
-           )}
-           <div>
-              <div className="font-bold text-[#5a4a42] text-sm">
-                {activeMode === 'archive'
-                  ? (activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive Reader' : 'Archive Reader')
-                  : 'Wade'}
-              </div>
-              <div className="text-[#917c71] text-[10px] uppercase tracking-wider font-bold">
-                {isTyping ? 'Typing...' : waitingForSMS ? 'Read now' :
-                  activeMode === 'archive' && displayMessages.length > 0
-                    ? `ARCHIVE • ${new Date(displayMessages[displayMessages.length - 1].timestamp).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })} - ${new Date(displayMessages[0].timestamp).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })}`
-                    : activeMode}
-              </div>
-           </div>
+
+        <div className="flex-1 flex justify-center">
+          <div className="font-bold text-[#5a4a42] text-base">
+            {activeMode === 'archive'
+              ? (activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive' : 'Archive')
+              : 'Wade'}
+          </div>
         </div>
+
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors relative"
+        >
+          <Icons.More />
+        </button>
       </div>
+
+      {/* Menu Dropdown */}
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+          <div className="absolute top-16 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-[#eae2e8] p-2 min-w-[200px] animate-fade-in">
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
+              <span>📌</span>
+              <span>置顶对话</span>
+            </button>
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
+              <span>🤖</span>
+              <span>选择模型</span>
+            </button>
+            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
+              <span>✍️</span>
+              <span>追加提示词</span>
+            </button>
+          </div>
+        </>
+      )}
+
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 pb-24">
