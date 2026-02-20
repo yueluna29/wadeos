@@ -348,13 +348,18 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(tempId);
 
+    console.log(`[DB] Creating session with mode: ${mode}, id: ${tempId}`);
     const { data, error } = await supabase.from('chat_sessions').insert({
       id: tempId,
       mode,
       title: 'New Conversation'
     }).select().single();
 
-    if (error) console.error("Create session error", error);
+    if (error) {
+      console.error("Create session error", error);
+    } else {
+      console.log("Session created successfully:", data);
+    }
     return tempId;
   };
 
@@ -378,16 +383,23 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // --- DB SAFE HELPERS (Handles Missing Columns) ---
   const safeDbInsert = async (table: string, payload: any) => {
-      const { error } = await supabase.from(table).insert(payload);
+      console.log(`[DB] Inserting into ${table}:`, payload);
+      const { data, error } = await supabase.from(table).insert(payload).select();
       if (error) {
           if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
               console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking'.");
               const { variants_thinking, ...fallback } = payload;
-              const { error: retryError } = await supabase.from(table).insert(fallback);
-              if (retryError) console.error("Retry Insert Failed", retryError);
+              const { data: retryData, error: retryError } = await supabase.from(table).insert(fallback).select();
+              if (retryError) {
+                console.error("Retry Insert Failed", retryError);
+              } else {
+                console.log(`[DB] Insert successful (retry):`, retryData);
+              }
           } else {
               console.error("DB Insert Error", error);
           }
+      } else {
+        console.log(`[DB] Insert successful:`, data);
       }
   };
 
