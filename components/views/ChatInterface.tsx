@@ -703,7 +703,7 @@ export const ChatInterface: React.FC = () => {
                    <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
                       <div className="flex-1 min-w-0">
                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
-                         <p className="text-[10px] text-[#917c71] mt-1">Imported {new Date(arch.importedAt).toLocaleDateString()}</p>
+                         <p className="text-[10px] text-[#917c71] mt-1">Imported {new Date(arch.importedAt).toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
                       </div>
                       <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
                    </div>
