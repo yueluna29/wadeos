@@ -38,35 +38,17 @@ export const MemoryBank: React.FC = () => {
 
   // Load archive dates when chatArchives change
   React.useEffect(() => {
-    const loadDates = async () => {
-      const newDates: Record<string, string> = {};
-      for (const arch of chatArchives) {
-        try {
-          const messages = await loadArchiveMessages(arch.id);
-          if (messages.length > 0) {
-            // Get the first message's timestamp
-            const firstMsg = messages[0];
-            const date = new Date(firstMsg.timestamp);
-            newDates[arch.id] = date.toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'short', 
-              day: 'numeric' 
-            });
-          } else {
-            newDates[arch.id] = 'No messages';
-          }
-        } catch (err) {
-          console.error('Failed to load archive date:', err);
-          newDates[arch.id] = 'Unknown date';
-        }
-      }
-      setArchiveDates(newDates);
-    };
-    
-    if (chatArchives.length > 0) {
-      loadDates();
+    const newDates: Record<string, string> = {};
+    for (const arch of chatArchives) {
+      const date = new Date(arch.importedAt);
+      newDates[arch.id] = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     }
-  }, [chatArchives, loadArchiveMessages]);
+    setArchiveDates(newDates);
+  }, [chatArchives]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
