@@ -603,7 +603,7 @@ export const ChatInterface: React.FC = () => {
         if (m.role === 'Wade') {
            const idx = m.selectedIndex || 0;
            const thought = m.variantsThinking?.[idx];
-           if (thought) content = `#{@thought}#{@content}`;
+           if (thought) content = `<think>${thought}</think>\n${content}`;
         }
         return { role: m.role, parts: [{ text: content }] };
       }).slice(-15);
