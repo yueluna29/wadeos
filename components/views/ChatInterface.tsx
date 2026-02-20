@@ -278,6 +278,7 @@ export const ChatInterface: React.FC = () => {
   
   // Action Sheet State
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
+  const [archiveTimestamps, setArchiveTimestamps] = useState<Record<string, number>>({});
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
@@ -317,6 +318,7 @@ export const ChatInterface: React.FC = () => {
   useEffect(() => {
     const loadDates = async () => {
       const newDates: Record<string, string> = {};
+      const timestamps: Record<string, number> = {};
       for (const arch of chatArchives) {
         try {
           const messages = await loadArchiveMessages(arch.id);
@@ -328,6 +330,7 @@ export const ChatInterface: React.FC = () => {
               month: 'short',
               day: 'numeric'
             });
+            timestamps[arch.id] = firstMsg.timestamp;
           } else {
             newDates[arch.id] = 'No messages';
           }
@@ -337,6 +340,7 @@ export const ChatInterface: React.FC = () => {
         }
       }
       setArchiveDates(newDates);
+      setArchiveTimestamps(timestamps);
     };
 
     if (chatArchives.length > 0 && viewState === 'list' && activeMode === 'archive') {
