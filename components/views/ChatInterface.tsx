@@ -25,7 +25,8 @@ const Icons = {
   Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>,
   Down: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
   Up: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
-  Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+  Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>,
+  Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
 };
 
 // --- Long Press Hook ---
@@ -270,6 +271,8 @@ export const ChatInterface: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [waitingForSMS, setWaitingForSMS] = useState(false);
+  const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
+  const [lastInputText, setLastInputText] = useState('');
   
   // Archive Viewer State
   const [archiveMessages, setArchiveMessages] = useState<ArchiveMessage[]>([]);
@@ -657,8 +660,12 @@ export const ChatInterface: React.FC = () => {
                 mode: activeMode,
                 variantsThinking: i === 0 && thinking ? [thinking] : [null]
               });
-              if (i === parts.length - 1) setIsTyping(false);
-            }, i * 1500); 
+              if (i === parts.length - 1) {
+                setIsTyping(false);
+                setLastSentMessageId(null);
+                setLastInputText('');
+              }
+            }, i * 1500);
           }
       } else {
         const botMessage: Message = {
@@ -672,6 +679,8 @@ export const ChatInterface: React.FC = () => {
         };
         addMessage(botMessage);
         setIsTyping(false);
+        setLastSentMessageId(null);
+        setLastInputText('');
       }
     } catch (error: any) {
       console.error("Chat Error", error);
@@ -696,15 +705,37 @@ export const ChatInterface: React.FC = () => {
         });
       }
       setIsTyping(false);
+      setLastSentMessageId(null);
+      setLastInputText('');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsTyping(false);
+    setWaitingForSMS(false);
+    if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
+
+    if (lastSentMessageId) {
+      deleteMessage(lastSentMessageId);
+    }
+
+    setInputText(lastInputText);
+    setLastSentMessageId(null);
+    setLastInputText('');
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.focus();
     }
   };
 
   const handleSend = async () => {
-    if (!inputText.trim() || activeMode === 'archive') return; // Disable send in archive
+    if (!inputText.trim() || activeMode === 'archive') return;
     let targetSessionId = activeSessionId;
     if (!targetSessionId) {
       targetSessionId = await createSession(activeMode);
-      setActiveSessionId(targetSessionId); 
+      setActiveSessionId(targetSessionId);
     }
     const currentInput = inputText;
     const isFirstMessage = messagesRef.current.filter(m => m.sessionId === targetSessionId).length === 0;
@@ -717,6 +748,8 @@ export const ChatInterface: React.FC = () => {
       mode: activeMode
     };
     addMessage(newMessage);
+    setLastSentMessageId(newMessage.id);
+    setLastInputText(currentInput);
     setInputText('');
     if (textareaRef.current) textareaRef.current.style.height = '48px';
     if (isFirstMessage) {
@@ -735,7 +768,7 @@ export const ChatInterface: React.FC = () => {
       if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
       smsDebounceTimer.current = setTimeout(() => {
         if (targetSessionId) triggerAIResponse(targetSessionId);
-      }, 60000); 
+      }, 60000);
     } else {
       setIsTyping(true);
       setTimeout(() => {
@@ -1023,8 +1056,13 @@ export const ChatInterface: React.FC = () => {
               rows={1}
               className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-5 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[48px] max-h-[120px]"
             />
-            <Button onClick={handleSend} disabled={isTyping && activeMode !== 'sms'} className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0">
-               <Icons.Send />
+            <Button
+              onClick={(isTyping || waitingForSMS) ? handleCancel : handleSend}
+              className={`w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all ${
+                (isTyping || waitingForSMS) ? 'bg-red-500 hover:bg-red-600' : ''
+              }`}
+            >
+               {(isTyping || waitingForSMS) ? <Icons.Stop /> : <Icons.Send />}
             </Button>
           </div>
         </div>
