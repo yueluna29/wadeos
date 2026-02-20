@@ -308,10 +308,41 @@ export const ChatInterface: React.FC = () => {
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'; 
+      textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [inputText]);
+
+  // Load archive dates when chatArchives change
+  useEffect(() => {
+    const loadDates = async () => {
+      const newDates: Record<string, string> = {};
+      for (const arch of chatArchives) {
+        try {
+          const messages = await loadArchiveMessages(arch.id);
+          if (messages.length > 0) {
+            const firstMsg = messages[0];
+            const date = new Date(firstMsg.timestamp);
+            newDates[arch.id] = date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
+          } else {
+            newDates[arch.id] = 'No messages';
+          }
+        } catch (err) {
+          console.error('Failed to load archive date:', err);
+          newDates[arch.id] = 'Unknown date';
+        }
+      }
+      setArchiveDates(newDates);
+    };
+
+    if (chatArchives.length > 0 && viewState === 'list' && activeMode === 'archive') {
+      loadDates();
+    }
+  }, [chatArchives, loadArchiveMessages, viewState, activeMode]);
 
   // Determine which messages to show
   let displayMessages: Message[] = [];
@@ -703,7 +734,7 @@ export const ChatInterface: React.FC = () => {
                    <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
                       <div className="flex-1 min-w-0">
                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
-                         <p className="text-[10px] text-[#917c71] mt-1">Imported {new Date(arch.importedAt).toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
+                         <p className="text-[10px] text-[#917c71] mt-1">{archiveDates[arch.id] || 'Loading...'}</p>
                       </div>
                       <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
                    </div>
