@@ -734,7 +734,11 @@ export const ChatInterface: React.FC = () => {
               chatArchives.length === 0 ? (
                  <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import them in the Memory Bank.</div>
               ) : (
-                 chatArchives.map(arch => (
+                 [...chatArchives].sort((a, b) => {
+                   const timeA = archiveTimestamps[a.id] || 0;
+                   const timeB = archiveTimestamps[b.id] || 0;
+                   return timeB - timeA;
+                 }).map(arch => (
                    <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
                       <div className="flex-1 min-w-0">
                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
