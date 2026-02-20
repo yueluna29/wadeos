@@ -275,7 +275,9 @@ export const ChatInterface: React.FC = () => {
   const [archiveMessages, setArchiveMessages] = useState<ArchiveMessage[]>([]);
   const [activeArchiveId, setActiveArchiveId] = useState<string | null>(null); // NEW
   const [isLoadingArchive, setIsLoadingArchive] = useState(false);
-  
+  const [archiveScrollPositions, setArchiveScrollPositions] = useState<Record<string, number>>({});
+  const [archiveVisited, setArchiveVisited] = useState<Record<string, boolean>>({});
+
   // Action Sheet State
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
   const [archiveTimestamps, setArchiveTimestamps] = useState<Record<string, number>>({});
@@ -285,6 +287,7 @@ export const ChatInterface: React.FC = () => {
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const smsDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -297,11 +300,27 @@ export const ChatInterface: React.FC = () => {
   useEffect(() => {
     if (viewState === 'chat') {
       setNavHidden(true);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      if (activeMode === 'archive' && activeArchiveId) {
+        const isFirstVisit = !archiveVisited[activeArchiveId];
+        const savedPosition = archiveScrollPositions[activeArchiveId];
+
+        setTimeout(() => {
+          if (messagesContainerRef.current) {
+            if (isFirstVisit) {
+              messagesContainerRef.current.scrollTop = 0;
+              setArchiveVisited(prev => ({ ...prev, [activeArchiveId]: true }));
+            } else if (savedPosition !== undefined) {
+              messagesContainerRef.current.scrollTop = savedPosition;
+            }
+          }
+        }, 100);
+      } else {
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
     } else {
       setNavHidden(false);
     }
-  }, [viewState]);
+  }, [viewState, activeMode, activeArchiveId]);
 
   useEffect(() => {
     return () => setNavHidden(false);
@@ -400,6 +419,12 @@ export const ChatInterface: React.FC = () => {
 
   const handleBack = () => {
     if (viewState === 'chat') {
+      if (activeMode === 'archive' && activeArchiveId && messagesContainerRef.current) {
+        setArchiveScrollPositions(prev => ({
+          ...prev,
+          [activeArchiveId]: messagesContainerRef.current!.scrollTop
+        }));
+      }
       setViewState('list');
       setActiveSessionId(null);
       setActiveArchiveId(null); // Clear active archive
@@ -801,13 +826,13 @@ export const ChatInterface: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 pb-24">
         {isLoadingArchive && <div className="text-center mt-20 text-[#d58f99] animate-pulse">Decrypting legacy data...</div>}
-        
+
         {displayMessages.length === 0 && !isLoadingArchive && (
           <div className="text-center text-[#917c71] mt-20 opacity-50"><p className="font-hand text-xl mb-2">{activeMode === 'archive' ? 'Empty Record.' : 'Say hi to Wade.'}</p></div>
         )}
-        
+
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
              // DYNAMIC SPACING LOGIC
@@ -831,8 +856,20 @@ export const ChatInterface: React.FC = () => {
              );
           })}
         </div>
+        {activeMode === 'archive' && displayMessages.length > 0 && (
+          <div className="mt-8 mb-4 text-center">
+            <div className="inline-block bg-gradient-to-r from-[#f9f6f7] via-white to-[#f9f6f7] px-6 py-4 rounded-3xl border-2 border-[#eae2e8] shadow-sm">
+              <p className="text-[#917c71] text-sm font-medium mb-1">
+                Well, that's all folks!
+              </p>
+              <p className="text-[#917c71]/60 text-xs italic">
+                You've reached the end of this memory lane. Time to make some new ones?
+              </p>
+            </div>
+          </div>
+        )}
         {isTyping && activeMode !== 'sms' && (
-           <div className="flex justify-start items-end gap-2 mt-4 ml-1"> 
+           <div className="flex justify-start items-end gap-2 mt-4 ml-1">
              <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-[#eae2e8]">
                <div className="flex gap-1">
                  <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce"></div>
