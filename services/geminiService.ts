@@ -2,8 +2,12 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { CoreMemory } from "../types";
 
-const getClient = () => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getClient = (apiKey?: string) => {
+  const key = apiKey || process.env.VITE_GEMINI_API_KEY;
+  if (!key) {
+    throw new Error("Gemini API Key not found. Please set VITE_GEMINI_API_KEY or provide apiKey parameter.");
+  }
+  return new GoogleGenAI({ apiKey: key });
 };
 
 // Response interface to handle both text and thinking
@@ -20,10 +24,11 @@ export const generateTextResponse = async (
   lunaInfo?: string,
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [], // NEW: Accept Core Memories
-  isRetry?: boolean, 
-  chatMode?: 'deep' | 'sms' | 'roleplay'
+  isRetry?: boolean,
+  chatMode?: 'deep' | 'sms' | 'roleplay',
+  apiKey?: string
 ): Promise<GeminiResponse> => {
-  const ai = getClient();
+  const ai = getClient(apiKey);
   
   // Transform history for API: Luna -> user, Wade -> model
   const formattedHistory = history.map(h => ({
@@ -109,8 +114,8 @@ export const generateTextResponse = async (
   return { text: finalText, thinking };
 };
 
-export const generateChatTitle = async (firstMessage: string): Promise<string> => {
-  const ai = getClient();
+export const generateChatTitle = async (firstMessage: string, apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   const prompt = `Summarize the following user message into a very short title (max 10 Chinese characters or 5 English words). It's for a chat history list. Message: "${firstMessage}"`;
   
   try {
@@ -127,8 +132,8 @@ export const generateChatTitle = async (firstMessage: string): Promise<string> =
   }
 };
 
-export const generateTTS = async (text: string): Promise<string> => {
-  const ai = getClient();
+export const generateTTS = async (text: string, apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
@@ -148,8 +153,8 @@ export const generateTTS = async (text: string): Promise<string> => {
   return base64Audio;
 };
 
-export const interpretTarot = async (cardName: string, question: string): Promise<string> => {
-  const ai = getClient();
+export const interpretTarot = async (cardName: string, question: string, apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   const prompt = `You are Wade (Deadpool). User drew the tarot card "${cardName}". 
   The user asks: "${question}".
   Give a short, sassy, but insightful interpretation of this card for them. 
@@ -163,8 +168,8 @@ export const interpretTarot = async (cardName: string, question: string): Promis
   return response.text || "Cards are blurry today, babe.";
 };
 
-export const summarizeConversation = async (messages: string[]): Promise<string> => {
-  const ai = getClient();
+export const summarizeConversation = async (messages: string[], apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   const textBlock = messages.join("\n");
   const prompt = `Summarize this roleplay session as a diary entry written by Wade. Be dramatic. \n\n${textBlock}`;
   

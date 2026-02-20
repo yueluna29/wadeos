@@ -426,20 +426,22 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     };
 
     setMessages(prev => [...prev, newMessage]);
-    
-    if (newMessage.sessionId && newMessage.mode !== 'archive') { // Don't persist archive UI messages here
+
+    if (newMessage.sessionId && newMessage.mode !== 'archive') {
       const tableName = getTableName(newMessage.mode);
-      
-      safeDbInsert(tableName, {
-         id: newMessage.id,
-         session_id: newMessage.sessionId,
-         role: newMessage.role,
-         content: newMessage.text, 
-         variants: newMessage.variants, 
-         variants_thinking: newMessage.variantsThinking, 
-         selected_index: 0,
-         created_at: new Date(newMessage.timestamp).toISOString() 
-      });
+
+      (async () => {
+        await safeDbInsert(tableName, {
+           id: newMessage.id,
+           session_id: newMessage.sessionId,
+           role: newMessage.role,
+           content: newMessage.text,
+           variants: newMessage.variants,
+           variants_thinking: newMessage.variantsThinking,
+           selected_index: 0,
+           created_at: new Date(newMessage.timestamp).toISOString()
+        });
+      })();
       
       setSessions(prev => prev.map(s => s.id === newMessage.sessionId ? { ...s, updatedAt: Date.now() } : s));
       supabase.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', newMessage.sessionId).then();

@@ -258,11 +258,11 @@ const MessageBubble = ({
 };
 
 export const ChatInterface: React.FC = () => {
-  const { 
+  const {
     messages, addMessage, updateMessage, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
     sessions, createSession, updateSessionTitle, deleteSession, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
-    coreMemories, 
+    coreMemories, llmPresets,
     chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite // NEW
   } = useStore();
   
@@ -613,16 +613,24 @@ export const ChatInterface: React.FC = () => {
       else if (activeMode === 'roleplay') modePrompt += "\n STYLE: Descriptive roleplay...";
 
       const isRegeneration = !!regenMsgId;
+      const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+      const apiKey = activeLlm?.apiKey;
+
+      if (!apiKey) {
+        throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
+      }
+
       const response = await generateTextResponse(
         activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
-        activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...", 
+        activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
         modePrompt,
         settings.lunaInfo,
         settings.exampleDialogue,
         coreMemories,
         isRegeneration,
-        activeMode as any
+        activeMode as any,
+        apiKey
       );
 
       const responseText = response.text;
@@ -662,8 +670,28 @@ export const ChatInterface: React.FC = () => {
         addMessage(botMessage);
         setIsTyping(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat Error", error);
+      const errorMsg = error?.message || "Failed to generate response. Please check your API settings.";
+      if (errorMsg.includes("API Key")) {
+        addMessage({
+          id: Date.now().toString(),
+          sessionId: targetSessionId,
+          role: 'Wade',
+          text: "Oops! I need you to configure my API in Settings first. Go to Settings → Gemini API and add your key!",
+          timestamp: Date.now(),
+          mode: activeMode
+        });
+      } else {
+        addMessage({
+          id: Date.now().toString(),
+          sessionId: targetSessionId,
+          role: 'Wade',
+          text: `I'm having trouble responding: ${errorMsg}`,
+          timestamp: Date.now(),
+          mode: activeMode
+        });
+      }
       setIsTyping(false);
     }
   };
@@ -689,9 +717,15 @@ export const ChatInterface: React.FC = () => {
     setInputText('');
     if (textareaRef.current) textareaRef.current.style.height = '48px';
     if (isFirstMessage) {
-      generateChatTitle(currentInput).then(title => {
-        if (targetSessionId) updateSessionTitle(targetSessionId, title);
-      });
+      const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+      const apiKey = activeLlm?.apiKey;
+      if (apiKey) {
+        generateChatTitle(currentInput, apiKey).then(title => {
+          if (targetSessionId) updateSessionTitle(targetSessionId, title);
+        }).catch(err => {
+          console.error("Failed to generate title:", err);
+        });
+      }
     }
     if (activeMode === 'sms') {
       setWaitingForSMS(true);
