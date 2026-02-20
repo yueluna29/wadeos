@@ -277,6 +277,7 @@ export const ChatInterface: React.FC = () => {
   const [isLoadingArchive, setIsLoadingArchive] = useState(false);
   const [archiveScrollPositions, setArchiveScrollPositions] = useState<Record<string, number>>({});
   const [archiveVisited, setArchiveVisited] = useState<Record<string, boolean>>({});
+  const [isLoadingArchiveList, setIsLoadingArchiveList] = useState(false);
 
   // Action Sheet State
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
@@ -336,6 +337,12 @@ export const ChatInterface: React.FC = () => {
   // Load archive dates when chatArchives change
   useEffect(() => {
     const loadDates = async () => {
+      if (chatArchives.length === 0) {
+        setIsLoadingArchiveList(false);
+        return;
+      }
+
+      setIsLoadingArchiveList(true);
       const newDates: Record<string, string> = {};
       const timestamps: Record<string, number> = {};
       for (const arch of chatArchives) {
@@ -360,10 +367,13 @@ export const ChatInterface: React.FC = () => {
       }
       setArchiveDates(newDates);
       setArchiveTimestamps(timestamps);
+      setIsLoadingArchiveList(false);
     };
 
     if (chatArchives.length > 0 && viewState === 'list' && activeMode === 'archive') {
       loadDates();
+    } else if (activeMode === 'archive' && viewState === 'list') {
+      setIsLoadingArchiveList(false);
     }
   }, [chatArchives, loadArchiveMessages, viewState, activeMode]);
 
@@ -756,7 +766,9 @@ export const ChatInterface: React.FC = () => {
            
            {/* ARCHIVE LIST LOGIC */}
            {activeMode === 'archive' ? (
-              chatArchives.length === 0 ? (
+              isLoadingArchiveList ? (
+                 <div className="text-center text-[#d58f99] py-10 animate-pulse">Loading archives...</div>
+              ) : chatArchives.length === 0 ? (
                  <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import them in the Memory Bank.</div>
               ) : (
                  [...chatArchives].sort((a, b) => {
