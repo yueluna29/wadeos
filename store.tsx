@@ -446,6 +446,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     await supabase.from('chat_sessions').update({ title }).eq('id', id);
   };
 
+  const toggleSessionPin = async (id: string) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: !s.isPinned, updatedAt: Date.now() } : s));
+    const session = sessions.find(s => s.id === id);
+    if (session) {
+      await supabase.from('chat_sessions').update({
+        is_pinned: !session.isPinned,
+        updated_at: new Date().toISOString()
+      }).eq('id', id);
+    }
+  };
+
   const deleteSession = async (id: string) => {
     setSessions(prev => prev.filter(s => s.id !== id));
     setMessages(prev => prev.filter(m => m.sessionId !== id));
@@ -901,7 +912,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       settings, updateSettings,
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
-      sessions, createSession, updateSessionTitle, deleteSession, activeSessionId, setActiveSessionId,
+      sessions, createSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
       messages, addMessage, updateMessage, deleteMessage, toggleFavorite,
       addVariantToMessage, selectMessageVariant,
       setRegenerating,

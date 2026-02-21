@@ -185,6 +185,7 @@ export interface GlobalState {
   createSession: (mode: ChatMode) => Promise<string>; // Returns new session ID
   updateSessionTitle: (id: string, title: string) => void;
   deleteSession: (id: string) => void;
+  toggleSessionPin: (id: string) => void;
   activeSessionId: string | null;
   setActiveSessionId: (id: string | null) => void;
 

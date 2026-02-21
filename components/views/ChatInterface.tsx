@@ -30,7 +30,8 @@ const Icons = {
   Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>,
   Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
   Map: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
-  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+  Pin: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0-7-9-7-9-7s-9 0-9 7c0 1.5 2 5 9 13 7-8 9-11.5 9-13z"></path></svg>
 };
 
 // --- Long Press Hook ---
@@ -70,14 +71,14 @@ const useLongPress = (callback: () => void, ms = 500) => {
   };
 };
 
-const MessageBubble = ({ 
-  msg, settings, onSelect, isSMS, onPlayTTS 
-}: { 
-  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string) => void
+const MessageBubble = ({
+  msg, settings, onSelect, isSMS, onPlayTTS, searchQuery
+}: {
+  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string) => void, searchQuery?: string
 }) => {
   const isLuna = msg.role === 'Luna';
   const [showThought, setShowThought] = useState(false);
-  
+
   // Format helpers
   const formatTime = (ts: number) => new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const formatDate = (ts: number) => new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -90,7 +91,13 @@ const MessageBubble = ({
   const thinkingContent = msg.variantsThinking?.[idx];
 
   // FIX FOR "|||": Replace separators with visual spacing before rendering
-  const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
+  let displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
+
+  // Highlight search query
+  if (searchQuery && searchQuery.trim() && displayContent.toLowerCase().includes(searchQuery.toLowerCase())) {
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    displayContent = displayContent.replace(regex, '<mark style="background-color: rgba(213, 143, 153, 0.4); color: inherit; padding: 2px 4px; border-radius: 4px;">$1</mark>');
+  }
 
   // -------------------------
   // LOADING / REGENERATING STATE
@@ -153,7 +160,7 @@ const MessageBubble = ({
              )}
 
              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-               <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+               <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ mark: ({node, ...props}) => <mark {...props} /> }}>{displayContent}</ReactMarkdown>
              </div>
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
@@ -267,7 +274,7 @@ const MessageBubble = ({
 export const ChatInterface: React.FC = () => {
   const {
     messages, addMessage, updateMessage, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
-    sessions, createSession, updateSessionTitle, deleteSession, activeSessionId, setActiveSessionId,
+    sessions, createSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
     coreMemories, llmPresets,
     chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite // NEW
@@ -985,12 +992,30 @@ export const ChatInterface: React.FC = () => {
                  <div className="text-center text-[#917c71] text-xs mt-4">No active threads. Start a new one above!</div>
                </div>
              ) : (
-               modeSessions.map(session => (
-                 <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
-                   <div className="flex-1 min-w-0"><h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3><p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
-                   <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
-                 </div>
-               ))
+               [...modeSessions]
+                 .sort((a, b) => {
+                   // First sort by pinned status
+                   if (a.isPinned && !b.isPinned) return -1;
+                   if (!a.isPinned && b.isPinned) return 1;
+                   // Then by updatedAt (most recent first)
+                   return b.updatedAt - a.updatedAt;
+                 })
+                 .map(session => (
+                   <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
+                     <div className="flex-1 min-w-0 flex items-center gap-2">
+                       {session.isPinned && (
+                         <div className="text-[#d58f99] flex-shrink-0">
+                           <Icons.Pin />
+                         </div>
+                       )}
+                       <div className="flex-1 min-w-0">
+                         <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+                         <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                       </div>
+                     </div>
+                     <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
+                   </div>
+                 ))
              )
            )}
         </div>
@@ -1017,7 +1042,14 @@ export const ChatInterface: React.FC = () => {
               className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-md flex-shrink-0"
             />
             <div className="flex flex-col min-w-0">
-              <div className="font-bold text-[#5a4a42] text-sm">Wade</div>
+              <div className="flex items-center gap-1.5">
+                <div className="font-bold text-[#5a4a42] text-sm">Wade</div>
+                {activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned && (
+                  <div className="text-[#d58f99]">
+                    <Icons.Pin />
+                  </div>
+                )}
+              </div>
               <div className="text-[9px] text-[#917c71]">
                 {wadeStatus === 'typing' ? (
                   activeMode === 'deep' ? (
@@ -1064,8 +1096,16 @@ export const ChatInterface: React.FC = () => {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-1.5 px-1 min-w-fit animate-fade-in">
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <button
+              onClick={() => {
+                if (activeSessionId) {
+                  toggleSessionPin(activeSessionId);
+                  setShowMenu(false);
+                }
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+            >
+              <Icons.Pin />
               <span>Pin This Chaos</span>
             </button>
             <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
@@ -1080,18 +1120,12 @@ export const ChatInterface: React.FC = () => {
         </>
       )}
 
-      {/* Messages */}
-      <div
-        ref={messagesContainerRef}
-        onClick={() => showSearch && setShowSearch(false)}
-        className="flex-1 overflow-y-auto p-4 pb-24 relative"
-      >
-        {/* Floating Search Bar */}
-        {showSearch && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="sticky top-0 z-30 mb-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
-          >
+      {/* Floating Search Bar */}
+      {showSearch && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-4 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
+        >
             <div className="flex items-center gap-2">
               <button
                 onClick={goToPrevResult}
@@ -1140,6 +1174,12 @@ export const ChatInterface: React.FC = () => {
           </div>
         )}
 
+      {/* Messages */}
+      <div
+        ref={messagesContainerRef}
+        onClick={() => showSearch && setShowSearch(false)}
+        className="flex-1 overflow-y-auto p-4 pb-24 relative"
+      >
         {isLoadingArchive && <div className="text-center mt-20 text-[#d58f99] animate-pulse">Decrypting legacy data...</div>}
 
         {displayMessages.length === 0 && !isLoadingArchive && (
@@ -1166,6 +1206,7 @@ export const ChatInterface: React.FC = () => {
                     onSelect={setSelectedMsgId}
                     isSMS={activeMode === 'sms'}
                     onPlayTTS={handleQuickTTS}
+                    searchQuery={searchQuery}
                   />
                </div>
              );
@@ -1291,20 +1332,19 @@ export const ChatInterface: React.FC = () => {
             </div>
             <div className="overflow-y-auto p-4 space-y-2 max-h-[calc(70vh-60px)]">
               {displayMessages.map((msg) => {
-                const preview = msg.text.slice(0, 60) + (msg.text.length > 60 ? '...' : '');
                 const isLuna = msg.role === 'Luna';
                 return (
                   <div key={msg.id} className={`flex ${isLuna ? 'justify-end' : 'justify-start'}`}>
                     <button
                       onClick={() => scrollToMessage(msg.id)}
-                      className={`text-left p-3 rounded-xl transition-all hover:scale-[1.02] ${
+                      className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${
                         isLuna
                           ? 'bg-[#d58f99]/20 border border-[#d58f99]/30 max-w-[85%]'
                           : 'bg-white border border-[#eae2e8] w-full'
                       }`}
                     >
-                      <p className={`text-xs leading-relaxed ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
-                        {preview}
+                      <p className={`text-xs truncate ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
+                        {msg.text}
                       </p>
                     </button>
                   </div>
