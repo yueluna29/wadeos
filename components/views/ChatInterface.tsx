@@ -6,6 +6,7 @@ import { generateMinimaxTTS } from '../../services/minimaxService';
 import { Message, ChatMode, ArchiveMessage, ChatArchive } from '../../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { supabase } from '../../services/supabase';
 
 // Simple Icons
 const Icons = {
@@ -91,13 +92,20 @@ const MessageBubble = ({
   const thinkingContent = msg.variantsThinking?.[idx];
 
   // FIX FOR "|||": Replace separators with visual spacing before rendering
-  let displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
+  const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
 
-  // Highlight search query
-  if (searchQuery && searchQuery.trim() && displayContent.toLowerCase().includes(searchQuery.toLowerCase())) {
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    displayContent = displayContent.replace(regex, '<mark style="background-color: rgba(213, 143, 153, 0.4); color: inherit; padding: 2px 4px; border-radius: 4px;">$1</mark>');
-  }
+  // Highlight search query helper
+  const highlightText = (text: string, query: string) => {
+    if (!query || !query.trim()) return text;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase()
+        ? `**${part}**`
+        : part
+    ).join('');
+  };
+
+  const contentToRender = searchQuery ? highlightText(displayContent, searchQuery) : displayContent;
 
   // -------------------------
   // LOADING / REGENERATING STATE
@@ -160,7 +168,7 @@ const MessageBubble = ({
              )}
 
              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-               <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ mark: ({node, ...props}) => <mark {...props} /> }}>{displayContent}</ReactMarkdown>
+               <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ mark: ({node, ...props}) => <mark {...props} /> }}>{contentToRender}</ReactMarkdown>
              </div>
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
@@ -232,7 +240,7 @@ const MessageBubble = ({
 
              {/* MAIN TEXT */}
              <div className="px-5 py-3 text-[14px] leading-relaxed markdown-content">
-               <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+               <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentToRender}</ReactMarkdown>
              </div>
         </div>
       </div>
@@ -264,7 +272,7 @@ const MessageBubble = ({
          className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-5 py-3 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
          <div className="text-[14px] leading-relaxed markdown-content">
-           <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+           <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentToRender}</ReactMarkdown>
          </div>
       </div>
     </div>
@@ -311,6 +319,9 @@ export const ChatInterface: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
+  const [showLlmSelector, setShowLlmSelector] = useState(false);
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [customPromptText, setCustomPromptText] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -1106,17 +1117,70 @@ export const ChatInterface: React.FC = () => {
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <Icons.Pin />
-              <span>Pin This Chaos</span>
+              <span>
+                {activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned
+                  ? "Unpin The Madness"
+                  : "Pin This Chaos"}
+              </span>
             </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
+            <button
+              onClick={() => {
+                setShowLlmSelector(!showLlmSelector);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>
               <span>Switch My Brain</span>
             </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
+            <button
+              onClick={() => {
+                setShowPromptEditor(true);
+                setShowMenu(false);
+                const currentSession = sessions.find(s => s.id === activeSessionId);
+                setCustomPromptText(currentSession?.customPrompt || '');
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
               <span>Add Spice Words</span>
             </button>
           </div>
+
+          {/* LLM Selector Dropdown */}
+          {showLlmSelector && (
+            <div className="absolute top-full mt-1 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-2 px-2 min-w-[200px] max-h-[300px] overflow-y-auto animate-fade-in">
+              {llmPresets.length === 0 ? (
+                <div className="px-3 py-2 text-[10px] text-[#917c71] text-center italic">No presets configured</div>
+              ) : (
+                llmPresets.map((preset) => {
+                  const currentSession = sessions.find(s => s.id === activeSessionId);
+                  const isActive = currentSession?.customLlmId === preset.id || (!currentSession?.customLlmId && settings.activeLlmId === preset.id);
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={async () => {
+                        if (activeSessionId) {
+                          await supabase.from('chat_sessions').update({ custom_llm_id: preset.id }).eq('id', activeSessionId);
+                          window.location.reload();
+                        }
+                        setShowLlmSelector(false);
+                        setShowMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-[11px] flex items-center justify-between ${
+                        isActive ? 'bg-[#d58f99]/20 text-[#d58f99] font-bold' : 'text-[#5a4a42] hover:bg-white/60'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span>{preset.name}</span>
+                        <span className="text-[9px] text-[#917c71] opacity-70">{preset.model}</span>
+                      </div>
+                      {isActive && <span className="text-[#d58f99]">✓</span>}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -1124,7 +1188,7 @@ export const ChatInterface: React.FC = () => {
       {showSearch && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
+          className="absolute top-20 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
         >
             <div className="flex items-center gap-2">
               <button
@@ -1139,8 +1203,8 @@ export const ChatInterface: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Hunt down the words..."
-                  className="w-full px-4 py-2 pr-20 text-sm bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
+                  placeholder="Hunt words..."
+                  className="w-full px-4 py-2 pr-20 text-xs bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
                   autoFocus
                 />
                 {searchQuery && (
@@ -1350,6 +1414,49 @@ export const ChatInterface: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Custom Prompt Editor Modal */}
+      {showPromptEditor && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowPromptEditor(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-[#eae2e8]/50 max-h-[60vh] overflow-hidden animate-slide-up">
+            <div className="p-4 border-b border-[#eae2e8]/50 flex items-center justify-between">
+              <h3 className="font-bold text-[#5a4a42] text-sm">Spice It Up</h3>
+              <button onClick={() => setShowPromptEditor(false)} className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
+                <Icons.Close />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(60vh-120px)]">
+              <textarea
+                value={customPromptText}
+                onChange={(e) => setCustomPromptText(e.target.value)}
+                placeholder="Add extra instructions just for this conversation... Make Wade sassier? More romantic? Channel specific vibes? Type it here!"
+                className="w-full h-[200px] bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] text-sm placeholder-[#917c71]/50 resize-none"
+              />
+            </div>
+            <div className="p-4 border-t border-[#eae2e8]/50 flex gap-2 justify-end">
+              <button
+                onClick={() => setShowPromptEditor(false)}
+                className="px-4 py-2 text-sm text-[#917c71] hover:text-[#5a4a42] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (activeSessionId) {
+                    await supabase.from('chat_sessions').update({ custom_prompt: customPromptText }).eq('id', activeSessionId);
+                    window.location.reload();
+                  }
+                  setShowPromptEditor(false);
+                }}
+                className="px-4 py-2 bg-[#d58f99] text-white rounded-full text-sm font-bold hover:bg-[#c07a84] transition-colors shadow-sm"
+              >
+                Save Spice
+              </button>
             </div>
           </div>
         </>

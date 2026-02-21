@@ -43,9 +43,15 @@
         background: #c07a84; 
       }
       /* Markdown Styles - Tighter for Novel Feel */
+      .markdown-content { white-space: pre-wrap; }
       .markdown-content p { margin-bottom: 0.8em; }
       .markdown-content p:last-child { margin-bottom: 0; }
-      .markdown-content strong { font-weight: 800; }
+      .markdown-content strong {
+        font-weight: 800;
+        background-color: rgba(213, 143, 153, 0.35);
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
       .markdown-content em { font-style: italic; opacity: 0.9; }
       .markdown-content blockquote { border-left: 3px solid #d58f99; padding-left: 1em; margin-left: 0; font-style: italic; opacity: 0.8; }
 
