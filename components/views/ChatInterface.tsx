@@ -149,7 +149,7 @@ const MessageBubble = ({
                </div>
              )}
 
-             <div className={`text-[15px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+             <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
              </div>
           </div>
@@ -221,7 +221,7 @@ const MessageBubble = ({
              )}
 
              {/* MAIN TEXT */}
-             <div className="px-5 py-3 text-[15px] leading-relaxed markdown-content">
+             <div className="px-5 py-3 text-[14px] leading-relaxed markdown-content">
                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
              </div>
         </div>
@@ -253,7 +253,7 @@ const MessageBubble = ({
          style={{ WebkitTouchCallout: 'none' }}
          className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-5 py-3 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
-         <div className="text-[15px] leading-relaxed markdown-content">
+         <div className="text-[14px] leading-relaxed markdown-content">
            <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
          </div>
       </div>
@@ -964,9 +964,10 @@ export const ChatInterface: React.FC = () => {
           </div>
         ) : (activeMode === 'deep' || activeMode === 'sms') ? (
           <div className="flex-1 flex items-center gap-3 ml-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E23636] to-[#8B0000] flex items-center justify-center text-white font-bold shadow-md flex-shrink-0">
-              W
-            </div>
+            <img
+              src={settings.wadeAvatar}
+              className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-md flex-shrink-0"
+            />
             <div className="flex flex-col min-w-0">
               <div className="font-bold text-[#5a4a42] text-sm">Wade</div>
               <div className="text-[9px] text-[#917c71]">
