@@ -94,18 +94,37 @@ const MessageBubble = ({
   // FIX FOR "|||": Replace separators with visual spacing before rendering
   const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
 
-  // Highlight search query helper
-  const highlightText = (text: string, query: string) => {
-    if (!query || !query.trim()) return text;
-    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-    return parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase()
-        ? `**${part}**`
-        : part
-    ).join('');
-  };
+  // Custom text component for search highlighting
+  const HighlightedText = ({ children, query }: { children: string, query?: string }) => {
+    if (!query || !query.trim()) {
+      return <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>;
+    }
 
-  const contentToRender = searchQuery ? highlightText(displayContent, searchQuery) : displayContent;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = children.split(regex);
+
+    return (
+      <span>
+        {parts.map((part, i) => {
+          if (part.toLowerCase() === query.toLowerCase()) {
+            return (
+              <span
+                key={i}
+                style={{
+                  backgroundColor: 'rgba(213, 143, 153, 0.35)',
+                  padding: '2px 4px',
+                  borderRadius: '4px'
+                }}
+              >
+                {part}
+              </span>
+            );
+          }
+          return <ReactMarkdown key={i} remarkPlugins={[remarkGfm]}>{part}</ReactMarkdown>;
+        })}
+      </span>
+    );
+  };
 
   // -------------------------
   // LOADING / REGENERATING STATE
@@ -168,7 +187,7 @@ const MessageBubble = ({
              )}
 
              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-               <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ mark: ({node, ...props}) => <mark {...props} /> }}>{contentToRender}</ReactMarkdown>
+               <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
              </div>
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
@@ -240,7 +259,7 @@ const MessageBubble = ({
 
              {/* MAIN TEXT */}
              <div className="px-5 py-3 text-[14px] leading-relaxed markdown-content">
-               <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentToRender}</ReactMarkdown>
+               <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
              </div>
         </div>
       </div>
@@ -272,7 +291,7 @@ const MessageBubble = ({
          className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-5 py-3 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
          <div className="text-[14px] leading-relaxed markdown-content">
-           <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentToRender}</ReactMarkdown>
+           <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
          </div>
       </div>
     </div>
@@ -695,6 +714,7 @@ export const ChatInterface: React.FC = () => {
         throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
       }
 
+      const currentSession = sessions.find(s => s.id === activeSessionId);
       const response = await generateTextResponse(
         activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
@@ -712,7 +732,8 @@ export const ChatInterface: React.FC = () => {
           topK: activeLlm.topK,
           frequencyPenalty: activeLlm.frequencyPenalty,
           presencePenalty: activeLlm.presencePenalty
-        } : undefined
+        } : undefined,
+        currentSession?.customPrompt
       );
 
       const responseText = response.text;
@@ -1105,7 +1126,7 @@ export const ChatInterface: React.FC = () => {
       {/* Menu Dropdown */}
       {showMenu && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
           <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-1.5 px-1 min-w-fit animate-fade-in">
             <button
               onClick={() => {
@@ -1145,10 +1166,14 @@ export const ChatInterface: React.FC = () => {
               <span>Add Spice Words</span>
             </button>
           </div>
+        </>
+      )}
 
-          {/* LLM Selector Dropdown */}
-          {showLlmSelector && (
-            <div className="absolute top-full mt-1 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-2 px-2 min-w-[200px] max-h-[300px] overflow-y-auto animate-fade-in">
+      {/* LLM Selector Dropdown */}
+      {showLlmSelector && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowLlmSelector(false)} />
+          <div className="absolute top-16 right-4 z-50 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-2 px-2 min-w-[200px] max-w-[280px] max-h-[300px] overflow-y-auto animate-fade-in" style={{ marginTop: '52px' }}>
               {llmPresets.length === 0 ? (
                 <div className="px-3 py-2 text-[10px] text-[#917c71] text-center italic">No presets configured</div>
               ) : (
@@ -1179,8 +1204,7 @@ export const ChatInterface: React.FC = () => {
                   );
                 })
               )}
-            </div>
-          )}
+          </div>
         </>
       )}
 

@@ -33,7 +33,8 @@ export const generateTextResponse = async (
     topK?: number;
     frequencyPenalty?: number;
     presencePenalty?: number;
-  }
+  },
+  customPrompt?: string
 ): Promise<GeminiResponse> => {
   const ai = getClient(apiKey);
   
@@ -60,6 +61,11 @@ export const generateTextResponse = async (
 
   if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
+  }
+
+  // Add custom prompt with HIGH priority
+  if (customPrompt && customPrompt.trim()) {
+    fullSystemPrompt += `\n\n[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]`;
   }
 
   // If this is a regeneration attempt, add the "Fourth Wall Complaint" logic
