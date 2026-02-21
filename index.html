@@ -43,11 +43,44 @@
         background: #c07a84; 
       }
       /* Markdown Styles - Tighter for Novel Feel */
-      .markdown-content p { margin-bottom: 0.8em; } 
+      .markdown-content p { margin-bottom: 0.8em; }
       .markdown-content p:last-child { margin-bottom: 0; }
       .markdown-content strong { font-weight: 800; }
       .markdown-content em { font-style: italic; opacity: 0.9; }
       .markdown-content blockquote { border-left: 3px solid #d58f99; padding-left: 1em; margin-left: 0; font-style: italic; opacity: 0.8; }
+
+      /* Search & Map Animations */
+      @keyframes slide-up {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-up {
+        animation: slide-up 0.3s ease-out;
+      }
+
+      /* Search Highlight */
+      .highlight-search {
+        animation: highlight-pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes highlight-pulse {
+        0%, 100% { background-color: transparent; }
+        50% { background-color: rgba(213, 143, 153, 0.1); }
+      }
+
+      /* Message Flash Highlight */
+      .highlight-flash {
+        animation: flash-highlight 2s ease-out;
+      }
+      @keyframes flash-highlight {
+        0% { background-color: rgba(213, 143, 153, 0.3); }
+        100% { background-color: transparent; }
+      }
     </style>
   <script type="importmap">
 {

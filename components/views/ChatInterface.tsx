@@ -27,7 +27,10 @@ const Icons = {
   Down: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
   Up: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
   Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>,
-  Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+  Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>,
+  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+  Map: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 };
 
 // --- Long Press Hook ---
@@ -295,6 +298,11 @@ export const ChatInterface: React.FC = () => {
   const [editContent, setEditContent] = useState('');
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Search & Map State
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showMap, setShowMap] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -857,6 +865,16 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`msg-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+    }
+    setShowMap(false);
+  };
+
   // --- RENDER ---
   
   if (viewState === 'menu') { 
@@ -989,12 +1007,26 @@ export const ChatInterface: React.FC = () => {
           </div>
         )}
 
-        <button
-          onClick={() => setShowMenu(!showMenu)}
-          className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors relative"
-        >
-          <Icons.More />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setShowSearch(!showSearch); setShowMap(false); }}
+            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"
+          >
+            <Icons.Search />
+          </button>
+          <button
+            onClick={() => { setShowMap(!showMap); setShowSearch(false); }}
+            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"
+          >
+            <Icons.Map />
+          </button>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors relative"
+          >
+            <Icons.More />
+          </button>
+        </div>
       </div>
 
       {/* Menu Dropdown */}
@@ -1018,6 +1050,37 @@ export const ChatInterface: React.FC = () => {
         </>
       )}
 
+      {/* Search Bar */}
+      {showSearch && (
+        <div className="w-full px-4 py-3 bg-white/95 backdrop-blur-md border-b border-[#eae2e8] shadow-sm z-20">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="搜索对话内容..."
+                className="w-full px-4 py-2 pr-8 text-sm bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#917c71] hover:text-[#d58f99]"
+                >
+                  <Icons.Close />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowSearch(false)}
+              className="px-3 py-2 text-xs text-[#917c71] hover:text-[#d58f99] transition-colors"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 pb-24">
@@ -1037,10 +1100,12 @@ export const ChatInterface: React.FC = () => {
                 else marginBottom = 'mb-4';
              }
 
+             const shouldHighlight = searchQuery && msg.text.toLowerCase().includes(searchQuery.toLowerCase());
+
              return (
-               <div key={msg.id} className={marginBottom}>
-                  <MessageBubble 
-                    msg={msg} 
+               <div key={msg.id} id={`msg-${msg.id}`} className={`${marginBottom} ${shouldHighlight ? 'highlight-search' : ''}`}>
+                  <MessageBubble
+                    msg={msg}
                     settings={settings}
                     onSelect={setSelectedMsgId}
                     isSMS={activeMode === 'sms'}
@@ -1153,6 +1218,50 @@ export const ChatInterface: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        </>
+      )}
+
+      {/* Conversation Map Modal */}
+      {showMap && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowMap(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-[#eae2e8]/50 max-h-[70vh] overflow-hidden animate-slide-up">
+            <div className="p-4 border-b border-[#eae2e8]/50 flex items-center justify-between">
+              <h3 className="font-bold text-[#5a4a42] text-sm">对话地图</h3>
+              <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
+                <Icons.Close />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2 max-h-[calc(70vh-60px)]">
+              {displayMessages.map((msg) => {
+                const preview = msg.text.slice(0, 60) + (msg.text.length > 60 ? '...' : '');
+                const isLuna = msg.role === 'Luna';
+                return (
+                  <button
+                    key={msg.id}
+                    onClick={() => scrollToMessage(msg.id)}
+                    className={`w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02] ${
+                      isLuna
+                        ? 'bg-[#d58f99]/20 border border-[#d58f99]/30 ml-auto max-w-[85%]'
+                        : 'bg-white border border-[#eae2e8] w-full'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-bold ${isLuna ? 'text-[#d58f99]' : 'text-[#5a4a42]'}`}>
+                        {msg.role}
+                      </span>
+                      <span className="text-[9px] text-[#917c71]/60">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                    </div>
+                    <p className={`text-xs leading-relaxed ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
+                      {preview}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </>
       )}
