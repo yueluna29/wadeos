@@ -149,7 +149,7 @@ const MessageBubble = ({
                </div>
              )}
 
-             <div className={`text-sm md:text-base leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+             <div className={`text-[15px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
              </div>
           </div>
@@ -221,7 +221,7 @@ const MessageBubble = ({
              )}
 
              {/* MAIN TEXT */}
-             <div className="px-5 py-3 text-base leading-relaxed markdown-content">
+             <div className="px-5 py-3 text-[15px] leading-relaxed markdown-content">
                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
              </div>
         </div>
@@ -253,7 +253,7 @@ const MessageBubble = ({
          style={{ WebkitTouchCallout: 'none' }}
          className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-5 py-3 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
-         <div className="text-base leading-relaxed markdown-content">
+         <div className="text-[15px] leading-relaxed markdown-content">
            <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
          </div>
       </div>
@@ -274,6 +274,7 @@ export const ChatInterface: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [waitingForSMS, setWaitingForSMS] = useState(false);
+  const [wadeStatus, setWadeStatus] = useState<'online' | 'typing'>('online');
   const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
   const [lastInputText, setLastInputText] = useState('');
   const [delayTimer, setDelayTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -625,10 +626,15 @@ export const ChatInterface: React.FC = () => {
   const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
     abortControllerRef.current = new AbortController();
 
-    if (regenMsgId) setRegenerating(regenMsgId, true);
-    else {
+    if (regenMsgId) {
+      setRegenerating(regenMsgId, true);
+      setWadeStatus('typing');
+    } else {
       setIsTyping(true);
       setWaitingForSMS(false);
+      if (activeMode === 'deep' || activeMode === 'roleplay') {
+        setWadeStatus('typing');
+      }
     }
     try {
       const freshMessages = messagesRef.current.filter(m => m.sessionId === targetSessionId);
@@ -705,6 +711,7 @@ export const ChatInterface: React.FC = () => {
               });
               if (i === parts.length - 1) {
                 setIsTyping(false);
+                setWadeStatus('online');
                 setLastSentMessageId(null);
                 setLastInputText('');
               }
@@ -722,6 +729,7 @@ export const ChatInterface: React.FC = () => {
         };
         addMessage(botMessage);
         setIsTyping(false);
+        setWadeStatus('online');
         setLastSentMessageId(null);
         setLastInputText('');
       }
@@ -752,6 +760,7 @@ export const ChatInterface: React.FC = () => {
         });
       }
       setIsTyping(false);
+      setWadeStatus('online');
       setLastSentMessageId(null);
       setLastInputText('');
     } finally {
@@ -772,6 +781,7 @@ export const ChatInterface: React.FC = () => {
 
     setIsTyping(false);
     setWaitingForSMS(false);
+    setWadeStatus('online');
     if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
 
     if (lastSentMessageId) {
@@ -826,8 +836,11 @@ export const ChatInterface: React.FC = () => {
       setWaitingForSMS(true);
       if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
       smsDebounceTimer.current = setTimeout(() => {
-        if (targetSessionId) triggerAIResponse(targetSessionId);
-      }, 60000);
+        setWadeStatus('typing');
+        setTimeout(() => {
+          if (targetSessionId) triggerAIResponse(targetSessionId);
+        }, 2000);
+      }, 58000);
     } else {
       setIsTyping(true);
       const timer = setTimeout(() => {
@@ -943,13 +956,37 @@ export const ChatInterface: React.FC = () => {
       <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center justify-between z-20">
         <button onClick={handleBack} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"><Icons.Back /></button>
 
-        <div className="flex-1 flex justify-center">
-          <div className="font-bold text-[#5a4a42] text-base">
-            {activeMode === 'archive'
-              ? (activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive' : 'Archive')
-              : 'Wade'}
+        {activeMode === 'archive' ? (
+          <div className="flex-1 flex justify-center">
+            <div className="font-bold text-[#5a4a42] text-base">
+              {activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive' : 'Archive'}
+            </div>
           </div>
-        </div>
+        ) : (activeMode === 'deep' || activeMode === 'sms') ? (
+          <div className="flex-1 flex items-center gap-3 ml-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E23636] to-[#8B0000] flex items-center justify-center text-white font-bold shadow-md flex-shrink-0">
+              W
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="font-bold text-[#5a4a42] text-sm">Wade</div>
+              <div className="text-[9px] text-[#917c71]">
+                {wadeStatus === 'typing' ? (
+                  activeMode === 'deep' ? (
+                    <span className="text-[#d58f99]">Crafting brilliance... or sarcasm</span>
+                  ) : (
+                    <span className="text-[#d58f99]">typing...</span>
+                  )
+                ) : (
+                  <span>Online</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex justify-center">
+            <div className="font-bold text-[#5a4a42] text-base">Wade</div>
+          </div>
+        )}
 
         <button
           onClick={() => setShowMenu(!showMenu)}
@@ -963,17 +1000,17 @@ export const ChatInterface: React.FC = () => {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-16 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-[#eae2e8] p-2 min-w-[200px] animate-fade-in">
-            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
-              <span>📌</span>
+          <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-1.5 px-1 min-w-fit animate-fade-in">
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
               <span>置顶对话</span>
             </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
-              <span>🤖</span>
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>
               <span>选择模型</span>
             </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#f9f6f7] transition-colors text-[#5a4a42] text-sm flex items-center gap-3">
-              <span>✍️</span>
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
               <span>追加提示词</span>
             </button>
           </div>
