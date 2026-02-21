@@ -313,7 +313,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       frequency_penalty: p.frequencyPenalty,
       presence_penalty: p.presencePenalty
     }).select().single();
-    if (data && !error) {
+
+    if (error) {
+      console.error('Failed to add LLM preset:', error);
+      throw new Error(error.message || 'Failed to add LLM preset');
+    }
+
+    if (data) {
       setLlmPresets(prev => [...prev, {
         id: data.id,
         provider: data.provider,
@@ -344,9 +350,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       frequency_penalty: p.frequencyPenalty,
       presence_penalty: p.presencePenalty
     }).eq('id', id);
-    if (!error) {
-      setLlmPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
+
+    if (error) {
+      console.error('Failed to update LLM preset:', error);
+      throw new Error(error.message || 'Failed to update LLM preset');
     }
+
+    setLlmPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
   };
   const deleteLlmPreset = async (id: string) => {
     await supabase.from('llm_presets').delete().eq('id', id);
@@ -368,7 +378,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       format: p.format,
       channel: p.channel
     }).select().single();
-    if (data && !error) {
+
+    if (error) {
+      console.error('Failed to add TTS preset:', error);
+      throw new Error(error.message || 'Failed to add TTS preset');
+    }
+
+    if (data) {
       setTtsPresets(prev => [...prev, {
         id: data.id,
         name: data.name,
@@ -403,9 +419,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       format: p.format,
       channel: p.channel
     }).eq('id', id);
-    if (!error) {
-      setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
+
+    if (error) {
+      console.error('Failed to update TTS preset:', error);
+      throw new Error(error.message || 'Failed to update TTS preset');
     }
+
+    setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
   };
   const deleteTtsPreset = async (id: string) => {
     await supabase.from('tts_presets').delete().eq('id', id);

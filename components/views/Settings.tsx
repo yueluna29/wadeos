@@ -25,8 +25,8 @@ const THEMES = [
 
 // Provider Presets
 const PROVIDERS = [
-  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com', defaultModel: 'gemini-2.0-flash-exp' },
-  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com', defaultModel: 'claude-3-5-sonnet-20241022' },
+  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', defaultModel: 'gemini-2.0-flash-exp' },
+  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com/v1/messages', defaultModel: 'claude-3-5-sonnet-20241022' },
   { value: 'OpenAI', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
   { value: 'DeepSeek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat' },
   { value: 'OpenRouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', defaultModel: '' },
@@ -71,21 +71,46 @@ export const Settings: React.FC = () => {
   };
 
   const fetchModelsFromProvider = async (provider: string, apiKey: string, baseUrl: string) => {
-    if (provider !== 'OpenRouter' || !apiKey) return;
+    if (!apiKey) return;
+
     setFetchingModels(true);
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`
+      if (provider === 'Gemini') {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+        const data = await response.json();
+        if (data.models && Array.isArray(data.models)) {
+          const models = data.models
+            .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+            .map((m: any) => m.name.replace('models/', ''));
+          setAvailableModels(models);
         }
-      });
-      const data = await response.json();
-      if (data.data && Array.isArray(data.data)) {
-        const models = data.data.map((m: any) => m.id);
-        setAvailableModels(models);
+      } else if (provider === 'Claude') {
+        const response = await fetch('https://api.anthropic.com/v1/models', {
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          }
+        });
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          const models = data.data.map((m: any) => m.id);
+          setAvailableModels(models);
+        }
+      } else if (provider === 'OpenRouter') {
+        const response = await fetch('https://openrouter.ai/api/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          const models = data.data.map((m: any) => m.id);
+          setAvailableModels(models);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch models:', error);
+      setAvailableModels([]);
     } finally {
       setFetchingModels(false);
     }
@@ -101,7 +126,7 @@ export const Settings: React.FC = () => {
         model: preset.defaultModel,
         name: prev.name || preset.label
       }));
-      if (provider === 'OpenRouter' && formData.apiKey) {
+      if ((provider === 'Gemini' || provider === 'Claude' || provider === 'OpenRouter') && formData.apiKey) {
         fetchModelsFromProvider(provider, formData.apiKey, preset.baseUrl);
       }
     }
@@ -135,46 +160,61 @@ export const Settings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.apiKey) return alert("Missing required fields.");
-
-    const cleanBaseUrl = formData.baseUrl.replace(/\/$/, ''); // Remove trailing slash
-
-    if (activeTab === 'llm') {
-      const payload = {
-        provider: formData.provider,
-        name: formData.name,
-        model: formData.model,
-        apiKey: formData.apiKey,
-        baseUrl: cleanBaseUrl,
-        apiPath: '',
-        temperature: formData.temperature,
-        topP: formData.topP,
-        topK: formData.topK,
-        frequencyPenalty: formData.frequencyPenalty,
-        presencePenalty: formData.presencePenalty
-      };
-      if (editingId) await updateLlmPreset(editingId, payload);
-      else await addLlmPreset(payload);
-    } else if (activeTab === 'tts') {
-      const payload = {
-        name: formData.name,
-        model: formData.model,
-        apiKey: formData.apiKey,
-        baseUrl: cleanBaseUrl,
-        voiceId: formData.voiceId,
-        emotion: formData.emotion,
-        speed: formData.speed,
-        vol: formData.vol,
-        pitch: formData.pitch,
-        sampleRate: formData.sampleRate,
-        bitrate: formData.bitrate,
-        format: formData.format,
-        channel: formData.channel
-      };
-      if (editingId) await updateTtsPreset(editingId, payload);
-      else await addTtsPreset(payload);
+    if (!formData.name || !formData.apiKey) {
+      alert("Missing required fields: Name and API Key are required.");
+      return;
     }
-    resetForm();
+
+    const cleanBaseUrl = formData.baseUrl.replace(/\/$/, '');
+
+    try {
+      if (activeTab === 'llm') {
+        const payload = {
+          provider: formData.provider,
+          name: formData.name,
+          model: formData.model,
+          apiKey: formData.apiKey,
+          baseUrl: cleanBaseUrl,
+          apiPath: '',
+          temperature: formData.temperature,
+          topP: formData.topP,
+          topK: formData.topK,
+          frequencyPenalty: formData.frequencyPenalty,
+          presencePenalty: formData.presencePenalty
+        };
+        if (editingId) {
+          await updateLlmPreset(editingId, payload);
+        } else {
+          await addLlmPreset(payload);
+        }
+      } else if (activeTab === 'tts') {
+        const payload = {
+          name: formData.name,
+          model: formData.model,
+          apiKey: formData.apiKey,
+          baseUrl: cleanBaseUrl,
+          voiceId: formData.voiceId,
+          emotion: formData.emotion,
+          speed: formData.speed,
+          vol: formData.vol,
+          pitch: formData.pitch,
+          sampleRate: formData.sampleRate,
+          bitrate: formData.bitrate,
+          format: formData.format,
+          channel: formData.channel
+        };
+        if (editingId) {
+          await updateTtsPreset(editingId, payload);
+        } else {
+          await addTtsPreset(payload);
+        }
+      }
+
+      resetForm();
+    } catch (error: any) {
+      console.error('Failed to save preset:', error);
+      alert(`Failed to save connection: ${error.message || 'Unknown error'}`);
+    }
   };
 
   const handleDeleteClick = async (id: string, type: 'llm' | 'tts') => {
@@ -405,8 +445,8 @@ export const Settings: React.FC = () => {
 
               <input className="input-field col-span-2" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => {
                 setFormData({...formData, apiKey: e.target.value});
-                if (activeTab === 'llm' && formData.provider === 'OpenRouter' && e.target.value) {
-                  fetchModelsFromProvider('OpenRouter', e.target.value, formData.baseUrl);
+                if (activeTab === 'llm' && (formData.provider === 'Gemini' || formData.provider === 'Claude' || formData.provider === 'OpenRouter') && e.target.value) {
+                  fetchModelsFromProvider(formData.provider, e.target.value, formData.baseUrl);
                 }
               }} />
               <input className="input-field col-span-2" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
