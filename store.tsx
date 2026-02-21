@@ -446,6 +446,19 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     await supabase.from('chat_sessions').update({ title }).eq('id', id);
   };
 
+  const updateSession = async (id: string, updates: Partial<ChatSession>) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, ...updates, updatedAt: Date.now() } : s));
+    const dbUpdates: any = {};
+    if (updates.customLlmId !== undefined) dbUpdates.custom_llm_id = updates.customLlmId;
+    if (updates.customPrompt !== undefined) dbUpdates.custom_prompt = updates.customPrompt;
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.isPinned !== undefined) dbUpdates.is_pinned = updates.isPinned;
+    if (Object.keys(dbUpdates).length > 0) {
+      dbUpdates.updated_at = new Date().toISOString();
+      await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
+    }
+  };
+
   const toggleSessionPin = async (id: string) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: !s.isPinned, updatedAt: Date.now() } : s));
     const session = sessions.find(s => s.id === id);
@@ -912,7 +925,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       settings, updateSettings,
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
-      sessions, createSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
+      sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
       messages, addMessage, updateMessage, deleteMessage, toggleFavorite,
       addVariantToMessage, selectMessageVariant,
       setRegenerating,

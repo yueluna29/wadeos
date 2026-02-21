@@ -94,36 +94,51 @@ const MessageBubble = ({
   // FIX FOR "|||": Replace separators with visual spacing before rendering
   const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
 
-  // Custom text component for search highlighting
-  const HighlightedText = ({ children, query }: { children: string, query?: string }) => {
-    if (!query || !query.trim()) {
-      return <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>;
-    }
+  // Custom markdown renderer with search highlighting
+  const MarkdownWithHighlight = ({ content, query }: { content: string, query?: string }) => {
+    const components = React.useMemo(() => {
+      if (!query || !query.trim()) return {};
 
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = children.split(regex);
+      return {
+        p: ({ children, ...props }: any) => {
+          const highlightText = (node: any): any => {
+            if (typeof node === 'string') {
+              const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+              const parts = node.split(regex);
+              return parts.map((part: string, i: number) =>
+                part.toLowerCase() === query.toLowerCase()
+                  ? <mark key={i} style={{ backgroundColor: 'rgba(213, 143, 153, 0.35)', padding: '2px 4px', borderRadius: '4px', fontWeight: 'inherit' }}>{part}</mark>
+                  : part
+              );
+            }
+            if (Array.isArray(node)) {
+              return node.map((child, i) => <React.Fragment key={i}>{highlightText(child)}</React.Fragment>);
+            }
+            return node;
+          };
 
-    return (
-      <span>
-        {parts.map((part, i) => {
-          if (part.toLowerCase() === query.toLowerCase()) {
-            return (
-              <span
-                key={i}
-                style={{
-                  backgroundColor: 'rgba(213, 143, 153, 0.35)',
-                  padding: '2px 4px',
-                  borderRadius: '4px'
-                }}
-              >
-                {part}
-              </span>
-            );
-          }
-          return <ReactMarkdown key={i} remarkPlugins={[remarkGfm]}>{part}</ReactMarkdown>;
-        })}
-      </span>
-    );
+          return <p {...props}>{highlightText(children)}</p>;
+        },
+        strong: ({ children, ...props }: any) => {
+          const highlightText = (node: any): any => {
+            if (typeof node === 'string') {
+              const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+              const parts = node.split(regex);
+              return parts.map((part: string, i: number) =>
+                part.toLowerCase() === query.toLowerCase()
+                  ? <mark key={i} style={{ backgroundColor: 'rgba(213, 143, 153, 0.35)', padding: '2px 4px', borderRadius: '4px', fontWeight: 'inherit' }}>{part}</mark>
+                  : part
+              );
+            }
+            return node;
+          };
+
+          return <strong {...props}>{highlightText(children)}</strong>;
+        }
+      };
+    }, [query]);
+
+    return <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{content}</ReactMarkdown>;
   };
 
   // -------------------------
@@ -187,7 +202,7 @@ const MessageBubble = ({
              )}
 
              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-               <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
+               <MarkdownWithHighlight content={displayContent} query={searchQuery} />
              </div>
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
@@ -259,7 +274,7 @@ const MessageBubble = ({
 
              {/* MAIN TEXT */}
              <div className="px-5 py-3 text-[14px] leading-relaxed markdown-content">
-               <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
+               <MarkdownWithHighlight content={displayContent} query={searchQuery} />
              </div>
         </div>
       </div>
@@ -291,7 +306,7 @@ const MessageBubble = ({
          className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-5 py-3 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
          <div className="text-[14px] leading-relaxed markdown-content">
-           <HighlightedText query={searchQuery}>{displayContent}</HighlightedText>
+           <MarkdownWithHighlight content={displayContent} query={searchQuery} />
          </div>
       </div>
     </div>
@@ -301,7 +316,7 @@ const MessageBubble = ({
 export const ChatInterface: React.FC = () => {
   const {
     messages, addMessage, updateMessage, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
-    sessions, createSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
+    sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
     coreMemories, llmPresets,
     chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite // NEW
@@ -1185,8 +1200,7 @@ export const ChatInterface: React.FC = () => {
                       key={preset.id}
                       onClick={async () => {
                         if (activeSessionId) {
-                          await supabase.from('chat_sessions').update({ custom_llm_id: preset.id }).eq('id', activeSessionId);
-                          window.location.reload();
+                          await updateSession(activeSessionId, { customLlmId: preset.id });
                         }
                         setShowLlmSelector(false);
                         setShowMenu(false);
@@ -1472,8 +1486,7 @@ export const ChatInterface: React.FC = () => {
               <button
                 onClick={async () => {
                   if (activeSessionId) {
-                    await supabase.from('chat_sessions').update({ custom_prompt: customPromptText }).eq('id', activeSessionId);
-                    window.location.reload();
+                    await updateSession(activeSessionId, { customPrompt: customPromptText });
                   }
                   setShowPromptEditor(false);
                 }}

@@ -183,6 +183,7 @@ export interface GlobalState {
   // Chat & Session Management
   sessions: ChatSession[];
   createSession: (mode: ChatMode) => Promise<string>; // Returns new session ID
+  updateSession: (id: string, updates: Partial<ChatSession>) => void;
   updateSessionTitle: (id: string, title: string) => void;
   deleteSession: (id: string) => void;
   toggleSessionPin: (id: string) => void;
