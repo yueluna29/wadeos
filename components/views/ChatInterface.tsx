@@ -273,7 +273,7 @@ const MessageBubble = ({
           )}
 
           {/* MAIN TEXT */}
-          <div className="px-4 py-2 text-[14px] leading-relaxed tracking-wide markdown-content">
+          <div className="px-4 py-1.5 text-[14px] leading-relaxed tracking-wide markdown-content">
             <MarkdownWithHighlight content={displayContent} query={searchQuery} />
           </div>
         </div>
@@ -303,7 +303,7 @@ const MessageBubble = ({
       <div
         {...longPressHandlers}
         style={{ WebkitTouchCallout: 'none' }}
-        className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
+        className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-1.5 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
         <div className="text-[14px] leading-relaxed markdown-content">
           <MarkdownWithHighlight content={displayContent} query={searchQuery} />
