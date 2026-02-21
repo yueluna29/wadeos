@@ -333,6 +333,8 @@ export const ChatInterface: React.FC = () => {
   
   // Archive Viewer State
   const [archiveMessages, setArchiveMessages] = useState<ArchiveMessage[]>([]);
+  const [allArchiveMessages, setAllArchiveMessages] = useState<ArchiveMessage[]>([]); // Full list
+  const [visibleArchiveCount, setVisibleArchiveCount] = useState(30); // Start with 30
   const [activeArchiveId, setActiveArchiveId] = useState<string | null>(null); // NEW
   const [isLoadingArchive, setIsLoadingArchive] = useState(false);
   const [archiveScrollPositions, setArchiveScrollPositions] = useState<Record<string, number>>({});
@@ -481,16 +483,24 @@ export const ChatInterface: React.FC = () => {
 
   const handleOpenArchive = async (archiveId: string) => {
       setIsLoadingArchive(true);
-      setActiveArchiveId(archiveId); // Set active ID
+      setActiveArchiveId(archiveId);
+      setVisibleArchiveCount(30); // Reset to 30
       try {
           const msgs = await loadArchiveMessages(archiveId);
-          setArchiveMessages(msgs);
+          setAllArchiveMessages(msgs);
+          setArchiveMessages(msgs.slice(0, 30)); // Show first 30
           setViewState('chat');
       } catch (e) {
           console.error(e);
       } finally {
           setIsLoadingArchive(false);
       }
+  };
+
+  const loadMoreArchiveMessages = () => {
+    const newCount = visibleArchiveCount + 30;
+    setVisibleArchiveCount(newCount);
+    setArchiveMessages(allArchiveMessages.slice(0, newCount));
   };
 
   const handleStartDraftSession = () => {
@@ -1286,6 +1296,22 @@ export const ChatInterface: React.FC = () => {
 
         {displayMessages.length === 0 && !isLoadingArchive && (
           <div className="text-center text-[#917c71] mt-20 opacity-50"><p className="font-hand text-xl mb-2">{activeMode === 'archive' ? 'Empty Record.' : 'Say hi to Wade.'}</p></div>
+        )}
+
+        {/* Load More Button for Archives */}
+        {activeMode === 'archive' && allArchiveMessages.length > visibleArchiveCount && (
+          <div className="flex justify-center mb-6 mt-4">
+            <button
+              onClick={loadMoreArchiveMessages}
+              className="px-6 py-3 bg-gradient-to-r from-[#d58f99] to-[#c07a84] text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
+            >
+              <div className="flex flex-col items-center">
+                <span className="text-xs opacity-90">🍿 "Time to dig deeper into the chaos..."</span>
+                <span className="mt-1">Load More Memories</span>
+                <span className="text-[10px] opacity-75 mt-0.5">({allArchiveMessages.length - visibleArchiveCount} more hidden)</span>
+              </div>
+            </button>
+          </div>
         )}
 
         <div className="flex flex-col w-full">
