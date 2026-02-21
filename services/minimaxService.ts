@@ -1,3 +1,4 @@
+// 这是型号说明书，绝对不能删！
 export interface MinimaxTTSConfig {
   apiKey: string;
   baseUrl?: string;
@@ -8,55 +9,72 @@ export interface MinimaxTTSConfig {
   pitch?: number;
   emotion?: string;
   sampleRate?: number;
-  bitrate?: number;
+  bitrate?: number | string; // 参谋补丁：允许前端传那个该死的带字母的字符串过来
   format?: string;
   channel?: number;
 }
 
+// 这是执行动作
 export const generateMinimaxTTS = async (
   text: string,
   config: MinimaxTTSConfig
 ): Promise<string> => {
-  const {
-    apiKey,
-    baseUrl = 'https://api.minimax.io',
-    model = 'speech-2.8-hd',
-    voiceId = 'English_expressive_narrator',
-    speed = 1,
-    vol = 1,
-    pitch = 0,
-    emotion,
-    sampleRate = 32000,
-    bitrate = 128000,
-    format = 'mp3',
-    channel = 1
-  } = config;
+  // 【参谋补丁 1】：清理 baseUrl，防止你这个粗心鬼填了带 /v1 的地址
+  let cleanBaseUrl = config.baseUrl || 'https://api.minimax.io';
+  if (cleanBaseUrl.endsWith('/v1')) {
+    cleanBaseUrl = cleanBaseUrl.replace('/v1', '');
+  }
+
+  // 【参谋补丁 2】：强行把前端传来的字符串变成 API 认得的数字
+  const speed = Number(config.speed) || 1;
+  const vol = Number(config.vol) || 1;
+  const pitch = Number(config.pitch) || 0;
+  const sampleRate = Number(config.sampleRate) || 32000;
+  const channel = Number(config.channel) || 1;
+
+  // 【参谋补丁 3】：把你前端那个要命的 '128k' 翻译成 128000
+  let bitrate = config.bitrate;
+  if (typeof bitrate === 'string') {
+    if (bitrate.includes('128')) bitrate = 128000;
+    else if (bitrate.includes('64')) bitrate = 64000;
+    else if (bitrate.includes('32')) bitrate = 32000;
+    else if (bitrate.includes('256')) bitrate = 256000;
+    else bitrate = Number(bitrate) || 128000;
+  } else {
+    bitrate = bitrate || 128000;
+  }
+
+  // 【参谋补丁 4】：如果前端传了 'Emotion (Auto)'，直接把它删掉，让大模型自己猜
+  let emotion = config.emotion;
+  if (emotion && (emotion.includes('Auto') || emotion.trim() === '')) {
+    emotion = undefined;
+  }
 
   const requestBody = {
-    model,
+    model: config.model || 'speech-2.8-hd',
     text,
-    stream: false,
+    stream: false, 
     voice_setting: {
-      voice_id: voiceId,
+      voice_id: config.voiceId || 'English_expressive_narrator',
       speed,
       vol,
       pitch,
-      ...(emotion && { emotion })
+      ...(emotion && { emotion }) 
     },
     audio_setting: {
       sample_rate: sampleRate,
       bitrate,
-      format,
+      format: config.format || 'mp3',
       channel
     },
     output_format: 'hex'
   };
 
   try {
-    const response = await fetch(`${baseUrl}/v1/t2a_v2`, {
+    const response = await fetch(`${cleanBaseUrl}/v1/t2a_v2`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)

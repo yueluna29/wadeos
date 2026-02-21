@@ -1,0 +1,126 @@
+body {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+/* ========== 超强力覆盖所有ReactMarkdown默认样式 ========== */
+
+/* 只清零margin，不清零padding */
+.markdown-content p,
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content ul,
+.markdown-content ol,
+.markdown-content li,
+.markdown-content blockquote,
+.markdown-content hr {
+  margin: 0 !important;
+}
+
+/* 重新设置段落间距 - 非常小 */
+.markdown-content p {
+  margin-bottom: 0.1rem !important;
+  line-height: 1.6 !important;
+}
+
+.markdown-content p + p {
+  margin-top: 0.1rem !important;
+}
+
+/* 标题 */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  color: #d58f99 !important;
+  font-weight: 700 !important;
+  margin-top: 0.6rem !important;
+  margin-bottom: 0.3rem !important;
+}
+
+.markdown-content h1 { font-size: 1.5rem !important; }
+.markdown-content h2 { font-size: 1.25rem !important; }
+.markdown-content h3 { font-size: 1.1rem !important; }
+
+/* 分隔线 - 很窄的间距 */
+.markdown-content hr {
+  border: none !important;
+  border-top: 1px solid #eae2e8 !important;
+  margin: 0.4rem 0 !important;
+}
+
+/* 引用块 - 超强力版本 */
+div.markdown-content blockquote,
+.markdown-content > blockquote {
+  border-left: 4px solid #d58f99 !important;
+  background: #fff0f3 !important;
+  padding: 0.6rem 0.8rem !important;
+  margin: 0.15rem 0 !important;  /* 改成这个：上下0.15rem，左右0 */
+  border-radius: 0.4rem !important;
+  color: #5a4a42 !important;
+}
+
+div.markdown-content blockquote p,
+.markdown-content > blockquote > p {
+  margin: 0 0 0.1rem 0 !important;  /* 四个方向都写清楚 */
+}
+
+div.markdown-content blockquote p:last-child,
+.markdown-content > blockquote > p:last-child {
+  margin: 0 !important;
+}
+
+/* 列表 */
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.2rem 0 !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;  /* 改成0 */
+  list-style-position: inside !important;  /* 加这行：让符号在内部显示 */
+}
+
+.markdown-content li {
+  margin-bottom: 0.05rem !important; /* 从0.05改成0.02 */
+  line-height: 1.6 !important;
+}
+
+/* 行内代码 */
+.markdown-content code {
+  background: #fff0f3 !important;
+  color: #d58f99 !important;
+  padding: 0.1rem 0.3rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.9em !important;
+}
+
+/* 加粗 */
+.markdown-content strong {
+  color: #d58f99 !important;
+  font-weight: 700 !important;
+}
+
+/* 斜体 */
+.markdown-content em {
+  color: #917c71 !important;
+  font-style: italic !important;
+}
+
+/* 链接 */
+.markdown-content a {
+  color: #d58f99 !important;
+  text-decoration: underline !important;
+}
+
+.markdown-content a:hover {
+  color: #c07a84 !important;
+}
+
+/* 代码框 */
+.markdown-content pre {
+  background: #fff0f3 !important;
+  border: 1px solid #fad4dc !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  margin: 0.5rem 0 !important;
+  overflow-x: auto !important;
+  position: relative !important;
+}

@@ -1,4 +1,4 @@
-
+import './globals.css';
 import React from 'react';
 import { StoreProvider, useStore } from './store';
 import { Shell } from './components/layout/Shell';
