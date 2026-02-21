@@ -302,6 +302,7 @@ export const ChatInterface: React.FC = () => {
   // Search & Map State
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -875,6 +876,35 @@ export const ChatInterface: React.FC = () => {
     setShowMap(false);
   };
 
+  // Search functionality
+  const searchResults = searchQuery
+    ? displayMessages.filter(msg => msg.text.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
+
+  const totalResults = searchResults.length;
+
+  const goToNextResult = () => {
+    if (totalResults > 0) {
+      const nextIndex = (currentSearchIndex + 1) % totalResults;
+      setCurrentSearchIndex(nextIndex);
+      scrollToMessage(searchResults[nextIndex].id);
+    }
+  };
+
+  const goToPrevResult = () => {
+    if (totalResults > 0) {
+      const prevIndex = currentSearchIndex === 0 ? totalResults - 1 : currentSearchIndex - 1;
+      setCurrentSearchIndex(prevIndex);
+      scrollToMessage(searchResults[prevIndex].id);
+    }
+  };
+
+  // Reset search index when query changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentSearchIndex(0);
+  };
+
   // --- RENDER ---
   
   if (viewState === 'menu') { 
@@ -1036,54 +1066,80 @@ export const ChatInterface: React.FC = () => {
           <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-1.5 px-1 min-w-fit animate-fade-in">
             <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-              <span>置顶对话</span>
+              <span>Pin This Chaos</span>
             </button>
             <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>
-              <span>选择模型</span>
+              <span>Switch My Brain</span>
             </button>
             <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-              <span>追加提示词</span>
+              <span>Add Spice Words</span>
             </button>
           </div>
         </>
       )}
 
-      {/* Search Bar */}
-      {showSearch && (
-        <div className="w-full px-4 py-3 bg-white/95 backdrop-blur-md border-b border-[#eae2e8] shadow-sm z-20">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜索对话内容..."
-                className="w-full px-4 py-2 pr-8 text-sm bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#917c71] hover:text-[#d58f99]"
-                >
-                  <Icons.Close />
-                </button>
-              )}
-            </div>
-            <button
-              onClick={() => setShowSearch(false)}
-              className="px-3 py-2 text-xs text-[#917c71] hover:text-[#d58f99] transition-colors"
-            >
-              取消
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Messages */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 pb-24">
+      <div
+        ref={messagesContainerRef}
+        onClick={() => showSearch && setShowSearch(false)}
+        className="flex-1 overflow-y-auto p-4 pb-24 relative"
+      >
+        {/* Floating Search Bar */}
+        {showSearch && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="sticky top-0 z-30 mb-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
+          >
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goToPrevResult}
+                disabled={totalResults === 0}
+                className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-[#f9f6f7] disabled:hover:text-[#917c71]"
+              >
+                <Icons.ChevronLeft />
+              </button>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Hunt down the words..."
+                  className="w-full px-4 py-2 pr-20 text-sm bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <span className="text-xs text-[#917c71] font-medium">
+                      {totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}
+                    </span>
+                    <button
+                      onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }}
+                      className="text-[#917c71] hover:text-[#d58f99]"
+                    >
+                      <Icons.Close />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={goToNextResult}
+                disabled={totalResults === 0}
+                className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-[#f9f6f7] disabled:hover:text-[#917c71]"
+              >
+                <Icons.ChevronRight />
+              </button>
+              <button
+                onClick={() => setShowSearch(false)}
+                className="px-3 py-1.5 text-xs text-[#917c71] hover:text-[#d58f99] transition-colors font-medium"
+              >
+                Nope
+              </button>
+            </div>
+          </div>
+        )}
+
         {isLoadingArchive && <div className="text-center mt-20 text-[#d58f99] animate-pulse">Decrypting legacy data...</div>}
 
         {displayMessages.length === 0 && !isLoadingArchive && (
@@ -1100,10 +1156,10 @@ export const ChatInterface: React.FC = () => {
                 else marginBottom = 'mb-4';
              }
 
-             const shouldHighlight = searchQuery && msg.text.toLowerCase().includes(searchQuery.toLowerCase());
+             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
 
              return (
-               <div key={msg.id} id={`msg-${msg.id}`} className={`${marginBottom} ${shouldHighlight ? 'highlight-search' : ''}`}>
+               <div key={msg.id} id={`msg-${msg.id}`} className={`${marginBottom} ${isCurrentSearchResult ? 'highlight-search' : ''}`}>
                   <MessageBubble
                     msg={msg}
                     settings={settings}
@@ -1228,7 +1284,7 @@ export const ChatInterface: React.FC = () => {
           <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowMap(false)} />
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-[#eae2e8]/50 max-h-[70vh] overflow-hidden animate-slide-up">
             <div className="p-4 border-b border-[#eae2e8]/50 flex items-center justify-between">
-              <h3 className="font-bold text-[#5a4a42] text-sm">对话地图</h3>
+              <h3 className="font-bold text-[#5a4a42] text-sm">Conversation GPS</h3>
               <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
                 <Icons.Close />
               </button>
@@ -1238,27 +1294,20 @@ export const ChatInterface: React.FC = () => {
                 const preview = msg.text.slice(0, 60) + (msg.text.length > 60 ? '...' : '');
                 const isLuna = msg.role === 'Luna';
                 return (
-                  <button
-                    key={msg.id}
-                    onClick={() => scrollToMessage(msg.id)}
-                    className={`w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02] ${
-                      isLuna
-                        ? 'bg-[#d58f99]/20 border border-[#d58f99]/30 ml-auto max-w-[85%]'
-                        : 'bg-white border border-[#eae2e8] w-full'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold ${isLuna ? 'text-[#d58f99]' : 'text-[#5a4a42]'}`}>
-                        {msg.role}
-                      </span>
-                      <span className="text-[9px] text-[#917c71]/60">
-                        {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
-                    <p className={`text-xs leading-relaxed ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
-                      {preview}
-                    </p>
-                  </button>
+                  <div key={msg.id} className={`flex ${isLuna ? 'justify-end' : 'justify-start'}`}>
+                    <button
+                      onClick={() => scrollToMessage(msg.id)}
+                      className={`text-left p-3 rounded-xl transition-all hover:scale-[1.02] ${
+                        isLuna
+                          ? 'bg-[#d58f99]/20 border border-[#d58f99]/30 max-w-[85%]'
+                          : 'bg-white border border-[#eae2e8] w-full'
+                      }`}
+                    >
+                      <p className={`text-xs leading-relaxed ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
+                        {preview}
+                      </p>
+                    </button>
+                  </div>
                 );
               })}
             </div>
