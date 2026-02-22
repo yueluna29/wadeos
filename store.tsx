@@ -190,7 +190,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               text: row.content,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
-              isFavorite: false, 
+              isFavorite: false,
+              audioCache: row.audio_cache || undefined,
               variants: parsedVariants,
               variantsThinking: parsedThinking,
               selectedIndex: row.selected_index || 0
@@ -603,6 +604,18 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateMessageAudioCache = (id: string, audioCache: string) => {
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache } : m));
+
+    if (msg.sessionId && msg.mode !== 'archive') {
+      const tableName = getTableName(msg.mode);
+      safeDbUpdate(tableName, id, { audio_cache: audioCache });
+    }
+  };
+
   const addVariantToMessage = (id: string, newText: string, thinking?: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
@@ -966,7 +979,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
       sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
-      messages, addMessage, updateMessage, deleteMessage, toggleFavorite,
+      messages, addMessage, updateMessage, updateMessageAudioCache, deleteMessage, toggleFavorite,
       addVariantToMessage, selectMessageVariant,
       setRegenerating,
       rewindConversation, 
