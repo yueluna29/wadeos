@@ -35,7 +35,8 @@ export const generateMinimaxTTS = async (
 
 let firstBase64 = '';
 
-for (const chunkText of chunks) {
+// 用 Promise.all 并发处理所有段（避免栈溢出，同时更快）
+const promises = chunks.map(async (chunkText) => {
   const response = await fetch('https://wadeos.vercel.app/api/minimax-tts', {
     method: 'POST',
     headers: {
@@ -57,9 +58,15 @@ for (const chunkText of chunks) {
 
   const hexAudio = data.audio;
   const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
-  const base64Audio = btoa(String.fromCharCode(...bytes));
+  return btoa(String.fromCharCode(...bytes));
+});
 
-  if (!firstBase64) firstBase64 = base64Audio;  // 只保存第一段
+try {
+  const base64Audios = await Promise.all(promises);
+  firstBase64 = base64Audios[0] || '';  // 先返回第一段
+} catch (error) {
+  console.error('Minimax TTS generation failed:', error);
+  throw error;
 }
 
 return firstBase64;  // 返回第一段音频的 base64
