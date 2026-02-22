@@ -197,6 +197,7 @@ export interface GlobalState {
   messages: Message[];
   addMessage: (m: Message) => void;
   updateMessage: (id: string, newText: string) => void; // Standard edit
+  updateMessageAudioCache: (id: string, base64Audio: string) => void;
   
   // Updated for Thinking Process
   addVariantToMessage: (id: string, newText: string, thinking?: string) => void; 
