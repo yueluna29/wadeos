@@ -664,6 +664,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateMessageAudioCache = async (id: string, base64Audio: string) => {
+    // 1. 塞进前端的口袋
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache: base64Audio } : m));
+    // 2. 焊死在 Supabase 的云端抽屉里
+    const msg = messages.find(m => m.id === id);
+    if (msg && msg.mode !== 'archive') {
+      const tableName = getTableName(msg.mode);
+      await safeDbUpdate(tableName, id, { audio_cache: base64Audio });
+    }
+  };
+
   const addVariantToMessage = (id: string, newText: string, thinking?: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
@@ -1067,7 +1078,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
       sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
-      messages, addMessage, updateMessage, deleteMessage, toggleFavorite,
+      messages, addMessage, updateMessage, deleteMessage, toggleFavorite, updateMessageAudioCache,
       addVariantToMessage, selectMessageVariant,
       setRegenerating,
       rewindConversation, 
