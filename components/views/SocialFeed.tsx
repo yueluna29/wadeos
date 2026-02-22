@@ -155,6 +155,30 @@ export const SocialFeed: React.FC = () => {
       }
   };
 
+  const handleAddComment = (postId: string, text: string, author: 'User' | 'Wade', replyToId?: string) => {
+      if (!text.trim()) return;
+
+      const post = localPostsRef.current.find(p => p.id === postId);
+      if (!post) return;
+
+      const newComment = {
+          id: Math.random().toString(36).substring(2) + Date.now(),
+          author,
+          text: text.trim(),
+          replyToId
+      };
+
+      const updatedPost = {
+          ...post,
+          comments: [...post.comments, newComment]
+      };
+
+      updatePost(updatedPost);
+      setLocalPosts(prev => prev.map(p => p.id === postId ? updatedPost : p));
+      setNewComment('');
+      setReplyingTo(null);
+  };
+
   const toggleComments = (postId: string) => {
       setExpandedPostIds(prev => {
           const newSet = new Set(prev);
