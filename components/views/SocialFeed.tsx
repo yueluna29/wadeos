@@ -115,7 +115,7 @@ export const SocialFeed: React.FC = () => {
   const [deletingComment, setDeletingComment] = useState<{postId: string, commentId: string} | null>(null);
 
   // Image zoom states
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<{images: string[], index: number} | null>(null);
 
   useEffect(() => {
     setLocalPosts(socialPosts);
@@ -545,7 +545,7 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
         <img
           src={images[currentIndex]}
           className="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity"
-          onClick={() => setZoomedImage(images[currentIndex])}
+          onClick={() => setZoomedImage({images, index: currentIndex})}
         />
         
         {images.length > 1 && (
@@ -1021,10 +1021,50 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
         >
           <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <img
-              src={zoomedImage}
+              src={zoomedImage.images[zoomedImage.index]}
               className="max-w-full max-h-[90vh] object-contain rounded-xl"
               alt="Zoomed"
             />
+
+            {zoomedImage.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setZoomedImage({
+                      images: zoomedImage.images,
+                      index: (zoomedImage.index - 1 + zoomedImage.images.length) % zoomedImage.images.length
+                    });
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all"
+                >
+                  <Icons.ChevronLeft />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setZoomedImage({
+                      images: zoomedImage.images,
+                      index: (zoomedImage.index + 1) % zoomedImage.images.length
+                    });
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all"
+                >
+                  <Icons.ChevronRight />
+                </button>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                  {zoomedImage.images.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === zoomedImage.index ? 'bg-white w-8' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
             <button
               onClick={() => setZoomedImage(null)}
               className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all"
