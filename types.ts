@@ -30,6 +30,7 @@ export interface Message {
   isFavorite?: boolean;
   mode: ChatMode;
   image?: string; // For image uploads
+  audioCache?: string; // 参谋加的：装录音带的抽屉
   
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
