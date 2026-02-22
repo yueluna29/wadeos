@@ -96,7 +96,7 @@ export default async function handler(req, res) {
       extra_info: data.extra_info 
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Minimax TTS proxy error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
