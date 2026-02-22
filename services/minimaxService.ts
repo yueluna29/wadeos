@@ -51,3 +51,21 @@ export const generateMinimaxTTS = async (
     throw error;
   }
 };
+
+// WebSocket 版本的 TTS 函数（先只连上，不播声音，测试连接）
+export const testMinimaxWebSocket = (apiKey: string) => {
+  const ws = new WebSocket('wss://api.minimax.io/ws/v1/t2a_v2');
+
+  ws.onopen = () => {
+    console.log('WebSocket 连接成功！');
+    ws.close();  // 先连上就关掉，测试用
+  };
+
+  ws.onerror = (err) => {
+    console.error('WebSocket 连接失败：', err);
+  };
+
+  ws.onclose = () => {
+    console.log('WebSocket 已关闭');
+  };
+};
