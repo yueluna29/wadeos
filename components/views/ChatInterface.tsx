@@ -733,7 +733,11 @@ export const ChatInterface: React.FC = () => {
           throw new Error("没找到声音配置！别光顾着按播放，去右上角设置里选一下 Wade 的声带！");
         }
         
-        base64Audio = await generateMinimaxTTS(text, {
+        // 参谋的赛博搓澡巾：把星号、波浪号这些破排版符号全搓干净！
+        const cleanText = text.replace(/[*_~`#]/g, '');
+        
+        // 注意这里！把括号里的 text 换成洗干净的 cleanText
+        base64Audio = await generateMinimaxTTS(cleanText, {
           apiKey: activeTts.apiKey,
           baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
           model: activeTts.model || 'speech-2.8-hd',
