@@ -45,18 +45,16 @@ export interface SocialPost {
   id: string;
   author: 'User' | 'Wade';
   content: string;
-  images?: string[]; // Changed from image?: string to support multiple
+  image?: string;
   timestamp: number;
   comments: SocialComment[];
   likes: number;
-  isBookmarked?: boolean;
 }
 
 export interface SocialComment {
   id: string;
   author: 'User' | 'Wade';
   text: string;
-  replyToId?: string;
 }
 
 export interface TimeCapsuleItem {
@@ -152,7 +150,6 @@ export interface AppSettings {
   
   // Wade's Side
   wadePersonality: string; // Core System instruction
-  wadeDiaryPersona: string; // NEW: Persona for non-dialogue modes (diary comments)
   wadeAvatar: string;
   exampleDialogue: string; // Few-shot examples
   
@@ -213,8 +210,6 @@ export interface GlobalState {
   
   socialPosts: SocialPost[];
   addPost: (p: SocialPost) => void;
-  updatePost: (p: SocialPost) => void;
-  deletePost: (id: string) => Promise<void>;
   memos: Memo[];
   addMemo: (m: Memo) => void;
   capsules: TimeCapsuleItem[];

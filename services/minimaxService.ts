@@ -52,14 +52,14 @@ export const generateMinimaxTTS = async (
 
     const hexAudio = data.audio;
     const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
-
+    
     // 【参谋的防噎死补丁：不要一口气吞，用循环一点点拼起来，这下绝对不会内存溢出了】
     let binary = '';
     const len = bytes.byteLength;
     for (let i = 0; i < len; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
-
+    
     // 拼完之后再转换
     const base64Audio = btoa(binary);
 

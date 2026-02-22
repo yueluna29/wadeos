@@ -78,9 +78,9 @@ const useLongPress = (callback: () => void, ms = 500) => {
 };
 
 const MessageBubble = ({
-  msg, settings, onSelect, isSMS, onPlayTTS, onRegenerateTTS, searchQuery, playingMessageId, isPaused
+  msg, settings, onSelect, isSMS, onPlayTTS, searchQuery, playingMessageId, isPaused
 }: {
-  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string, messageId: string) => void, onRegenerateTTS: (text: string, messageId: string) => void, searchQuery?: string, playingMessageId: string | null, isPaused: boolean
+  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string, messageId: string) => void, searchQuery?: string, playingMessageId: string | null, isPaused: boolean
 }) => {
   const isLuna = msg.role === 'Luna';
   const [showThought, setShowThought] = useState(false);
@@ -239,32 +239,20 @@ const MessageBubble = ({
             <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
               <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
               <span className="opacity-70">{formatTime(msg.timestamp)}</span>
-              {/* QUICK TTS BUTTONS */}
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
-                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                    playingMessageId === msg.id
-                      ? isPaused
-                        ? 'bg-[#d58f99] text-white scale-110 shadow-md'
-                        : 'bg-[#d58f99] text-white shadow-lg'
-                      : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
-                  }`}
-                  style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
-                  title={playingMessageId === msg.id ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
-                >
-                  {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Wave />}
-                </button>
-                {msg.audioCache && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                    className="w-4 h-4 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
-                    title="Regenerate voice"
-                  >
-                    <Icons.Refresh />
-                  </button>
-                )}
-              </div>
+              {/* QUICK TTS BUTTON (Moved to right of time) */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  playingMessageId === msg.id
+                    ? isPaused
+                      ? 'bg-[#d58f99] text-white scale-110 shadow-md'
+                      : 'bg-[#d58f99] text-white shadow-lg'
+                    : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
+                }`}
+                style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
+              >
+                {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Play />}
+              </button>
             </div>
           </div>
         </div>
@@ -337,11 +325,11 @@ const MessageBubble = ({
 
 export const ChatInterface: React.FC = () => {
   const {
-    messages, addMessage, updateMessage, updateMessageAudioCache, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
+    messages, addMessage, updateMessage, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
     sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
     coreMemories, llmPresets, ttsPresets,
-    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage
+    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage // NEW
   } = useStore();
 
   const [viewState, setViewState] = useState<'menu' | 'list' | 'chat'>('menu');
@@ -686,7 +674,7 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
-  const executeTTS = async (text: string, messageId: string, forceRegenerate: boolean = false) => {
+  const executeTTS = async (text: string, messageId: string) => {
     try {
       // If already playing this message
       if (playingMessageId === messageId) {
@@ -714,42 +702,27 @@ export const ChatInterface: React.FC = () => {
         audioUrlRef.current = null;
       }
 
-      // Reset playback state before starting new audio
-      setPlayingMessageId(null);
-      setIsPaused(false);
+      // Generate new audio
+      const activeTts = settings.activeTtsId ? ttsPresets.find(p => p.id === settings.activeTtsId) : null;
 
-      // Check for cached audio
-      const message = messages.find(m => m.id === messageId);
       let base64Audio: string;
-
-      if (!forceRegenerate && message?.audioCache) {
-        // Use cached audio
-        base64Audio = message.audioCache;
+      if (activeTts) {
+        base64Audio = await generateMinimaxTTS(text, {
+          apiKey: activeTts.apiKey,
+          baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
+          model: activeTts.model || 'speech-2.8-hd',
+          voiceId: activeTts.voiceId || 'English_expressive_narrator',
+          speed: activeTts.speed || 1,
+          vol: activeTts.vol || 1,
+          pitch: activeTts.pitch || 0,
+          emotion: activeTts.emotion,
+          sampleRate: activeTts.sampleRate || 32000,
+          bitrate: activeTts.bitrate || 128000,
+          format: activeTts.format || 'mp3',
+          channel: activeTts.channel || 1
+        });
       } else {
-        // Generate new audio
-        const activeTts = settings.activeTtsId ? ttsPresets.find(p => p.id === settings.activeTtsId) : null;
-
-        if (activeTts) {
-          base64Audio = await generateMinimaxTTS(text, {
-            apiKey: activeTts.apiKey,
-            baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
-            model: activeTts.model || 'speech-2.8-hd',
-            voiceId: activeTts.voiceId || 'English_expressive_narrator',
-            speed: activeTts.speed || 1,
-            vol: activeTts.vol || 1,
-            pitch: activeTts.pitch || 0,
-            emotion: activeTts.emotion,
-            sampleRate: activeTts.sampleRate || 32000,
-            bitrate: activeTts.bitrate || 128000,
-            format: activeTts.format || 'mp3',
-            channel: activeTts.channel || 1
-          });
-        } else {
-          base64Audio = await generateTTS(text);
-        }
-
-        // Save to cache
-        updateMessageAudioCache(messageId, base64Audio);
+        base64Audio = await generateTTS(text);
       }
 
       const binaryString = atob(base64Audio);
@@ -804,23 +777,12 @@ export const ChatInterface: React.FC = () => {
   const playTTS = async () => {
     if (selectedMsg) {
       closeActions();
-      executeTTS(selectedMsg.text, selectedMsg.id, false);
-    }
-  };
-
-  const regenerateTTS = async () => {
-    if (selectedMsg) {
-      closeActions();
-      executeTTS(selectedMsg.text, selectedMsg.id, true);
+      executeTTS(selectedMsg.text, selectedMsg.id);
     }
   };
 
   const handleQuickTTS = (text: string, messageId: string) => {
-    executeTTS(text, messageId, false);
-  };
-
-  const handleRegenerateTTS = (text: string, messageId: string) => {
-    executeTTS(text, messageId, true);
+    executeTTS(text, messageId);
   };
 
   const prevVariant = () => {
@@ -1535,7 +1497,6 @@ export const ChatInterface: React.FC = () => {
                   onSelect={setSelectedMsgId}
                   isSMS={activeMode === 'sms'}
                   onPlayTTS={handleQuickTTS}
-                  onRegenerateTTS={handleRegenerateTTS}
                   searchQuery={searchQuery}
                   playingMessageId={playingMessageId}
                   isPaused={isPaused}
@@ -1658,38 +1619,27 @@ export const ChatInterface: React.FC = () => {
                     </button>
 
                     {selectedMsg.role === 'Wade' && activeMode !== 'archive' && (
-                      <>
-                        <button onClick={(e) => { e.stopPropagation(); playTTS(); }} className="flex flex-col items-center gap-2 group">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${
-                              playingMessageId === selectedMsg.id
-                                ? isPaused
-                                  ? 'bg-[#d58f99] text-white scale-110 shadow-lg'
-                                  : 'bg-[#d58f99] text-white shadow-xl'
-                                : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
-                            }`}
-                            style={playingMessageId === selectedMsg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
-                          >
-                            {playingMessageId === selectedMsg.id && !isPaused ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                            ) : (
-                              <Icons.VolumeLarge />
-                            )}
-                          </div>
-                          <span className={`text-[10px] ${playingMessageId === selectedMsg.id ? 'text-[#d58f99] font-bold' : 'text-[#917c71]'}`}>
-                            {playingMessageId === selectedMsg.id ? (isPaused ? 'Resume' : 'Pause') : 'Speak'}
-                          </span>
-                        </button>
-
-                        {selectedMsg.audioCache && (
-                          <button onClick={(e) => { e.stopPropagation(); regenerateTTS(); }} className="flex flex-col items-center gap-2 group">
-                            <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
-                              <Icons.Refresh />
-                            </div>
-                            <span className="text-[10px] text-[#917c71]">Regen</span>
-                          </button>
-                        )}
-                      </>
+                      <button onClick={(e) => { e.stopPropagation(); playTTS(); }} className="flex flex-col items-center gap-2 group">
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${
+                            playingMessageId === selectedMsg.id
+                              ? isPaused
+                                ? 'bg-[#d58f99] text-white scale-110 shadow-lg'
+                                : 'bg-[#d58f99] text-white shadow-xl'
+                              : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                          }`}
+                          style={playingMessageId === selectedMsg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
+                        >
+                          {playingMessageId === selectedMsg.id && !isPaused ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                          ) : (
+                            <Icons.VolumeLarge />
+                          )}
+                        </div>
+                        <span className={`text-[10px] ${playingMessageId === selectedMsg.id ? 'text-[#d58f99] font-bold' : 'text-[#917c71]'}`}>
+                          {playingMessageId === selectedMsg.id ? (isPaused ? 'Resume' : 'Pause') : 'Speak'}
+                        </span>
+                      </button>
                     )}
 
                     <button onClick={(e) => { e.stopPropagation(); handleFavorite(); }} className="flex flex-col items-center gap-2 group">
