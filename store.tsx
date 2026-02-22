@@ -195,7 +195,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
-              selectedIndex: row.selected_index || 0
+              selectedIndex: row.selected_index || 0,
+              audioCache: row.audio_cache // 把数据库里的录音带拿出来！
             };
           };
 
