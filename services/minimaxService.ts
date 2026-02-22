@@ -33,38 +33,36 @@ export const generateMinimaxTTS = async (
   try {
   const chunks = splitLongText(text);  // 使用我们加的拆分函数
 
-  let firstBase64 = '';  // 先只返回第一段音频
+let firstBase64 = '';
 
-  for (let i = 0; i < chunks.length; i++) {
-    const chunkText = chunks[i];
+for (const chunkText of chunks) {
+  const response = await fetch('https://wadeos.vercel.app/api/minimax-tts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ text: chunkText, config })
+  });
 
-    const response = await fetch('https://wadeos.vercel.app/api/minimax-tts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: chunkText, config })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.audio) {
-      throw new Error('No audio data returned from API');
-    }
-
-    const hexAudio = data.audio;
-    const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
-    const base64Audio = btoa(String.fromCharCode(...bytes));
-
-    if (i === 0) firstBase64 = base64Audio;  // 先保存第一段
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `HTTP ${response.status}`);
   }
 
-  return firstBase64;  // 返回第一段音频的 base64
+  const data = await response.json();
+
+  if (!data.audio) {
+    throw new Error('No audio data returned from API');
+  }
+
+  const hexAudio = data.audio;
+  const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
+  const base64Audio = btoa(String.fromCharCode(...bytes));
+
+  if (!firstBase64) firstBase64 = base64Audio;  // 只保存第一段
+}
+
+return firstBase64;  // 返回第一段音频的 base64
 } catch (error) {
   console.error('Minimax TTS generation failed:', error);
   throw error;
