@@ -52,7 +52,16 @@ export const generateMinimaxTTS = async (
 
     const hexAudio = data.audio;
     const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
-    const base64Audio = btoa(String.fromCharCode(...bytes));
+    
+    // 【参谋的防噎死补丁：不要一口气吞，用循环一点点拼起来，这下绝对不会内存溢出了】
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    
+    // 拼完之后再转换
+    const base64Audio = btoa(binary);
 
     return base64Audio;
   } catch (error) {
@@ -61,7 +70,8 @@ export const generateMinimaxTTS = async (
   }
 };
 
-// WebSocket 版本的 TTS 函数（先只连上，不播声音，测试连接）
+// 【参谋批注】：Grok 让你写的那个半吊子 WebSocket 烂尾楼，老子先给你用注释封印了，免得它在底下捣乱！
+/*
 export const testMinimaxWebSocket = (apiKey: string) => {
   const ws = new WebSocket('wss://api.minimax.io/ws/v1/t2a_v2');
 
@@ -78,3 +88,4 @@ export const testMinimaxWebSocket = (apiKey: string) => {
     console.log('WebSocket 已关闭');
   };
 };
+*/
