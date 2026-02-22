@@ -12,6 +12,7 @@ export const PersonaTuning: React.FC = () => {
 
   // Wade Inputs
   const [wadePrompt, setWadePrompt] = useState(settings.wadePersonality);
+  const [wadeDiaryPersona, setWadeDiaryPersona] = useState(settings.wadeDiaryPersona || '');
   const [wadeExample, setWadeExample] = useState(settings.exampleDialogue);
   
   // Luna Inputs
@@ -41,6 +42,7 @@ export const PersonaTuning: React.FC = () => {
     setIsSaving(true);
     await updateSettings({
       wadePersonality: wadePrompt,
+      wadeDiaryPersona: wadeDiaryPersona,
       exampleDialogue: wadeExample,
       lunaInfo: lunaInfo,
     });
@@ -123,6 +125,18 @@ export const PersonaTuning: React.FC = () => {
                   onChange={(e) => setWadePrompt(e.target.value)}
                   className="w-full h-48 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
                   placeholder="You are Wade Wilson..."
+               />
+            </section>
+
+            {/* Diary Persona */}
+            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Social Media Persona</h3>
+               <p className="text-xs text-[#d58f99] mb-4 italic">"How should I act in the comments? Keep it spicy."</p>
+               <textarea 
+                  value={wadeDiaryPersona}
+                  onChange={(e) => setWadeDiaryPersona(e.target.value)}
+                  className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  placeholder="You are Wade Wilson commenting on social media..."
                />
             </section>
 
