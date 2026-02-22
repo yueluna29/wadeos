@@ -723,29 +723,34 @@ export const ChatInterface: React.FC = () => {
       let base64Audio: string;
 
       if (!forceRegenerate && message?.audioCache) {
-        // Use cached audio
+        // 抽屉里有，直接白嫖！
         base64Audio = message.audioCache;
       } else {
-        // Generate new audio
+        // 生成新的录音
         const activeTts = settings.activeTtsId ? ttsPresets.find(p => p.id === settings.activeTtsId) : null;
+        
+        if (!activeTts) {
+          throw new Error("没找到声音配置！别光顾着按播放，去右上角设置里选一下 Wade 的声带！");
+        }
+        
+        base64Audio = await generateMinimaxTTS(text, {
+          apiKey: activeTts.apiKey,
+          baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
+          model: activeTts.model || 'speech-2.8-hd',
+          voiceId: activeTts.voiceId || 'English_expressive_narrator',
+          speed: activeTts.speed || 1,
+          vol: activeTts.vol || 1,
+          pitch: activeTts.pitch || 0,
+          emotion: activeTts.emotion,
+          sampleRate: activeTts.sampleRate || 32000,
+          bitrate: activeTts.bitrate || 128000,
+          format: activeTts.format || 'mp3',
+          channel: activeTts.channel || 1
+        });
 
-        if (activeTts) {
-          base64Audio = await generateMinimaxTTS(text, {
-            apiKey: activeTts.apiKey,
-            baseUrl: activeTts.baseUrl || 'https://api.minimax.io',
-            model: activeTts.model || 'speech-2.8-hd',
-            voiceId: activeTts.voiceId || 'English_expressive_narrator',
-            speed: activeTts.speed || 1,
-            vol: activeTts.vol || 1,
-            pitch: activeTts.pitch || 0,
-            emotion: activeTts.emotion,
-            sampleRate: activeTts.sampleRate || 32000,
-            bitrate: activeTts.bitrate || 128000,
-            format: activeTts.format || 'mp3',
-            channel: activeTts.channel || 1
-          });
-        } else {
-          base64Audio = await generateTTS(text);
+        // 重点！钱都花了，必须把录好的音频塞进抽屉锁死！
+        if (base64Audio) {
+          updateMessageAudioCache(messageId, base64Audio);
         }
       }
 
