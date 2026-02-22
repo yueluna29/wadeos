@@ -516,6 +516,15 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
     return new Date(timestamp).toLocaleDateString();
   };
 
+  const formatPostTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${month}/${day} ${hours}:${minutes}`;
+  };
+
   // Image Carousel Component
   const ImageCarousel = ({ images }: { images: string[] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -800,7 +809,7 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-[#5a4a42]">{authorName}</span>
-                    <span className="text-[10px] text-gray-400">{formatTimeAgo(post.timestamp)}</span>
+                    <span className="text-[10px] text-gray-400">{formatPostTime(post.timestamp)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
