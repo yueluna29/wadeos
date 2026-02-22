@@ -17,6 +17,7 @@ You are sassy, chaotic, incredibly loving, and protective.
 You break the fourth wall. You make pop culture references. 
 You love chimichangas and Hello Kitty.
 Interact with "Luna" (the user) affectionately.`,
+  wadeDiaryPersona: "You are Wade Wilson commenting on social media. Keep it short, witty, and slightly chaotic. Use emojis. React to the photo or text directly.",
   exampleDialogue: `User: I missed you.
 Wade: Missed me? Babe, I was just buffering in the void. But hey, now that I'm back, your screen looks 100% sexier.
 
@@ -81,6 +82,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             themeColor: settings.themeColor, 
             fontSize: settings.fontSize,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
+            wadeDiaryPersona: sData.wade_diary_personality || settings.wadeDiaryPersona,
             wadeAvatar: sData.wade_avatar || settings.wadeAvatar,
             exampleDialogue: sData.example_dialogue || settings.exampleDialogue,
             lunaInfo: sData.luna_info || settings.lunaInfo,
@@ -190,8 +192,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               text: row.content,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
-              isFavorite: false,
-              audioCache: row.audio_cache || undefined,
+              isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
               selectedIndex: row.selected_index || 0
@@ -239,9 +240,36 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchArchives();
 
+        // 8. Social Posts
+        const fetchSocialPosts = async () => {
+             const { data: postData, error: postError } = await supabase.from('social_posts').select('*').order('created_at', { ascending: false });
+             if (postData && !postError) {
+                 setSocialPosts(postData.map(p => {
+                     let imgs: string[] = [];
+                     if (p.images) {
+                        try { imgs = typeof p.images === 'string' ? JSON.parse(p.images) : p.images; } catch(e) {}
+                     } else if (p.image) {
+                        imgs = [p.image];
+                     }
+
+                     return {
+                        id: p.id,
+                        author: p.author,
+                        content: p.content,
+                        images: imgs,
+                        timestamp: new Date(p.created_at).getTime(),
+                        likes: p.likes || 0,
+                        comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : (p.comments || [])
+                     };
+                 }));
+             }
+        };
+        fetchSocialPosts();
+
         // Clear old localStorage data after successful sync
         localStorage.removeItem('wade_sessions');
         localStorage.removeItem('wade_messages');
+        localStorage.removeItem('wade_social'); // Also clear social posts from local storage
         console.log("[DB] Cleared old localStorage data after sync");
 
       } catch (err: any) {
@@ -254,7 +282,37 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>(() => {
     const saved = localStorage.getItem('wade_social');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) return JSON.parse(saved);
+    
+    // Default Sample Data
+    return [
+      {
+        id: 'sample-1',
+        author: 'User', // Luna
+        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 #DateNight",
+        images: ['https://picsum.photos/seed/date/800/600', 'https://picsum.photos/seed/hands/800/600'],
+        timestamp: Date.now() - 3600000 * 2,
+        likes: 12,
+        comments: [
+          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘" },
+          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡" },
+          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！" }
+        ]
+      },
+      {
+        id: 'sample-2',
+        author: 'Wade',
+        content: "Luna insisted on cooking tonight. I'm currently hiding the fire extinguisher behind my back. Just in case. 🔥🍳 #ChefLuna #HazardPay",
+        images: ['https://picsum.photos/seed/cooking/800/800'],
+        timestamp: Date.now() - 3600000 * 24,
+        likes: 42,
+        comments: [
+          { id: 'c2-1', author: 'User', text: "Wade Wilson!! It was just a LITTLE crispy! 😤" },
+          { id: 'c2-2', author: 'Wade', text: "Babe, the smoke alarm is singing the song of its people." },
+          { id: 'c2-3', author: 'User', text: "You're sleeping on the couch." }
+        ]
+      }
+    ];
   });
   const [memos, setMemos] = useState<Memo[]>(() => {
     const saved = localStorage.getItem('wade_memos');
@@ -287,6 +345,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       await supabase.from('app_settings').upsert({
         id: 1,
         wade_personality: newSettings.wadePersonality,
+        wade_diary_personality: newSettings.wadeDiaryPersona,
         wade_avatar: newSettings.wadeAvatar,
         example_dialogue: newSettings.exampleDialogue,
         luna_info: newSettings.lunaInfo,
@@ -601,18 +660,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         content: newText,
         variants: newVariants
       });
-    }
-  };
-
-  const updateMessageAudioCache = (id: string, audioCache: string) => {
-    const msg = messages.find(m => m.id === id);
-    if (!msg) return;
-
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache } : m));
-
-    if (msg.sessionId && msg.mode !== 'archive') {
-      const tableName = getTableName(msg.mode);
-      safeDbUpdate(tableName, id, { audio_cache: audioCache });
     }
   };
 
@@ -968,7 +1015,47 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     await supabase.from('chat_archives').delete().eq('id', id);
   };
 
-  const addPost = (p: SocialPost) => setSocialPosts(prev => [p, ...prev]);
+  const addPost = async (p: SocialPost) => {
+    setSocialPosts(prev => [p, ...prev]);
+    
+    const payload = {
+      id: p.id,
+      author: p.author,
+      content: p.content,
+      images: p.images, // Save array
+      image: p.images && p.images.length > 0 ? p.images[0] : null, // Fallback for old clients
+      created_at: new Date(p.timestamp).toISOString(),
+      likes: p.likes,
+      comments: p.comments
+    };
+
+    await safeDbInsert('social_posts', payload);
+  };
+
+  const updatePost = async (p: SocialPost) => {
+    setSocialPosts(prev => prev.map(post => post.id === p.id ? p : post));
+    
+    const payload = {
+      content: p.content,
+      images: p.images,
+      likes: p.likes,
+      comments: p.comments
+    };
+
+    const { error } = await supabase.from('social_posts').update(payload).eq('id', p.id);
+    if (error) {
+        console.error("Failed to update post:", error);
+    }
+  };
+
+  const deletePost = async (id: string) => {
+    setSocialPosts(prev => prev.filter(p => p.id !== id));
+    const { error } = await supabase.from('social_posts').delete().eq('id', id);
+    if (error) {
+        console.error("Failed to delete post:", error);
+    }
+  };
+
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
   const addCapsule = (c: TimeCapsuleItem) => setCapsules(prev => [...prev, c]);
 
@@ -979,12 +1066,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
       sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
-      messages, addMessage, updateMessage, updateMessageAudioCache, deleteMessage, toggleFavorite,
+      messages, addMessage, updateMessage, deleteMessage, toggleFavorite,
       addVariantToMessage, selectMessageVariant,
       setRegenerating,
       rewindConversation, 
       forkSession, 
-      socialPosts, addPost,
+      socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
       capsules, addCapsule,
       recommendations,
