@@ -155,7 +155,7 @@ export const SocialFeed: React.FC = () => {
       }
   };
 
-  const handleAddComment = (postId: string, text: string, author: 'User' | 'Wade', replyToId?: string) => {
+  const handleAddComment = async (postId: string, text: string, author: 'User' | 'Wade', replyToId?: string) => {
       if (!text.trim()) return;
 
       const post = localPostsRef.current.find(p => p.id === postId);
@@ -177,6 +177,13 @@ export const SocialFeed: React.FC = () => {
       setLocalPosts(prev => prev.map(p => p.id === postId ? updatedPost : p));
       setNewComment('');
       setReplyingTo(null);
+
+      // Auto-generate Wade's reply if Luna just commented
+      if (author === 'User' && post.author === 'User' && settings.activeLlmId) {
+          setTimeout(() => {
+              handleGenerateComment(updatedPost);
+          }, 800);
+      }
   };
 
   const toggleComments = (postId: string) => {
@@ -347,17 +354,20 @@ export const SocialFeed: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-50 pb-20">
+    <div className="h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
+      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 className="font-hand text-2xl text-[#5a4a42]">Our Feed</h1>
-        <button 
+        <button
           onClick={() => setIsCreating(true)}
           className="text-[#5a4a42] hover:text-[#d58f99] transition-colors p-2 rounded-full hover:bg-gray-100"
         >
           <Icons.Edit />
         </button>
       </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto pb-20">
 
       {/* Create Post Modal */}
       {isCreating && (
@@ -568,7 +578,6 @@ export const SocialFeed: React.FC = () => {
                                         {commentAuthorName}
                                     </span>
                                     <span className="text-[#4a4a4a] leading-tight">
-                                        {isReply && <span className="text-gray-400 mr-1">↳</span>}
                                         {comment.text}
                                     </span>
                                 </div>
@@ -650,6 +659,7 @@ export const SocialFeed: React.FC = () => {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
