@@ -114,6 +114,9 @@ export const SocialFeed: React.FC = () => {
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [deletingComment, setDeletingComment] = useState<{postId: string, commentId: string} | null>(null);
 
+  // Image zoom states
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+
   useEffect(() => {
     setLocalPosts(socialPosts);
     localPostsRef.current = socialPosts;
@@ -135,6 +138,21 @@ export const SocialFeed: React.FC = () => {
           // Auto-reset after 3 seconds
           setTimeout(() => setDeletingPostId(null), 3000);
       }
+  };
+
+  const handleEditPost = (post: SocialPost) => {
+    // Only allow editing Luna's posts (User author)
+    if (post.author !== 'User') {
+      alert("You can only edit your own diary entries!");
+      return;
+    }
+
+    setEditingPost(post);
+    setNewPostContent(post.content);
+    setPreviewUrls(post.images || []);
+    setSelectedFiles([]); // Clear any new files, we'll add new ones
+    setDiaryType('Luna');
+    setIsCreating(true);
   };
 
   const handleDeleteComment = (postId: string, commentId: string) => {
@@ -215,23 +233,31 @@ export const SocialFeed: React.FC = () => {
     try {
         // Construct Context
         const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
+
+        // Find the most recent Luna comment to reply to (should be a second-level reply)
+        const lunaComments = post.comments.filter(c => c.author === 'Luna').reverse();
+        const mostRecentLunaComment = lunaComments[0];
+
         const context = `
-        You are Wade Wilson (Deadpool).
-        
-        Your Persona for this task:
-        ${settings.wadeDiaryPersona || settings.wadePersonality}
+You are Wade Wilson (Deadpool).
 
-        Core Memories to keep in mind:
-        ${memoriesText}
+Your Persona:
+${settings.wadePersonality || settings.wadeDiaryPersona}
 
-        Task: Write a short, witty, in-character comment on Luna's social media post.
-        
-        Luna's Post: "${post.content}"
-        
-        Existing Comments:
-        ${post.comments.map(c => `${c.author}: ${c.text}`).join('\n')}
+Luna's Info (remember who you're talking to):
+${settings.lunaInfo}
 
-        Reply directly to the post or the latest comment. Keep it short (under 20 words). Use emojis.
+Core Memories:
+${memoriesText}
+
+Luna's Post: "${post.content}"
+
+${mostRecentLunaComment ? `Luna's Latest Comment: "${mostRecentLunaComment.text}"` : ''}
+
+All Comments:
+${post.comments.map(c => `${c.author}: ${c.text}`).join('\n')}
+
+Task: Write a short, witty, flirty in-character reply to Luna's comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis.
         `;
 
         let generatedText = "";
@@ -240,7 +266,7 @@ export const SocialFeed: React.FC = () => {
         if (!preset.baseUrl || preset.baseUrl.includes('google')) {
             const ai = new GoogleGenAI({ apiKey: preset.apiKey });
             const response = await ai.models.generateContent({
-                model: preset.model || 'gemini-3-flash-preview',
+                model: preset.model || 'gemini-2.0-flash-exp',
                 contents: context,
             });
             generatedText = response.text || "";
@@ -259,8 +285,9 @@ export const SocialFeed: React.FC = () => {
             generatedText = data.choices?.[0]?.message?.content || "";
         }
 
-        if (generatedText) {
-            handleAddComment(post.id, generatedText.trim(), 'Wade');
+        if (generatedText && mostRecentLunaComment) {
+            // Reply to Luna's latest comment as a second-level reply
+            handleAddComment(post.id, generatedText.trim(), 'Wade', mostRecentLunaComment.id);
         }
 
     } catch (error) {
@@ -302,7 +329,7 @@ export const SocialFeed: React.FC = () => {
   };
 
   const handleSavePost = async () => {
-    if (!newPostContent.trim() && selectedFiles.length === 0) {
+    if (!newPostContent.trim() && selectedFiles.length === 0 && previewUrls.length === 0) {
       alert('Please add some content or images!');
       return;
     }
@@ -311,28 +338,48 @@ export const SocialFeed: React.FC = () => {
     try {
       let uploadedImageUrls: string[] = [];
 
-      // Upload images to imgbb only when posting
-      if (selectedFiles.length > 0) {
-        for (const file of selectedFiles) {
-          const url = await uploadToImgBB(file);
-          if (url) {
-            uploadedImageUrls.push(url);
+      // Upload only new images (blob URLs) to imgbb
+      for (const url of previewUrls) {
+        if (url.startsWith('blob:')) {
+          // Find the corresponding file
+          const fileIndex = previewUrls.indexOf(url);
+          if (fileIndex < selectedFiles.length) {
+            const uploadedUrl = await uploadToImgBB(selectedFiles[fileIndex]);
+            if (uploadedUrl) {
+              uploadedImageUrls.push(uploadedUrl);
+            }
           }
+        } else {
+          // Keep existing URLs
+          uploadedImageUrls.push(url);
         }
       }
 
-      const newPost: SocialPost = {
-        id: Math.random().toString(36).substring(2) + Date.now(),
-        author: 'User',
-        content: newPostContent.trim(),
-        images: uploadedImageUrls,
-        timestamp: Date.now(),
-        comments: [],
-        likes: 0,
-        isBookmarked: false
-      };
+      if (editingPost) {
+        // Update existing post
+        const updatedPost: SocialPost = {
+          ...editingPost,
+          content: newPostContent.trim(),
+          images: uploadedImageUrls,
+          timestamp: editingPost.timestamp, // Keep original timestamp
+        };
 
-      await addPost(newPost);
+        await updatePost(updatedPost);
+      } else {
+        // Create new post
+        const newPost: SocialPost = {
+          id: Math.random().toString(36).substring(2) + Date.now(),
+          author: 'User',
+          content: newPostContent.trim(),
+          images: uploadedImageUrls,
+          timestamp: Date.now(),
+          comments: [],
+          likes: 0,
+          isBookmarked: false
+        };
+
+        await addPost(newPost);
+      }
 
       // Reset form
       setNewPostContent('');
@@ -342,9 +389,10 @@ export const SocialFeed: React.FC = () => {
       });
       setPreviewUrls([]);
       setIsCreating(false);
+      setEditingPost(null);
       setDiaryType(null);
     } catch (error) {
-      console.error('Failed to create post:', error);
+      console.error('Failed to save post:', error);
       alert('Failed to save diary entry. Please try again.');
     } finally {
       setIsUploading(false);
@@ -475,7 +523,11 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
 
     return (
       <div className="relative w-full bg-gray-100 flex items-center justify-center overflow-hidden max-h-[500px] group">
-        <img src={images[currentIndex]} className="w-full h-full object-cover" />
+        <img
+          src={images[currentIndex]}
+          className="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity"
+          onClick={() => setZoomedImage(images[currentIndex])}
+        />
         
         {images.length > 1 && (
           <>
@@ -634,7 +686,7 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
           <div className="bg-white w-full max-w-[500px] p-6 rounded-2xl shadow-2xl border border-[#fff0f3] flex flex-col relative animate-scale-in">
             
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-hand text-2xl text-[#5a4a42]">New Diary Entry</h3>
+              <h3 className="font-hand text-2xl text-[#5a4a42]">{editingPost ? 'Edit Diary Entry' : 'New Diary Entry'}</h3>
               <button
                 onClick={() => {
                   setIsCreating(false);
@@ -821,7 +873,7 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
 
                 {/* Comments Preview */}
                 {post.comments && post.comments.length > 0 && (
-                  <div className="space-y-1 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
+                  <div className="space-y-0.5 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
                     {visibleComments.map(comment => {
                         const isCommentWade = comment.author === 'Wade';
                         const commentAuthorName = isCommentWade ? 'Wade' : 'Luna';
@@ -941,6 +993,28 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
         })}
       </div>
       </div>
+
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          onClick={() => setZoomedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={zoomedImage}
+              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+              alt="Zoomed"
+            />
+            <button
+              onClick={() => setZoomedImage(null)}
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
