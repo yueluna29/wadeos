@@ -200,6 +200,15 @@ export const SocialFeed: React.FC = () => {
       setNewComment('');
       setReplyingTo(null);
 
+      // Expand comments after posting if there are multiple comments
+      if (updatedPost.comments.length > 1) {
+        setExpandedPostIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(postId);
+          return newSet;
+        });
+      }
+
       // Auto-generate Wade's reply if Luna just commented
       if (author === 'User' && post.author === 'User' && settings.activeLlmId) {
           setTimeout(() => {
@@ -234,30 +243,30 @@ export const SocialFeed: React.FC = () => {
         // Construct Context
         const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
 
-        // Find the most recent Luna comment to reply to (should be a second-level reply)
-        const lunaComments = post.comments.filter(c => c.author === 'Luna').reverse();
+        // Find the most recent Luna comment (User author) to reply to
+        const lunaComments = post.comments.filter(c => c.author === 'User').reverse();
         const mostRecentLunaComment = lunaComments[0];
 
         const context = `
 You are Wade Wilson (Deadpool).
 
 Your Persona:
-${settings.wadePersonality || settings.wadeDiaryPersona}
+${settings.wadePersonality}
 
 Luna's Info (remember who you're talking to):
 ${settings.lunaInfo}
 
-Core Memories:
+Core Memories (important long-term memories you must remember):
 ${memoriesText}
 
-Luna's Post: "${post.content}"
+Context:
+- Luna's Post: "${post.content}"
+${mostRecentLunaComment ? `- Luna's Latest Comment: "${mostRecentLunaComment.text}"` : ''}
 
-${mostRecentLunaComment ? `Luna's Latest Comment: "${mostRecentLunaComment.text}"` : ''}
+All Comments so far:
+${post.comments.map(c => `${c.author === 'User' ? 'Luna' : c.author}: ${c.text}`).join('\n')}
 
-All Comments:
-${post.comments.map(c => `${c.author}: ${c.text}`).join('\n')}
-
-Task: Write a short, witty, flirty in-character reply to Luna's comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis.
+Task: Write a short, witty, flirty in-character reply to Luna's latest comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis naturally.
         `;
 
         let generatedText = "";
@@ -884,8 +893,8 @@ Task: Write a diary entry in Deadpool's voice about today's conversations with L
                                 key={comment.id} 
                                 className={`text-xs flex gap-2 items-start group ${isReply ? 'ml-4' : ''}`}
                             >
-                                <div 
-                                    className="flex-1 flex gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
+                                <div
+                                    className="flex-1 flex gap-2 cursor-pointer p-1 rounded"
                                     onClick={() => {
                                         setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorName});
                                         setActivePostId(post.id);
