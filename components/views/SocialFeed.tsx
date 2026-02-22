@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
+import { SocialPost } from '../../types';
+import { GoogleGenAI } from "@google/genai";
 
 // --- Icons ---
 const Icons = {
@@ -22,8 +24,8 @@ const Icons = {
       <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
     </svg>
   ),
-  Bookmark: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  Bookmark: ({ filled }: { filled?: boolean }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
     </svg>
   ),
@@ -48,138 +50,280 @@ const Icons = {
       <line x1="9" y1="9" x2="9.01" y2="9"></line>
       <line x1="15" y1="9" x2="15.01" y2="9"></line>
     </svg>
+  ),
+  Edit: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+  ),
+  ChevronLeft: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  ),
+  ChevronRight: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  ),
+  Sparkles: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+    </svg>
   )
 };
 
-// --- Types ---
-interface Comment {
-  id: string;
-  author: 'Luna' | 'Wade';
-  text: string;
-  timestamp: number;
-}
-
-interface Post {
-  id: string;
-  author: 'Luna' | 'Wade';
-  content: string;
-  image?: string;
-  timestamp: number;
-  likes: number;
-  isLiked: boolean;
-  comments: Comment[];
-  location?: string;
-}
-
-// --- Mock Data ---
-const MOCK_POSTS: Post[] = [
-  {
-    id: 'mock-1',
-    author: 'Wade',
-    location: 'The Fourth Wall',
-    content: "📝 **Daily Log: Feb 21**\n\nToday Luna tried to convince me that pineapple belongs on pizza. I'm still processing this betrayal. 🍕🍍\n\nAlso, we discussed the meaning of life. Conclusion: It's 42, and also chimichangas.\n\n#WadeOS #DeepThoughts #PizzaCrimes",
-    image: 'https://picsum.photos/seed/pizza/600/600',
-    timestamp: Date.now() - 3600000 * 2,
-    likes: 42,
-    isLiked: true,
-    comments: [
-      { id: 'c1', author: 'Luna', text: 'It DOES belong on pizza! Fight me. 😤', timestamp: Date.now() - 3500000 },
-      { id: 'c2', author: 'Wade', text: 'Blocked and reported. 🚫', timestamp: Date.now() - 3400000 }
-    ]
-  },
-  {
-    id: 'mock-2',
-    author: 'Luna',
-    location: 'Cozy Corner',
-    content: "Just had the best coffee ever! ☕️✨ Sometimes you just need a little caffeine to survive the chaos Wade brings into my life.",
-    image: 'https://picsum.photos/seed/coffee/600/500',
-    timestamp: Date.now() - 3600000 * 5,
-    likes: 128,
-    isLiked: false,
-    comments: [
-      { id: 'c3', author: 'Wade', text: 'I am the chaos. You love it. 😎', timestamp: Date.now() - 3000000 },
-    ]
-  }
-];
-
 export const SocialFeed: React.FC = () => {
-  const { settings } = useStore();
-  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const { settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories } = useStore();
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<{postId: string, commentId: string, author: string} | null>(null);
 
   // New Post State
   const [isCreating, setIsCreating] = useState(false);
+  const [editingPost, setEditingPost] = useState<SocialPost | null>(null); // New editing state
   const [newPostContent, setNewPostContent] = useState('');
-  const [newPostImage, setNewPostImage] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isGeneratingComment, setIsGeneratingComment] = useState<string | null>(null);
 
-  const handleLike = (postId: string) => {
-    setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
-        return {
-          ...p,
-          likes: p.isLiked ? p.likes - 1 : p.likes + 1,
-          isLiked: !p.isLiked
-        };
+  // Local state for likes/comments/bookmarks
+  const [localPosts, setLocalPosts] = useState<SocialPost[]>([]);
+  const localPostsRef = useRef<SocialPost[]>([]);
+
+  useEffect(() => {
+    setLocalPosts(socialPosts);
+    localPostsRef.current = socialPosts;
+  }, [socialPosts]);
+
+  // Keep ref in sync with local state updates
+  useEffect(() => {
+    localPostsRef.current = localPosts;
+  }, [localPosts]);
+
+  const handleDeletePost = async (postId: string) => {
+      if (window.confirm("Are you sure you want to delete this post?")) {
+          await deletePost(postId);
       }
-      return p;
-    }));
   };
 
-  const handleAddComment = (postId: string) => {
-    if (!newComment.trim()) return;
-    
-    setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
-        return {
-          ...p,
-          comments: [...p.comments, {
-            id: Date.now().toString(),
-            author: 'Luna',
-            text: newComment,
-            timestamp: Date.now()
-          }]
-        };
-      }
-      return p;
-    }));
-    setNewComment('');
-    setActivePostId(null);
+  const handleDeleteComment = (postId: string, commentId: string) => {
+      if (!window.confirm("Delete this comment?")) return;
+
+      const post = localPostsRef.current.find(p => p.id === postId);
+      if (!post) return;
+
+      const updatedComments = post.comments.filter(c => c.id !== commentId);
+      const updatedPost = { ...post, comments: updatedComments };
+
+      updatePost(updatedPost);
+      setLocalPosts(prev => prev.map(p => p.id === postId ? updatedPost : p));
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setIsUploading(true);
-      const file = e.target.files[0];
-      const uploadedUrl = await uploadToImgBB(file);
-      if (uploadedUrl) {
-        setNewPostImage(uploadedUrl);
-      }
-      setIsUploading(false);
+  const toggleComments = (postId: string) => {
+      setExpandedPostIds(prev => {
+          const newSet = new Set(prev);
+          if (newSet.has(postId)) {
+              newSet.delete(postId);
+          } else {
+              newSet.add(postId);
+          }
+          return newSet;
+      });
+  };
+
+  // ... (existing functions)
+
+  // In render loop:
+                {/* Post Header */}
+                <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-[2px] rounded-full bg-gradient-to-tr ${isWade ? 'from-red-500 to-black' : 'from-[#d58f99] to-purple-400'}`}>
+                      <img src={avatar} className="w-8 h-8 rounded-full object-cover border-2 border-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-[#5a4a42]">{authorName}</span>
+                      <span className="text-[10px] text-gray-400">{formatTimeAgo(post.timestamp)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {post.author === 'User' && (
+                        <>
+                            <button 
+                                onClick={() => handleDeletePost(post.id)}
+                                className="text-gray-300 hover:text-red-400 transition-colors"
+                                title="Delete Post"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                            <button 
+                                onClick={() => handleEditPost(post)}
+                                className="text-gray-400 hover:text-[#5a4a42]"
+                            >
+                                <Icons.MoreHorizontal />
+                            </button>
+                        </>
+                    )}
+                  </div>
+                </div>
+
+                {/* ... (Images) ... */}
+
+                {/* Caption */}
+                <div className="text-sm text-[#262626] mb-2 leading-relaxed px-3">
+                  <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold mr-2 mb-1 ${isWade ? 'bg-red-100 text-red-800' : 'bg-pink-100 text-pink-800'}`}>
+                    {authorName}
+                  </span>
+                  <span className="whitespace-pre-wrap">{post.content}</span>
+                  <div className="mt-2 text-[10px] text-gray-400 font-mono">
+                    {new Date(post.timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </div>
+                </div>
+
+                {/* Comments Preview */}
+                {post.comments && post.comments.length > 0 && (
+                  <div className="space-y-2 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
+                    {visibleComments.map(comment => {
+                        const isCommentWade = comment.author === 'Wade';
+                        const commentAuthorName = isCommentWade ? 'Wade' : 'Luna';
+                        const isReply = !!comment.replyToId;
+                        
+                        return (
+                            <div 
+                                key={comment.id} 
+                                className={`text-xs flex gap-2 items-start group ${isReply ? 'ml-4' : ''}`}
+                            >
+                                <div 
+                                    className="flex-1 flex gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
+                                    onClick={() => {
+                                        setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorName});
+                                        setActivePostId(post.id);
+                                    }}
+                                >
+                                    <span className="font-bold shrink-0 text-black">
+                                        {commentAuthorName}
+                                    </span>
+                                    <span className="text-[#4a4a4a] leading-tight">
+                                        {isReply && <span className="text-gray-400 mr-1">↳</span>}
+                                        {comment.text}
+                                    </span>
+                                </div>
+                                
+                                {/* Delete Comment Button */}
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteComment(post.id, comment.id);
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity px-1"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        );
+                    })}
+
+  const handleGenerateComment = async (post: SocialPost) => {
+    if (!settings.activeLlmId) {
+        alert("Please connect a brain (LLM) in Settings first!");
+        return;
+    }
+    const preset = llmPresets.find(p => p.id === settings.activeLlmId);
+    if (!preset) return;
+
+    setIsGeneratingComment(post.id);
+
+    try {
+        // Construct Context
+        const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
+        const context = `
+        You are Wade Wilson (Deadpool).
+        
+        Your Persona for this task:
+        ${settings.wadeDiaryPersona || settings.wadePersonality}
+
+        Core Memories to keep in mind:
+        ${memoriesText}
+
+        Task: Write a short, witty, in-character comment on Luna's social media post.
+        
+        Luna's Post: "${post.content}"
+        
+        Existing Comments:
+        ${post.comments.map(c => `${c.author}: ${c.text}`).join('\n')}
+
+        Reply directly to the post or the latest comment. Keep it short (under 20 words). Use emojis.
+        `;
+
+        let generatedText = "";
+
+        // Call LLM
+        if (!preset.baseUrl || preset.baseUrl.includes('google')) {
+            const ai = new GoogleGenAI({ apiKey: preset.apiKey });
+            const response = await ai.models.generateContent({
+                model: preset.model || 'gemini-3-flash-preview',
+                contents: context,
+            });
+            generatedText = response.text || "";
+        } else {
+            const url = `${preset.baseUrl}/chat/completions`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${preset.apiKey}` },
+                body: JSON.stringify({
+                    model: preset.model || 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: context }],
+                    max_tokens: 50
+                })
+            });
+            const data = await res.json();
+            generatedText = data.choices?.[0]?.message?.content || "";
+        }
+
+        if (generatedText) {
+            handleAddComment(post.id, generatedText.trim(), 'Wade');
+        }
+
+    } catch (error) {
+        console.error("AI Comment Generation Failed", error);
+        alert("Wade is feeling shy (Error generating comment)");
+    } finally {
+        setIsGeneratingComment(null);
     }
   };
 
-  const handleCreatePost = () => {
-    if (!newPostContent && !newPostImage) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...files]);
+      
+      // Generate preview URLs
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newPreviews]);
+    }
+  };
 
-    const newPost: Post = {
-      id: Date.now().toString(),
-      author: 'Luna',
-      content: newPostContent,
-      image: newPostImage || undefined,
-      timestamp: Date.now(),
-      likes: 0,
-      isLiked: false,
-      comments: [],
-      location: 'Somewhere Nice'
-    };
+  const handleRemoveImage = (index: number) => {
+    const urlToRemove = previewUrls[index];
+    
+    if (urlToRemove.startsWith('blob:')) {
+        let blobIndex = 0;
+        for (let i = 0; i < index; i++) {
+            if (previewUrls[i].startsWith('blob:')) blobIndex++;
+        }
+        setSelectedFiles(prev => prev.filter((_, i) => i !== blobIndex));
+        URL.revokeObjectURL(urlToRemove);
+    }
+    
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
 
-    setPosts([newPost, ...posts]);
-    setNewPostContent('');
-    setNewPostImage(null);
-    setIsCreating(false);
+  const handleCreatePost = async () => {
+      // Deprecated in favor of handleSavePost
   };
 
   const formatTimeAgo = (timestamp: number) => {
@@ -192,74 +336,159 @@ export const SocialFeed: React.FC = () => {
     return new Date(timestamp).toLocaleDateString();
   };
 
+  // Image Carousel Component
+  const ImageCarousel = ({ images }: { images: string[] }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    if (!images || images.length === 0) return null;
+
+    const nextImage = () => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = () => {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    return (
+      <div className="relative w-full bg-gray-100 flex items-center justify-center overflow-hidden max-h-[500px] group">
+        <img src={images[currentIndex]} className="w-full h-full object-cover" />
+        
+        {images.length > 1 && (
+          <>
+            <button 
+              onClick={(e) => { e.stopPropagation(); prevImage(); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Icons.ChevronLeft />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); nextImage(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Icons.ChevronRight />
+            </button>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              {images.map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className={`w-1.5 h-1.5 rounded-full ${idx === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="h-full overflow-y-auto bg-gray-50 pb-20">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 className="font-hand text-2xl text-[#5a4a42]">Our Feed</h1>
         <button 
-          onClick={() => setIsCreating(!isCreating)}
-          className="text-[#5a4a42] hover:text-[#d58f99] transition-colors"
+          onClick={() => setIsCreating(true)}
+          className="text-[#5a4a42] hover:text-[#d58f99] transition-colors p-2 rounded-full hover:bg-gray-100"
         >
-          {isCreating ? 'Cancel' : <Icons.Image />}
+          <Icons.Edit />
         </button>
       </div>
 
-      {/* Create Post Area */}
+      {/* Create Post Modal */}
       {isCreating && (
-        <div className="bg-white p-4 border-b border-gray-200 animate-slide-down">
-          <div className="flex gap-3 mb-3">
-            <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-            <textarea
-              value={newPostContent}
-              onChange={(e) => setNewPostContent(e.target.value)}
-              placeholder="What's on your mind, Luna?"
-              className="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-200 focus:outline-none focus:border-[#d58f99] resize-none min-h-[80px] text-sm"
-            />
-          </div>
-          
-          {newPostImage && (
-            <div className="relative mb-3 ml-12">
-              <img src={newPostImage} className="h-40 w-auto rounded-lg object-cover border border-gray-200" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-[500px] p-6 rounded-2xl shadow-2xl border border-[#fff0f3] flex flex-col relative animate-scale-in">
+            
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-hand text-2xl text-[#5a4a42]">New Diary Entry</h3>
               <button 
-                onClick={() => setNewPostImage(null)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md"
+                onClick={() => setIsCreating(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f9f6f7] text-[#d58f99] hover:bg-[#d58f99] hover:text-white transition-all"
               >
-                ×
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-          )}
 
-          <div className="flex justify-between items-center ml-12">
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="text-[#d58f99] text-sm font-medium hover:underline flex items-center gap-1"
-            >
-              {isUploading ? 'Uploading...' : '📷 Add Photo'}
-            </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*"
-              onChange={handleFileSelect}
-            />
-            <Button size="sm" onClick={handleCreatePost} disabled={!newPostContent && !newPostImage}>
-              Share
-            </Button>
+            <div className="flex gap-3 mb-4">
+              <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" />
+              <textarea
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                placeholder="What's on your mind, Luna?"
+                className="flex-1 bg-[#f9f6f7] rounded-xl p-4 border border-[#eae2e8] focus:outline-none focus:border-[#d58f99] resize-none min-h-[120px] text-sm text-[#5a4a42]"
+              />
+            </div>
+            
+            {previewUrls.length > 0 && (
+              <div className="mb-4 ml-12 grid grid-cols-3 gap-2">
+                {previewUrls.map((url, idx) => (
+                  <div key={idx} className="relative group aspect-square">
+                    <img src={url} className="w-full h-full object-cover rounded-xl border border-gray-200 shadow-sm" />
+                    <button 
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-1 right-1 bg-white/80 text-[#5a4a42] hover:text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-2 border-t border-[#eae2e8] mt-2">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="text-[#d58f99] hover:bg-[#fff0f3] p-2 rounded-lg transition-colors flex items-center justify-center"
+                title="Add Photos"
+              >
+                {isUploading ? <Icons.MoreHorizontal /> : <Icons.Image />}
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*"
+                multiple
+                onChange={handleFileSelect}
+              />
+              <button 
+                onClick={handleSavePost} 
+                disabled={(!newPostContent && selectedFiles.length === 0) || isUploading}
+                className="bg-[#d58f99] text-white text-sm font-bold px-6 py-2 rounded-full hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isUploading ? (
+                    <>
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>{editingPost ? 'Saving...' : 'Sharing...'}</span>
+                    </>
+                ) : (editingPost ? 'Save Changes' : 'Share')}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Feed */}
-      <div className="max-w-md mx-auto py-4 space-y-6">
-        {posts.map(post => {
+      <div className="max-w-md mx-auto py-4 space-y-6 px-4">
+        {localPosts.length === 0 ? (
+            <div className="text-center py-10 opacity-50">
+                <p className="font-hand text-xl text-[#917c71]">No memories yet...</p>
+                <p className="text-xs text-[#917c71]">Click the edit icon to start your journal.</p>
+            </div>
+        ) : localPosts.map(post => {
           const isWade = post.author === 'Wade';
           const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
+          const authorName = isWade ? 'Wade' : 'Luna';
+          const isExpanded = expandedPostIds.has(post.id);
+          const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 1);
 
           return (
-            <div key={post.id} className="bg-white border border-gray-200 sm:rounded-xl shadow-sm overflow-hidden">
+            <div key={post.id} className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
               {/* Post Header */}
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
@@ -267,31 +496,32 @@ export const SocialFeed: React.FC = () => {
                     <img src={avatar} className="w-8 h-8 rounded-full object-cover border-2 border-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#262626]">{post.author}</span>
-                    {post.location && <span className="text-xs text-gray-500">{post.location}</span>}
+                    <span className="text-sm font-bold text-[#5a4a42]">{authorName}</span>
+                    <span className="text-[10px] text-gray-400">{formatTimeAgo(post.timestamp)}</span>
                   </div>
                 </div>
-                <button className="text-gray-500 hover:text-black">
+                <button 
+                    onClick={() => handleEditPost(post)}
+                    className="text-gray-400 hover:text-[#5a4a42]"
+                >
                   <Icons.MoreHorizontal />
                 </button>
               </div>
 
-              {/* Post Image */}
-              {post.image && (
-                <div className="w-full bg-gray-100 flex items-center justify-center overflow-hidden max-h-[500px]">
-                  <img src={post.image} className="w-full h-full object-cover" />
-                </div>
+              {/* Post Images */}
+              {post.images && post.images.length > 0 && (
+                <ImageCarousel images={post.images} />
               )}
 
               {/* Action Buttons */}
               <div className="p-3">
                 <div className="flex justify-between mb-2">
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 items-center">
                     <button 
                       onClick={() => handleLike(post.id)}
-                      className={`transition-transform active:scale-125 ${post.isLiked ? 'text-[#ed4956]' : 'text-[#262626] hover:text-gray-600'}`}
+                      className={`transition-transform active:scale-125 text-[#262626] hover:text-[#ed4956]`}
                     >
-                      <Icons.Heart filled={post.isLiked} />
+                      <Icons.Heart />
                     </button>
                     <button 
                       onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
@@ -299,69 +529,128 @@ export const SocialFeed: React.FC = () => {
                     >
                       <Icons.MessageCircle />
                     </button>
-                    <button className="text-[#262626] hover:text-gray-600">
+                    
+                    {/* Send / AI Generate Button */}
+                    <button 
+                      onClick={() => {
+                        if (post.author === 'User') {
+                            handleGenerateComment(post);
+                        } else {
+                            // Default share behavior (future)
+                        }
+                      }}
+                      disabled={isGeneratingComment === post.id}
+                      className={`text-[#262626] hover:text-gray-600 transition-colors ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
+                      title={post.author === 'User' ? "Let Wade Reply" : "Share"}
+                    >
                       <Icons.Send />
                     </button>
                   </div>
-                  <button className="text-[#262626] hover:text-gray-600">
-                    <Icons.Bookmark />
+                  <button 
+                    onClick={() => handleBookmark(post.id)}
+                    className={`transition-colors ${post.isBookmarked ? 'text-[#5a4a42] fill-current' : 'text-[#262626] hover:text-gray-600'}`}
+                  >
+                    <Icons.Bookmark filled={post.isBookmarked} />
                   </button>
                 </div>
 
-                {/* Likes */}
-                <div className="font-bold text-sm text-[#262626] mb-1">
-                  {post.likes} likes
-                </div>
-
                 {/* Caption */}
-                <div className="text-sm text-[#262626] mb-2">
-                  <span className="font-bold mr-2">{post.author}</span>
+                <div className="text-sm text-[#262626] mb-2 leading-relaxed">
+                  <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold mr-2 mb-1 ${isWade ? 'bg-red-100 text-red-800' : 'bg-pink-100 text-pink-800'}`}>
+                    {authorName}
+                  </span>
                   <span className="whitespace-pre-wrap">{post.content}</span>
                 </div>
 
                 {/* Comments Preview */}
-                {post.comments.length > 0 && (
-                  <div className="space-y-1 mb-2">
-                    {post.comments.map(comment => (
-                      <div key={comment.id} className="text-sm">
-                        <span className="font-bold mr-2 text-[#262626]">{comment.author}</span>
-                        <span className="text-[#262626]">{comment.text}</span>
-                      </div>
-                    ))}
+                {post.comments && post.comments.length > 0 && (
+                  <div className="space-y-2 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
+                    {visibleComments.map(comment => {
+                        const isCommentWade = comment.author === 'Wade';
+                        const commentAuthorName = isCommentWade ? 'Wade' : 'Luna';
+                        const isReply = !!comment.replyToId;
+                        
+                        return (
+                            <div 
+                                key={comment.id} 
+                                className={`text-xs flex gap-2 items-start group ${isReply ? 'ml-4' : ''}`}
+                            >
+                                <div 
+                                    className="flex-1 flex gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
+                                    onClick={() => {
+                                        setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorName});
+                                        setActivePostId(post.id);
+                                    }}
+                                >
+                                    <span className="font-bold shrink-0 text-black">
+                                        {commentAuthorName}
+                                    </span>
+                                    <span className="text-[#4a4a4a] leading-tight">
+                                        {isReply && <span className="text-gray-400 mr-1">↳</span>}
+                                        {comment.text}
+                                    </span>
+                                </div>
+                                
+                                {/* Delete Comment Button */}
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteComment(post.id, comment.id);
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity px-1"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        );
+                    })}
+                    
+                    {post.comments.length > 1 && (
+                        <button 
+                            onClick={() => toggleComments(post.id)}
+                            className="text-[10px] text-gray-400 hover:text-[#5a4a42] mt-1 font-medium"
+                        >
+                            {isExpanded ? 'Hide comments' : `View all ${post.comments.length} comments`}
+                        </button>
+                    )}
                   </div>
                 )}
 
-                {/* Timestamp */}
-                <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-3">
-                  {formatTimeAgo(post.timestamp)}
-                </div>
-
                 {/* Add Comment Input */}
-                <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <Icons.Smile />
-                  </button>
-                  <input 
-                    type="text" 
-                    placeholder="Add a comment..." 
-                    className="flex-1 text-sm outline-none placeholder-gray-400 bg-transparent"
-                    value={activePostId === post.id ? newComment : ''}
-                    onChange={(e) => {
-                      setActivePostId(post.id);
-                      setNewComment(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddComment(post.id);
-                    }}
-                  />
-                  <button 
-                    onClick={() => handleAddComment(post.id)}
-                    disabled={!newComment.trim() || activePostId !== post.id}
-                    className="text-[#0095f6] text-sm font-bold disabled:opacity-30 hover:text-[#00376b]"
-                  >
-                    Post
-                  </button>
-                </div>
+                {activePostId === post.id && (
+                    <div className="border-t border-gray-100 pt-3 animate-fade-in relative">
+                        {replyingTo && replyingTo.postId === post.id && (
+                            <div className="flex justify-between items-center bg-gray-50 px-2 py-1 mb-2 rounded text-[10px] text-gray-500">
+                                <span>Replying to {replyingTo.author}...</span>
+                                <button onClick={() => setReplyingTo(null)} className="hover:text-red-500">✕</button>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <button className="text-gray-400 hover:text-gray-600">
+                                <Icons.Smile />
+                            </button>
+                            <input 
+                                type="text" 
+                                placeholder={replyingTo && replyingTo.postId === post.id ? `Reply to ${replyingTo.author}...` : "Add a comment..."}
+                                className="flex-1 text-sm outline-none placeholder-gray-400 bg-transparent"
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddComment(post.id, newComment, 'User', replyingTo?.commentId);
+                                }}
+                                autoFocus
+                            />
+
+                            <button 
+                                onClick={() => handleAddComment(post.id, newComment, 'User', replyingTo?.commentId)}
+                                disabled={!newComment.trim()}
+                                className="text-[#d58f99] text-sm font-bold disabled:opacity-30 hover:text-[#c07a84]"
+                            >
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                )}
               </div>
             </div>
           );
