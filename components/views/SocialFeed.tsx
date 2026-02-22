@@ -71,6 +71,17 @@ const Icons = {
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
     </svg>
+  ),
+  Trash: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  ),
+  Check: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
   )
 };
 
@@ -95,6 +106,10 @@ export const SocialFeed: React.FC = () => {
   const [localPosts, setLocalPosts] = useState<SocialPost[]>([]);
   const localPostsRef = useRef<SocialPost[]>([]);
 
+  // Delete confirmation states
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletingComment, setDeletingComment] = useState<{postId: string, commentId: string} | null>(null);
+
   useEffect(() => {
     setLocalPosts(socialPosts);
     localPostsRef.current = socialPosts;
@@ -106,22 +121,38 @@ export const SocialFeed: React.FC = () => {
   }, [localPosts]);
 
   const handleDeletePost = async (postId: string) => {
-      if (window.confirm("Are you sure you want to delete this post?")) {
+      if (deletingPostId === postId) {
+          // Second click - confirm deletion
           await deletePost(postId);
+          setDeletingPostId(null);
+      } else {
+          // First click - show confirmation
+          setDeletingPostId(postId);
+          // Auto-reset after 3 seconds
+          setTimeout(() => setDeletingPostId(null), 3000);
       }
   };
 
   const handleDeleteComment = (postId: string, commentId: string) => {
-      if (!window.confirm("Delete this comment?")) return;
+      const key = `${postId}-${commentId}`;
 
-      const post = localPostsRef.current.find(p => p.id === postId);
-      if (!post) return;
+      if (deletingComment?.postId === postId && deletingComment?.commentId === commentId) {
+          // Second click - confirm deletion
+          const post = localPostsRef.current.find(p => p.id === postId);
+          if (!post) return;
 
-      const updatedComments = post.comments.filter(c => c.id !== commentId);
-      const updatedPost = { ...post, comments: updatedComments };
+          const updatedComments = post.comments.filter(c => c.id !== commentId);
+          const updatedPost = { ...post, comments: updatedComments };
 
-      updatePost(updatedPost);
-      setLocalPosts(prev => prev.map(p => p.id === postId ? updatedPost : p));
+          updatePost(updatedPost);
+          setLocalPosts(prev => prev.map(p => p.id === postId ? updatedPost : p));
+          setDeletingComment(null);
+      } else {
+          // First click - show confirmation
+          setDeletingComment({postId, commentId});
+          // Auto-reset after 3 seconds
+          setTimeout(() => setDeletingComment(null), 3000);
+      }
   };
 
   const toggleComments = (postId: string) => {
@@ -409,12 +440,27 @@ export const SocialFeed: React.FC = () => {
                     <span className="text-[10px] text-gray-400">{formatTimeAgo(post.timestamp)}</span>
                   </div>
                 </div>
-                <button 
-                    onClick={() => handleEditPost(post)}
-                    className="text-gray-400 hover:text-[#5a4a42]"
-                >
-                  <Icons.MoreHorizontal />
-                </button>
+                <div className="flex items-center gap-2">
+                  {post.author === 'User' && (
+                    <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className={`transition-colors ${
+                          deletingPostId === post.id
+                            ? 'text-red-500 scale-110'
+                            : 'text-gray-200 hover:text-red-400'
+                        }`}
+                        title={deletingPostId === post.id ? 'Click again to confirm' : 'Delete post'}
+                    >
+                      {deletingPostId === post.id ? <Icons.Check /> : <Icons.Trash />}
+                    </button>
+                  )}
+                  <button
+                      onClick={() => handleEditPost(post)}
+                      className="text-gray-400 hover:text-[#5a4a42]"
+                  >
+                    <Icons.MoreHorizontal />
+                  </button>
+                </div>
               </div>
 
               {/* Post Images */}
@@ -469,6 +515,9 @@ export const SocialFeed: React.FC = () => {
                     {authorName}
                   </span>
                   <span className="whitespace-pre-wrap">{post.content}</span>
+                  <div className="mt-2 text-[10px] text-gray-300 font-mono">
+                    {new Date(post.timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </div>
                 </div>
 
                 {/* Comments Preview */}
@@ -501,14 +550,27 @@ export const SocialFeed: React.FC = () => {
                                 </div>
                                 
                                 {/* Delete Comment Button */}
-                                <button 
+                                <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleDeleteComment(post.id, comment.id);
                                     }}
-                                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity px-1"
+                                    className={`transition-all px-1 ${
+                                      deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
+                                        ? 'opacity-100 text-red-500 scale-110'
+                                        : 'opacity-0 group-hover:opacity-100 text-gray-200 hover:text-red-400'
+                                    }`}
+                                    title={
+                                      deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
+                                        ? 'Click again to confirm'
+                                        : 'Delete comment'
+                                    }
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    {deletingComment?.postId === post.id && deletingComment?.commentId === comment.id ? (
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    ) : (
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    )}
                                 </button>
                             </div>
                         );
