@@ -747,9 +747,6 @@ export const ChatInterface: React.FC = () => {
         } else {
           base64Audio = await generateTTS(text);
         }
-
-        // Save to cache
-        updateMessageAudioCache(messageId, base64Audio);
       }
 
       const binaryString = atob(base64Audio);
