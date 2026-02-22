@@ -2,6 +2,18 @@ body {
   font-family: 'Nunito', sans-serif !important;
 }
 
+/* Audio playing animation */
+@keyframes audio-pulse {
+  0%, 100% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 0 rgba(213, 143, 153, 0.7);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(213, 143, 153, 0);
+  }
+}
+
 /* ========== 超强力覆盖所有ReactMarkdown默认样式 ========== */
 
 /* 只清零margin，不清零padding */

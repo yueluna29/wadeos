@@ -35,7 +35,9 @@ const Icons = {
   Infinity: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"/></svg>,
   Smartphone: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
   Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
-  Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>
+  Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>,
+  Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
 };
 
 // --- Long Press Hook ---
@@ -76,9 +78,9 @@ const useLongPress = (callback: () => void, ms = 500) => {
 };
 
 const MessageBubble = ({
-  msg, settings, onSelect, isSMS, onPlayTTS, searchQuery
+  msg, settings, onSelect, isSMS, onPlayTTS, searchQuery, playingMessageId, isPaused
 }: {
-  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string) => void, searchQuery?: string
+  msg: Message, settings: any, onSelect: (id: string) => void, isSMS: boolean, onPlayTTS: (text: string, messageId: string) => void, searchQuery?: string, playingMessageId: string | null, isPaused: boolean
 }) => {
   const isLuna = msg.role === 'Luna';
   const [showThought, setShowThought] = useState(false);
@@ -239,10 +241,17 @@ const MessageBubble = ({
               <span className="opacity-70">{formatTime(msg.timestamp)}</span>
               {/* QUICK TTS BUTTON (Moved to right of time) */}
               <button
-                onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text); }}
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[#d58f99] hover:bg-[#fff0f3] active:bg-[#d58f99] active:text-white transition-colors"
+                onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  playingMessageId === msg.id
+                    ? isPaused
+                      ? 'bg-[#d58f99] text-white scale-110 shadow-md'
+                      : 'bg-[#d58f99] text-white shadow-lg'
+                    : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
+                }`}
+                style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
               >
-                <Icons.Wave />
+                {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Play />}
               </button>
             </div>
           </div>
@@ -371,10 +380,30 @@ export const ChatInterface: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Audio playback state management
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+
   const messagesRef = useRef(messages);
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (viewState === 'chat') {
@@ -645,12 +674,35 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
-  const executeTTS = async (text: string) => {
+  const executeTTS = async (text: string, messageId: string) => {
     try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // If already playing this message
+      if (playingMessageId === messageId) {
+        if (audioRef.current) {
+          if (isPaused) {
+            // Resume playback
+            audioRef.current.play();
+            setIsPaused(false);
+          } else {
+            // Pause playback
+            audioRef.current.pause();
+            setIsPaused(true);
+          }
+          return;
+        }
       }
 
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+
+      // Generate new audio
       const activeTts = settings.activeTtsId ? ttsPresets.find(p => p.id === settings.activeTtsId) : null;
 
       let base64Audio: string;
@@ -679,26 +731,58 @@ export const ChatInterface: React.FC = () => {
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      const audioBuffer = await audioContextRef.current.decodeAudioData(bytes.buffer);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.start(0);
+
+      // Create blob and audio element
+      const blob = new Blob([bytes], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      // Set up event listeners
+      audio.onended = () => {
+        setPlayingMessageId(null);
+        setIsPaused(false);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        console.error("Audio playback error");
+        setPlayingMessageId(null);
+        setIsPaused(false);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+      };
+
+      // Start playback
+      setPlayingMessageId(messageId);
+      setIsPaused(false);
+      await audio.play();
     } catch (e) {
       console.error("TTS Error", e);
       alert("Voice module glitching. Check key?");
+      setPlayingMessageId(null);
+      setIsPaused(false);
     }
   };
 
   const playTTS = async () => {
     if (selectedMsg) {
       closeActions();
-      executeTTS(selectedMsg.text);
+      executeTTS(selectedMsg.text, selectedMsg.id);
     }
   };
 
-  const handleQuickTTS = (text: string) => {
-    executeTTS(text);
+  const handleQuickTTS = (text: string, messageId: string) => {
+    executeTTS(text, messageId);
   };
 
   const prevVariant = () => {
@@ -1414,6 +1498,8 @@ export const ChatInterface: React.FC = () => {
                   isSMS={activeMode === 'sms'}
                   onPlayTTS={handleQuickTTS}
                   searchQuery={searchQuery}
+                  playingMessageId={playingMessageId}
+                  isPaused={isPaused}
                 />
               </div>
             );
@@ -1534,8 +1620,25 @@ export const ChatInterface: React.FC = () => {
 
                     {selectedMsg.role === 'Wade' && activeMode !== 'archive' && (
                       <button onClick={(e) => { e.stopPropagation(); playTTS(); }} className="flex flex-col items-center gap-2 group">
-                        <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.VolumeLarge /></div>
-                        <span className="text-[10px] text-[#917c71]">Speak</span>
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${
+                            playingMessageId === selectedMsg.id
+                              ? isPaused
+                                ? 'bg-[#d58f99] text-white scale-110 shadow-lg'
+                                : 'bg-[#d58f99] text-white shadow-xl'
+                              : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                          }`}
+                          style={playingMessageId === selectedMsg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
+                        >
+                          {playingMessageId === selectedMsg.id && !isPaused ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                          ) : (
+                            <Icons.VolumeLarge />
+                          )}
+                        </div>
+                        <span className={`text-[10px] ${playingMessageId === selectedMsg.id ? 'text-[#d58f99] font-bold' : 'text-[#917c71]'}`}>
+                          {playingMessageId === selectedMsg.id ? (isPaused ? 'Resume' : 'Pause') : 'Speak'}
+                        </span>
                       </button>
                     )}
 
