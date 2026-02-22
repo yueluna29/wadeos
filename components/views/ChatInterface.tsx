@@ -6,7 +6,6 @@ import { generateMinimaxTTS } from '../../services/minimaxService';
 import { Message, ChatMode, ArchiveMessage, ChatArchive } from '../../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { supabase } from '../../services/supabase';
 
 // Simple Icons
 const Icons = {
@@ -32,7 +31,11 @@ const Icons = {
   Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
   Map: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
-  Pin: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0-7-9-7-9-7s-9 0-9 7c0 1.5 2 5 9 13 7-8 9-11.5 9-13z"></path></svg>
+  Pin: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0-7-9-7-9-7s-9 0-9 7c0 1.5 2 5 9 13 7-8 9-11.5 9-13z"></path></svg>,
+  Infinity: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"/></svg>,
+  Smartphone: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
+  Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
+  Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>
 };
 
 // --- Long Press Hook ---
@@ -222,7 +225,7 @@ const MessageBubble = ({
     return (
       <div className="flex flex-col items-start w-full group animate-fade-in pr-2">
         {/* Avatar Row */}
-        <div className="flex items-start gap-3 mb-0 ml-1 select-none">
+        <div className="flex items-start gap-2 mb-0 ml-1 select-none">
           <img
             src={settings.wadeAvatar}
             className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-sm"
@@ -230,19 +233,17 @@ const MessageBubble = ({
           <div className="flex flex-col mt-0.5">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[#5a4a42] text-sm leading-tight">Wade</span>
-              {/* QUICK TTS BUTTON (Hidden in Archive Mode) */}
-              {msg.mode !== 'archive' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text); }}
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[#d58f99] hover:bg-[#fff0f3] active:bg-[#d58f99] active:text-white transition-colors"
-                >
-                  <Icons.Volume />
-                </button>
-              )}
             </div>
             <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
               <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
               <span className="opacity-70">{formatTime(msg.timestamp)}</span>
+              {/* QUICK TTS BUTTON (Moved to right of time) */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text); }}
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[#d58f99] hover:bg-[#fff0f3] active:bg-[#d58f99] active:text-white transition-colors"
+              >
+                <Icons.Wave />
+              </button>
             </div>
           </div>
         </div>
@@ -285,7 +286,7 @@ const MessageBubble = ({
   return (
     <div className="flex flex-col items-end w-full group animate-fade-in pl-2">
       {/* Avatar Row */}
-      <div className="flex items-start gap-3 mb-0 mr-1 select-none">
+      <div className="flex items-start gap-2 mb-0 mr-1 select-none">
         <div className="flex flex-col items-end mt-0.5">
           <span className="font-bold text-[#5a4a42] text-sm leading-tight">Luna</span>
           <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
@@ -319,7 +320,7 @@ export const ChatInterface: React.FC = () => {
     sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
     coreMemories, llmPresets, ttsPresets,
-    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite // NEW
+    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage // NEW
   } = useStore();
 
   const [viewState, setViewState] = useState<'menu' | 'list' | 'chat'>('menu');
@@ -358,6 +359,10 @@ export const ChatInterface: React.FC = () => {
   const [showLlmSelector, setShowLlmSelector] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customPromptText, setCustomPromptText] = useState('');
+  
+  // Pagination State
+  const [sessionPage, setSessionPage] = useState(1);
+  const SESSIONS_PER_PAGE = 10;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -469,11 +474,28 @@ export const ChatInterface: React.FC = () => {
       : [];
   }
 
+  // Custom Sorting Logic: If timestamps (to the second) are equal, Luna comes first
+  displayMessages.sort((a, b) => {
+    const timeA = Math.floor(a.timestamp / 1000);
+    const timeB = Math.floor(b.timestamp / 1000);
+    
+    if (timeA !== timeB) {
+      return timeA - timeB;
+    }
+    
+    // If timestamps are equal (same second), prioritize Luna
+    if (a.role === 'Luna' && b.role !== 'Luna') return -1;
+    if (a.role !== 'Luna' && b.role === 'Luna') return 1;
+    
+    return 0;
+  });
+
   const modeSessions = sessions.filter(s => s.mode === activeMode).sort((a, b) => b.updatedAt - a.updatedAt);
 
   const handleModeSelect = (mode: ChatMode) => {
     setMode(mode);
     setViewState('list');
+    setSessionPage(1); // Reset to first page
   };
 
   const handleOpenSession = (sessionId: string) => {
@@ -613,7 +635,12 @@ export const ChatInterface: React.FC = () => {
 
   const handleSaveEdit = () => {
     if (selectedMsgId && editContent) {
-      updateMessage(selectedMsgId, editContent);
+      if (activeMode === 'archive' && activeArchiveId) {
+        updateArchiveMessage(selectedMsgId, editContent);
+        setArchiveMessages(prev => prev.map(m => m.id === selectedMsgId ? { ...m, content: editContent } : m));
+      } else {
+        updateMessage(selectedMsgId, editContent);
+      }
       closeActions();
     }
   };
@@ -982,19 +1009,25 @@ export const ChatInterface: React.FC = () => {
           <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-24 h-24 bg-[#fff0f3] rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
             <div className="relative z-10 flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-2xl group-hover:bg-[#d58f99] group-hover:text-white transition-colors">🧠</div>
+              <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+                <Icons.Infinity />
+              </div>
               <div><h3 className="font-bold text-[#5a4a42] text-lg">Deep Chat</h3><p className="text-[#917c71] text-xs mt-1">Soul-to-soul connection.</p></div>
             </div>
           </button>
           <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
             <div className="relative z-10">
-              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center text-xl mb-2 group-hover:bg-[#d58f99] group-hover:text-white transition-colors">💬</div>
+              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center mb-2 text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+                <Icons.Smartphone />
+              </div>
               <h3 className="font-bold text-[#5a4a42]">SMS Mode</h3>
             </div>
           </button>
           <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
             <div className="relative z-10">
-              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center text-xl mb-2 group-hover:bg-[#d58f99] group-hover:text-white transition-colors">🎭</div>
+              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center mb-2 text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+                <Icons.Feather />
+              </div>
               <h3 className="font-bold text-[#5a4a42]">Roleplay</h3>
             </div>
           </button>
@@ -1027,19 +1060,46 @@ export const ChatInterface: React.FC = () => {
             ) : chatArchives.length === 0 ? (
               <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import them in the Memory Bank.</div>
             ) : (
-              [...chatArchives].sort((a, b) => {
-                const timeA = archiveTimestamps[a.id] || 0;
-                const timeB = archiveTimestamps[b.id] || 0;
-                return timeB - timeA;
-              }).map(arch => (
-                <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
-                    <p className="text-[10px] text-[#917c71] mt-1">{archiveDates[arch.id] || 'Loading...'}</p>
+              <>
+                {[...chatArchives].sort((a, b) => {
+                  const timeA = archiveTimestamps[a.id] || 0;
+                  const timeB = archiveTimestamps[b.id] || 0;
+                  return timeB - timeA;
+                })
+                .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+                .map(arch => (
+                  <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
+                      <p className="text-[10px] text-[#917c71] mt-1">{archiveDates[arch.id] || 'Loading...'}</p>
+                    </div>
+                    <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
                   </div>
-                  <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
-                </div>
-              ))
+                ))}
+
+                {/* Archive Pagination Controls */}
+                {chatArchives.length > SESSIONS_PER_PAGE && (
+                  <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                    <button 
+                      onClick={() => setSessionPage(p => Math.max(1, p - 1))}
+                      disabled={sessionPage === 1}
+                      className="w-10 h-10 rounded-full bg-white shadow-sm border border-[#eae2e8] flex items-center justify-center text-[#d58f99] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#fff0f3] transition-colors"
+                    >
+                      <Icons.ChevronLeft />
+                    </button>
+                    <span className="text-xs font-bold text-[#917c71] font-mono">
+                      {sessionPage} / {Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
+                    </span>
+                    <button 
+                      onClick={() => setSessionPage(p => Math.min(Math.ceil(chatArchives.length / SESSIONS_PER_PAGE), p + 1))}
+                      disabled={sessionPage === Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
+                      className="w-10 h-10 rounded-full bg-white shadow-sm border border-[#eae2e8] flex items-center justify-center text-[#d58f99] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#fff0f3] transition-colors"
+                    >
+                      <Icons.ChevronRight />
+                    </button>
+                  </div>
+                )}
+              </>
             )
           ) : (
             modeSessions.length === 0 ? (
@@ -1050,30 +1110,54 @@ export const ChatInterface: React.FC = () => {
                 <div className="text-center text-[#917c71] text-xs mt-4">No active threads. Start a new one above!</div>
               </div>
             ) : (
-              [...modeSessions]
-                .sort((a, b) => {
-                  // First sort by pinned status
-                  if (a.isPinned && !b.isPinned) return -1;
-                  if (!a.isPinned && b.isPinned) return 1;
-                  // Then by updatedAt (most recent first)
-                  return b.updatedAt - a.updatedAt;
-                })
-                .map(session => (
-                  <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
-                    <div className="flex-1 min-w-0 flex items-center gap-2">
-                      {session.isPinned && (
-                        <div className="text-[#d58f99] flex-shrink-0">
-                          <Icons.Pin />
+              <>
+                {[...modeSessions]
+                  .sort((a, b) => {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return b.updatedAt - a.updatedAt;
+                  })
+                  .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+                  .map(session => (
+                    <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
+                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                        {session.isPinned && (
+                          <div className="text-[#d58f99] flex-shrink-0">
+                            <Icons.Pin />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+                          <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
-                        <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
+                      <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
+                  ))}
+                
+                {/* Pagination Controls */}
+                {modeSessions.length > SESSIONS_PER_PAGE && (
+                  <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                    <button 
+                      onClick={() => setSessionPage(p => Math.max(1, p - 1))}
+                      disabled={sessionPage === 1}
+                      className="w-10 h-10 rounded-full bg-white shadow-sm border border-[#eae2e8] flex items-center justify-center text-[#d58f99] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#fff0f3] transition-colors"
+                    >
+                      <Icons.ChevronLeft />
+                    </button>
+                    <span className="text-xs font-bold text-[#917c71] font-mono">
+                      {sessionPage} / {Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
+                    </span>
+                    <button 
+                      onClick={() => setSessionPage(p => Math.min(Math.ceil(modeSessions.length / SESSIONS_PER_PAGE), p + 1))}
+                      disabled={sessionPage === Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
+                      className="w-10 h-10 rounded-full bg-white shadow-sm border border-[#eae2e8] flex items-center justify-center text-[#d58f99] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#fff0f3] transition-colors"
+                    >
+                      <Icons.ChevronRight />
+                    </button>
                   </div>
-                ))
+                )}
+              </>
             )
           )}
         </div>
@@ -1095,7 +1179,7 @@ export const ChatInterface: React.FC = () => {
             </div>
           </div>
         ) : (activeMode === 'deep' || activeMode === 'sms') ? (
-          <div className="flex-1 flex items-center gap-3 ml-2">
+          <div className="flex-1 flex items-center gap-2 ml-2">
             <img
               src={settings.wadeAvatar}
               className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-md flex-shrink-0"
@@ -1117,7 +1201,10 @@ export const ChatInterface: React.FC = () => {
                     <span className="text-[#d58f99]">typing...</span>
                   )
                 ) : (
-                  <span>Online</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                    <span>Online</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -1304,11 +1391,16 @@ export const ChatInterface: React.FC = () => {
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
             // DYNAMIC SPACING LOGIC
-            let marginBottom = 'mb-3';
+            let marginBottom = 'mb-6'; // Default larger spacing between groups
             const nextMsg = displayMessages[idx + 1];
+            
             if (activeMode === 'sms') {
               if (nextMsg && nextMsg.role === msg.role) marginBottom = 'mb-1';
-              else marginBottom = 'mb-2';
+              else marginBottom = 'mb-4'; // Increased from mb-2
+            } else {
+               // Non-SMS modes (Deep, Roleplay, Archive)
+               if (nextMsg && nextMsg.role === msg.role) marginBottom = 'mb-2'; // Group same speaker closer
+               else marginBottom = 'mb-6'; // More space between different speakers (was mb-3)
             }
 
             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
@@ -1435,12 +1527,10 @@ export const ChatInterface: React.FC = () => {
                       </button>
                     )}
 
-                    {activeMode !== 'archive' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleInitEdit(); }} className="flex flex-col items-center gap-2 group">
-                        <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
-                        <span className="text-[10px] text-[#917c71]">Edit</span>
-                      </button>
-                    )}
+                    <button onClick={(e) => { e.stopPropagation(); handleInitEdit(); }} className="flex flex-col items-center gap-2 group">
+                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
+                      <span className="text-[10px] text-[#917c71]">Edit</span>
+                    </button>
 
                     {selectedMsg.role === 'Wade' && activeMode !== 'archive' && (
                       <button onClick={(e) => { e.stopPropagation(); playTTS(); }} className="flex flex-col items-center gap-2 group">

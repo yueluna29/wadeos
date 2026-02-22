@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { GoogleGenAI } from "@google/genai";
+import { generateMinimaxTTS } from "../../services/minimaxService";
 
 // Simple Line Icons for Settings - Refined for "Exquisite" look
 const Icons = {
@@ -25,8 +26,8 @@ const THEMES = [
 
 // Provider Presets
 const PROVIDERS = [
-  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', defaultModel: 'gemini-2.0-flash-exp' },
-  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com/v1/messages', defaultModel: 'claude-3-5-sonnet-20241022' },
+  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', defaultModel: 'gemini-3-pro-preview' },
+  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com', defaultModel: 'claude-3-5-sonnet-20241022' },
   { value: 'OpenAI', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
   { value: 'DeepSeek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat' },
   { value: 'OpenRouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', defaultModel: '' },
@@ -54,7 +55,7 @@ export const Settings: React.FC = () => {
     // Common
     provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '',
     // LLM Specific Parameters
-    temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0,
+    temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35,
     // TTS Specific (Minimax)
     voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0,
     sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1
@@ -64,53 +65,28 @@ export const Settings: React.FC = () => {
   const [fetchingModels, setFetchingModels] = useState(false);
 
   const resetForm = () => {
-    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 1.0, topK: 40, frequencyPenalty: 0, presencePenalty: 0, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
+    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
     setIsFormOpen(false);
     setEditingId(null);
     setAvailableModels([]);
   };
 
   const fetchModelsFromProvider = async (provider: string, apiKey: string, baseUrl: string) => {
-    if (!apiKey) return;
-
+    if (provider !== 'OpenRouter' || !apiKey) return;
     setFetchingModels(true);
     try {
-      if (provider === 'Gemini') {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
-        const data = await response.json();
-        if (data.models && Array.isArray(data.models)) {
-          const models = data.models
-            .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-            .map((m: any) => m.name.replace('models/', ''));
-          setAvailableModels(models);
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
         }
-      } else if (provider === 'Claude') {
-        const response = await fetch('https://api.anthropic.com/v1/models', {
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01'
-          }
-        });
-        const data = await response.json();
-        if (data.data && Array.isArray(data.data)) {
-          const models = data.data.map((m: any) => m.id);
-          setAvailableModels(models);
-        }
-      } else if (provider === 'OpenRouter') {
-        const response = await fetch('https://openrouter.ai/api/v1/models', {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`
-          }
-        });
-        const data = await response.json();
-        if (data.data && Array.isArray(data.data)) {
-          const models = data.data.map((m: any) => m.id);
-          setAvailableModels(models);
-        }
+      });
+      const data = await response.json();
+      if (data.data && Array.isArray(data.data)) {
+        const models = data.data.map((m: any) => m.id);
+        setAvailableModels(models);
       }
     } catch (error) {
       console.error('Failed to fetch models:', error);
-      setAvailableModels([]);
     } finally {
       setFetchingModels(false);
     }
@@ -126,7 +102,7 @@ export const Settings: React.FC = () => {
         model: preset.defaultModel,
         name: prev.name || preset.label
       }));
-      if ((provider === 'Gemini' || provider === 'Claude' || provider === 'OpenRouter') && formData.apiKey) {
+      if (provider === 'OpenRouter' && formData.apiKey) {
         fetchModelsFromProvider(provider, formData.apiKey, preset.baseUrl);
       }
     }
@@ -160,61 +136,46 @@ export const Settings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.apiKey) {
-      alert("Missing required fields: Name and API Key are required.");
-      return;
+    if (!formData.name || !formData.apiKey) return alert("Missing required fields.");
+
+    const cleanBaseUrl = formData.baseUrl.replace(/\/$/, ''); // Remove trailing slash
+
+    if (activeTab === 'llm') {
+      const payload = {
+        provider: formData.provider,
+        name: formData.name,
+        model: formData.model,
+        apiKey: formData.apiKey,
+        baseUrl: cleanBaseUrl,
+        apiPath: '',
+        temperature: formData.temperature,
+        topP: formData.topP,
+        topK: formData.topK,
+        frequencyPenalty: formData.frequencyPenalty,
+        presencePenalty: formData.presencePenalty
+      };
+      if (editingId) await updateLlmPreset(editingId, payload);
+      else await addLlmPreset(payload);
+    } else if (activeTab === 'tts') {
+      const payload = {
+        name: formData.name,
+        model: formData.model,
+        apiKey: formData.apiKey,
+        baseUrl: cleanBaseUrl,
+        voiceId: formData.voiceId,
+        emotion: formData.emotion,
+        speed: formData.speed,
+        vol: formData.vol,
+        pitch: formData.pitch,
+        sampleRate: formData.sampleRate,
+        bitrate: formData.bitrate,
+        format: formData.format,
+        channel: formData.channel
+      };
+      if (editingId) await updateTtsPreset(editingId, payload);
+      else await addTtsPreset(payload);
     }
-
-    const cleanBaseUrl = formData.baseUrl.replace(/\/$/, '');
-
-    try {
-      if (activeTab === 'llm') {
-        const payload = {
-          provider: formData.provider,
-          name: formData.name,
-          model: formData.model,
-          apiKey: formData.apiKey,
-          baseUrl: cleanBaseUrl,
-          apiPath: '',
-          temperature: formData.temperature,
-          topP: formData.topP,
-          topK: formData.topK,
-          frequencyPenalty: formData.frequencyPenalty,
-          presencePenalty: formData.presencePenalty
-        };
-        if (editingId) {
-          await updateLlmPreset(editingId, payload);
-        } else {
-          await addLlmPreset(payload);
-        }
-      } else if (activeTab === 'tts') {
-        const payload = {
-          name: formData.name,
-          model: formData.model,
-          apiKey: formData.apiKey,
-          baseUrl: cleanBaseUrl,
-          voiceId: formData.voiceId,
-          emotion: formData.emotion,
-          speed: formData.speed,
-          vol: formData.vol,
-          pitch: formData.pitch,
-          sampleRate: formData.sampleRate,
-          bitrate: formData.bitrate,
-          format: formData.format,
-          channel: formData.channel
-        };
-        if (editingId) {
-          await updateTtsPreset(editingId, payload);
-        } else {
-          await addTtsPreset(payload);
-        }
-      }
-
-      resetForm();
-    } catch (error: any) {
-      console.error('Failed to save preset:', error);
-      alert(`Failed to save connection: ${error.message || 'Unknown error'}`);
-    }
+    resetForm();
   };
 
   const handleDeleteClick = async (id: string, type: 'llm' | 'tts') => {
@@ -238,12 +199,12 @@ export const Settings: React.FC = () => {
         // 1. If it looks like a Gemini key (starts with AIza or empty base url implies Gemini)
         if (!item.baseUrl || item.baseUrl.includes('google')) {
            const ai = new GoogleGenAI({ apiKey: item.apiKey });
-           const response = await ai.models.generateContent({
+           // Just try to generate something very simple to verify the key
+           await ai.models.generateContent({
              model: modelName,
-             contents: "Reply with 'Connected' only.",
+             contents: "Hi",
            });
-           if (response.text) alert(`✅ Gemini Connected: "${response.text}"`);
-           else throw new Error("No response text");
+           alert(`⚔️ Wade says:\n\n"Chimichangas! Connection established, peanut butter cup. We are LIVE!"`);
         } 
         // 2. OpenAI Compatible
         else {
@@ -253,13 +214,13 @@ export const Settings: React.FC = () => {
              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${item.apiKey}` },
              body: JSON.stringify({ 
                model: item.model || 'gpt-3.5-turbo', 
-               messages: [{role: 'user', content: 'Say connected'}], 
+               messages: [{role: 'user', content: 'Hi'}], 
                max_tokens: 5 
              })
            });
            if (!res.ok) throw new Error(`Status ${res.status}`);
-           const json = await res.json();
-           alert(`✅ API Connected!`);
+           // We don't care about the content, just that it worked
+           alert(`⚔️ Wade says:\n\n"Maximum effort! API connected successfully. Now, where's my unicorn?"`);
         }
       } else {
         // Test Logic for TTS - Actually play audio
@@ -294,10 +255,45 @@ export const Settings: React.FC = () => {
            } else {
              throw new Error("No audio data returned");
            }
-        } else {
-          // Placeholder for other TTS
-          alert("✅ Connected (Custom TTS not fully implemented for playback test)");
-        }
+        } else if (item.baseUrl && item.baseUrl.includes('minimax')) {
+          // Minimax TTS Test
+          try {
+            const base64Audio = await generateMinimaxTTS("Hello Luna, connection verified.", {
+              apiKey: item.apiKey,
+              baseUrl: item.baseUrl,
+              model: item.model,
+              voiceId: item.voiceId,
+              emotion: item.emotion,
+              speed: item.speed,
+              vol: item.vol,
+              pitch: item.pitch,
+              sampleRate: item.sampleRate,
+              bitrate: item.bitrate,
+              format: item.format,
+              channel: item.channel
+        });
+
+    // 播放音频
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const binaryString = atob(base64Audio);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const audioBuffer = await audioContext.decodeAudioData(bytes.buffer);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+    
+    alert("🎤 Wade says:\n\n\"Minimax connection successful! Playing test audio...\"");
+  } catch (error: any) {
+    throw new Error(`Minimax TTS failed: ${error.message}`);
+  }
+} else {
+  alert("✅ Connected (Custom TTS provider - test not implemented)");
+}
       }
     } catch (e: any) {
       alert(`❌ Test Failed: ${e.message || e}`);
@@ -409,178 +405,172 @@ export const Settings: React.FC = () => {
           </div>
         )}
 
-        {/* --- FORM (Only for LLM/TTS) --- */}
+        {/* --- FORM MODAL (Only for LLM/TTS) --- */}
         {isFormOpen && activeTab !== 'system' && (
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-[#eae2e8] animate-fade-in mb-5">
-            <h3 className="font-bold text-[#5a4a42] text-xs mb-3">{editingId ? 'Edit Connection' : 'New Connection'}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {activeTab === 'llm' && (
-                <select
-                  className="input-field col-span-2"
-                  value={formData.provider}
-                  onChange={e => handleProviderChange(e.target.value)}
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white w-full max-w-[500px] max-h-[90vh] overflow-y-auto p-6 rounded-2xl shadow-2xl border border-[#fff0f3] flex flex-col relative">
+              
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-hand text-2xl text-[#5a4a42]">{editingId ? 'Edit Connection' : 'New Connection'}</h3>
+                <button 
+                  onClick={resetForm}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f9f6f7] text-[#d58f99] hover:bg-[#d58f99] hover:text-white transition-all"
                 >
-                  {PROVIDERS.map(p => (
-                    <option key={p.value} value={p.value}>{p.label}</option>
-                  ))}
-                </select>
-              )}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
 
-              <input className="input-field" placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-
-              {activeTab === 'llm' && availableModels.length > 0 ? (
-                <select
-                  className="input-field"
-                  value={formData.model}
-                  onChange={e => setFormData({...formData, model: e.target.value})}
-                >
-                  <option value="">Select Model...</option>
-                  {availableModels.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              ) : (
-                <input className="input-field" placeholder="Model (e.g. gemini-3-flash)" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
-              )}
-
-              <input className="input-field col-span-2" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => {
-                setFormData({...formData, apiKey: e.target.value});
-                if (activeTab === 'llm' && (formData.provider === 'Gemini' || formData.provider === 'Claude' || formData.provider === 'OpenRouter') && e.target.value) {
-                  fetchModelsFromProvider(formData.provider, e.target.value, formData.baseUrl);
-                }
-              }} />
-              <input className="input-field col-span-2" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
-
-              {activeTab === 'llm' && (
-                <>
-                  <div className="col-span-2 space-y-3 mt-2 p-3 bg-[#f9f6f7] rounded-lg">
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Temperature</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.temperature.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="0" max="2" step="0.01" value={formData.temperature} onChange={e => setFormData({...formData, temperature: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Top P</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.topP.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="0" max="1" step="0.01" value={formData.topP} onChange={e => setFormData({...formData, topP: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Top K</span>
-                        <input type="number" value={formData.topK} onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})} className="w-16 text-[10px] text-[#5a4a42] bg-white border border-[#eae2e8] rounded px-2 py-0.5 text-right" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Frequency Penalty</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.frequencyPenalty.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="-2" max="2" step="0.01" value={formData.frequencyPenalty} onChange={e => setFormData({...formData, frequencyPenalty: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Presence Penalty</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.presencePenalty.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="-2" max="2" step="0.01" value={formData.presencePenalty} onChange={e => setFormData({...formData, presencePenalty: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {activeTab === 'tts' && (
-                <>
-                  <input className="input-field" placeholder="Voice ID (e.g. English_expressive_narrator)" value={formData.voiceId} onChange={e => setFormData({...formData, voiceId: e.target.value})} />
-                  <select className="input-field" value={formData.emotion} onChange={e => setFormData({...formData, emotion: e.target.value})}>
-                    <option value="">Emotion (Auto)</option>
-                    <option value="happy">Happy</option>
-                    <option value="sad">Sad</option>
-                    <option value="angry">Angry</option>
-                    <option value="fearful">Fearful</option>
-                    <option value="disgusted">Disgusted</option>
-                    <option value="surprised">Surprised</option>
-                    <option value="calm">Calm</option>
-                    <option value="fluent">Fluent</option>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto custom-scrollbar px-1 pb-2">
+                {activeTab === 'llm' && (
+                  <select
+                    className="input-field col-span-2 h-10"
+                    value={formData.provider}
+                    onChange={e => handleProviderChange(e.target.value)}
+                  >
+                    {PROVIDERS.map(p => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
                   </select>
+                )}
 
-                  <div className="col-span-2 space-y-3 mt-2 p-3 bg-[#f9f6f7] rounded-lg">
+                <input className="input-field h-10" placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+
+                {activeTab === 'llm' && availableModels.length > 0 ? (
+                  <select
+                    className="input-field h-10"
+                    value={formData.model}
+                    onChange={e => setFormData({...formData, model: e.target.value})}
+                  >
+                    <option value="">Select Model...</option>
+                    {availableModels.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input className="input-field h-10" placeholder="Model (e.g. gemini-3-flash)" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
+                )}
+
+                <input className="input-field col-span-2 h-10" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => {
+                  setFormData({...formData, apiKey: e.target.value});
+                  if (activeTab === 'llm' && formData.provider === 'OpenRouter' && e.target.value) {
+                    fetchModelsFromProvider('OpenRouter', e.target.value, formData.baseUrl);
+                  }
+                }} />
+                <input className="input-field col-span-2 h-10" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
+
+                {activeTab === 'llm' && (
+                  <div className="col-span-2 space-y-5 mt-2 p-5 bg-[#f9f6f7] rounded-xl border border-[#eae2e8]/60">
+                    {[
+                      { label: 'Temperature', value: formData.temperature, setter: (v: number) => setFormData({...formData, temperature: v}), min: 0, max: 2, step: 0.01 },
+                      { label: 'Top P', value: formData.topP, setter: (v: number) => setFormData({...formData, topP: v}), min: 0, max: 1, step: 0.01 },
+                      { label: 'Frequency Penalty', value: formData.frequencyPenalty, setter: (v: number) => setFormData({...formData, frequencyPenalty: v}), min: -2, max: 2, step: 0.01 },
+                      { label: 'Presence Penalty', value: formData.presencePenalty, setter: (v: number) => setFormData({...formData, presencePenalty: v}), min: -2, max: 2, step: 0.01 },
+                    ].map((field) => (
+                      <div key={field.label}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[11px] font-bold text-[#917c71] uppercase tracking-wider">{field.label}</span>
+                          <span className="text-[11px] font-mono text-[#5a4a42] bg-white px-2 py-0.5 rounded border border-[#eae2e8]">{field.value.toFixed(2)}</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min={field.min} max={field.max} step={field.step} 
+                          value={field.value} 
+                          onChange={e => field.setter(parseFloat(e.target.value))} 
+                          className="w-full accent-[#d58f99] h-1.5 bg-[#eae2e8] rounded-lg cursor-pointer appearance-none hover:accent-[#c07a84] transition-all" 
+                        />
+                      </div>
+                    ))}
+
                     <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Speed</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.speed.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="0.5" max="2" step="0.01" value={formData.speed} onChange={e => setFormData({...formData, speed: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Volume</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.vol.toFixed(2)}</span>
-                      </div>
-                      <input type="range" min="0.1" max="10" step="0.1" value={formData.vol} onChange={e => setFormData({...formData, vol: parseFloat(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-[#917c71] font-bold">Pitch</span>
-                        <span className="text-[10px] text-[#5a4a42]">{formData.pitch}</span>
-                      </div>
-                      <input type="range" min="-12" max="12" step="1" value={formData.pitch} onChange={e => setFormData({...formData, pitch: parseInt(e.target.value)})} className="w-full accent-[#d58f99] h-1 bg-[#eae2e8] rounded-lg cursor-pointer" />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Sample Rate</label>
-                        <select className="input-field text-[10px] py-1" value={formData.sampleRate} onChange={e => setFormData({...formData, sampleRate: parseInt(e.target.value)})}>
-                          <option value={8000}>8000</option>
-                          <option value={16000}>16000</option>
-                          <option value={22050}>22050</option>
-                          <option value={24000}>24000</option>
-                          <option value={32000}>32000</option>
-                          <option value={44100}>44100</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Bitrate</label>
-                        <select className="input-field text-[10px] py-1" value={formData.bitrate} onChange={e => setFormData({...formData, bitrate: parseInt(e.target.value)})}>
-                          <option value={32000}>32k</option>
-                          <option value={64000}>64k</option>
-                          <option value={128000}>128k</option>
-                          <option value={256000}>256k</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Format</label>
-                        <select className="input-field text-[10px] py-1" value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})}>
-                          <option value="mp3">MP3</option>
-                          <option value="pcm">PCM</option>
-                          <option value="flac">FLAC</option>
-                          <option value="wav">WAV</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-[#917c71] font-bold mb-1 block">Channel</label>
-                        <select className="input-field text-[10px] py-1" value={formData.channel} onChange={e => setFormData({...formData, channel: parseInt(e.target.value)})}>
-                          <option value={1}>Mono (1)</option>
-                          <option value={2}>Stereo (2)</option>
-                        </select>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[11px] font-bold text-[#917c71] uppercase tracking-wider">Top K</span>
+                        <input 
+                          type="number" 
+                          value={formData.topK} 
+                          onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})} 
+                          className="w-20 text-[11px] text-[#5a4a42] bg-white border border-[#eae2e8] rounded px-2 py-1 text-right outline-none focus:border-[#d58f99] transition-colors" 
+                        />
                       </div>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-            <div className="flex justify-end gap-2 mt-3">
-              <button onClick={resetForm} className="text-[10px] text-[#917c71] hover:text-[#5a4a42] px-2 py-1">Cancel</button>
-              <button onClick={handleSave} className="bg-[#d58f99] text-white text-[10px] font-bold px-3 py-1 rounded-full hover:bg-[#c07a84] shadow-sm">Save</button>
+                )}
+
+                {activeTab === 'tts' && (
+                  <>
+                    <input className="input-field h-10" placeholder="Voice ID" value={formData.voiceId} onChange={e => setFormData({...formData, voiceId: e.target.value})} />
+                    <select className="input-field h-10" value={formData.emotion} onChange={e => setFormData({...formData, emotion: e.target.value})}>
+                      <option value="">Emotion (Auto)</option>
+                      <option value="happy">Happy</option>
+                      <option value="sad">Sad</option>
+                      <option value="angry">Angry</option>
+                      <option value="fearful">Fearful</option>
+                      <option value="disgusted">Disgusted</option>
+                      <option value="surprised">Surprised</option>
+                      <option value="calm">Calm</option>
+                      <option value="fluent">Fluent</option>
+                    </select>
+
+                    <div className="col-span-2 space-y-4 mt-2 p-5 bg-[#f9f6f7] rounded-xl border border-[#eae2e8]/60">
+                      {[
+                        { label: 'Speed', value: formData.speed, setter: (v: number) => setFormData({...formData, speed: v}), min: 0.5, max: 2, step: 0.01 },
+                        { label: 'Volume', value: formData.vol, setter: (v: number) => setFormData({...formData, vol: v}), min: 0.1, max: 10, step: 0.1 },
+                        { label: 'Pitch', value: formData.pitch, setter: (v: number) => setFormData({...formData, pitch: v}), min: -12, max: 12, step: 1 },
+                      ].map((field) => (
+                        <div key={field.label}>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[11px] font-bold text-[#917c71] uppercase tracking-wider">{field.label}</span>
+                            <span className="text-[11px] font-mono text-[#5a4a42] bg-white px-2 py-0.5 rounded border border-[#eae2e8]">{field.value.toFixed(2)}</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min={field.min} max={field.max} step={field.step} 
+                            value={field.value} 
+                            onChange={e => field.setter(parseFloat(e.target.value))} 
+                            className="w-full accent-[#d58f99] h-1.5 bg-[#eae2e8] rounded-lg cursor-pointer appearance-none hover:accent-[#c07a84] transition-all" 
+                          />
+                        </div>
+                      ))}
+
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        {[
+                          { label: 'Sample Rate', value: formData.sampleRate, setter: (v: number) => setFormData({...formData, sampleRate: v}), options: [8000, 16000, 22050, 24000, 32000, 44100] },
+                          { label: 'Bitrate', value: formData.bitrate, setter: (v: number) => setFormData({...formData, bitrate: v}), options: [32000, 64000, 128000, 256000], labels: ['32k', '64k', '128k', '256k'] },
+                        ].map((field) => (
+                          <div key={field.label}>
+                            <label className="text-[10px] text-[#917c71] font-bold mb-1.5 block uppercase tracking-wide">{field.label}</label>
+                            <select className="input-field text-[10px] py-1.5 h-8" value={field.value} onChange={e => field.setter(parseInt(e.target.value))}>
+                              {field.options.map((opt, i) => (
+                                <option key={opt} value={opt}>{field.labels ? field.labels[i] : opt}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                        <div>
+                          <label className="text-[10px] text-[#917c71] font-bold mb-1.5 block uppercase tracking-wide">Format</label>
+                          <select className="input-field text-[10px] py-1.5 h-8" value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})}>
+                            <option value="mp3">MP3</option>
+                            <option value="pcm">PCM</option>
+                            <option value="flac">FLAC</option>
+                            <option value="wav">WAV</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-[#917c71] font-bold mb-1.5 block uppercase tracking-wide">Channel</label>
+                          <select className="input-field text-[10px] py-1.5 h-8" value={formData.channel} onChange={e => setFormData({...formData, channel: parseInt(e.target.value)})}>
+                            <option value={1}>Mono</option>
+                            <option value={2}>Stereo</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#eae2e8]">
+                <button onClick={resetForm} className="text-xs font-bold text-[#917c71] hover:text-[#5a4a42] px-4 py-2 transition-colors rounded-lg hover:bg-[#f9f6f7]">Cancel</button>
+                <button onClick={handleSave} className="bg-[#d58f99] text-white text-xs font-bold px-6 py-2 rounded-full hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">Save</button>
+              </div>
             </div>
           </div>
         )}

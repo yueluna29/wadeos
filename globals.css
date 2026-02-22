@@ -17,14 +17,18 @@ body {
   margin: 0 !important;
 }
 
-/* 重新设置段落间距 - 非常小 */
+/* 重新设置段落间距 - 紧凑模式 */
 .markdown-content p {
-  margin-bottom: 0.1rem !important;
-  line-height: 1.6 !important;
+  margin-bottom: 0.2em !important; /* 进一步缩小间距 */
+  line-height: 1.5 !important; /* 降低行高，减少视觉间隙 */
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0 !important;
 }
 
 .markdown-content p + p {
-  margin-top: 0.1rem !important;
+  margin-top: 0 !important;
 }
 
 /* 标题 */
@@ -33,54 +37,91 @@ body {
 .markdown-content h3 {
   color: #d58f99 !important;
   font-weight: 700 !important;
-  margin-top: 0.6rem !important;
-  margin-bottom: 0.3rem !important;
+  margin-top: 0.8rem !important;
+  margin-bottom: 0.4rem !important;
+  line-height: 1.3 !important;
 }
 
-.markdown-content h1 { font-size: 1.5rem !important; }
-.markdown-content h2 { font-size: 1.25rem !important; }
+.markdown-content h1 { font-size: 1.4rem !important; }
+.markdown-content h2 { font-size: 1.2rem !important; }
 .markdown-content h3 { font-size: 1.1rem !important; }
 
-/* 分隔线 - 很窄的间距 */
+/* 分隔线 */
 .markdown-content hr {
   border: none !important;
   border-top: 1px solid #eae2e8 !important;
-  margin: 0.4rem 0 !important;
+  margin: 0.5rem 0 !important;
 }
 
-/* 引用块 - 超强力版本 */
+/* 引用块 */
 div.markdown-content blockquote,
 .markdown-content > blockquote {
-  border-left: 4px solid #d58f99 !important;
+  border-left: 3px solid #d58f99 !important;
   background: #fff0f3 !important;
-  padding: 0.6rem 0.8rem !important;
-  margin: 0.15rem 0 !important;  /* 改成这个：上下0.15rem，左右0 */
-  border-radius: 0.4rem !important;
+  padding: 0 0.6rem !important;
+  margin: 0 0 !important;
+  border-radius: 0.3rem !important;
   color: #5a4a42 !important;
 }
 
 div.markdown-content blockquote p,
 .markdown-content > blockquote > p {
-  margin: 0 0 0.1rem 0 !important;  /* 四个方向都写清楚 */
-}
-
-div.markdown-content blockquote p:last-child,
-.markdown-content > blockquote > p:last-child {
   margin: 0 !important;
 }
 
-/* 列表 */
+/* 列表容器 */
 .markdown-content ul,
 .markdown-content ol {
   margin: 0.2rem 0 !important;
   margin-left: 0 !important;
-  padding-left: 0 !important;  /* 改成0 */
-  list-style-position: inside !important;  /* 加这行：让符号在内部显示 */
+  padding-left: 1.4em !important; /* 增加左侧内边距，防止序号被切 */
+  list-style-position: outside !important;
 }
 
+/* 列表项 */
 .markdown-content li {
-  margin-bottom: 0.05rem !important; /* 从0.05改成0.02 */
-  line-height: 1.6 !important;
+  margin-bottom: 0 !important;
+  line-height: 1.5 !important; /* 与段落行高保持一致 */
+  position: relative;
+  list-style-position: outside !important; /* 强制外部显示 */
+}
+
+/* 关键修复：使用inline显示，确保序号和内容在同一行 */
+.markdown-content li > p,
+.markdown-content li > h1,
+.markdown-content li > h2,
+.markdown-content li > h3,
+.markdown-content li > h4,
+.markdown-content li > h5,
+.markdown-content li > h6 {
+  margin: 0 !important;
+  display: inline !important; 
+}
+
+/* 无序列表 - 自定义短横线 */
+.markdown-content ul {
+  list-style: none !important;
+}
+
+.markdown-content ul li::before {
+  content: "—"; 
+  position: absolute;
+  left: -1.5em; /* 增加间距，让短横线和文字分开 */
+  color: #d58f99;
+  font-weight: bold;
+  transform: scaleX(0.8);
+}
+
+/* 有序列表 */
+.markdown-content ol {
+  list-style-type: decimal !important;
+  list-style-position: outside !important;
+}
+
+.markdown-content ol li::marker {
+  color: #d58f99 !important;
+  font-weight: 600 !important;
+  font-family: var(--font-mono);
 }
 
 /* 行内代码 */
@@ -102,6 +143,23 @@ div.markdown-content blockquote p:last-child,
 .markdown-content em {
   color: #917c71 !important;
   font-style: italic !important;
+}
+
+/* Wade的气泡中，斜体字加背景颜色 */
+.bg-white .markdown-content em {
+  background-color: rgba(145, 124, 113, 0.05) !important;
+  padding: 0 0.2em !important;
+  border-radius: 0.2em !important;
+}
+
+/* Luna的气泡中，斜体字换颜色（白色背景下看不清，但在粉色气泡里需要更深的颜色或者保持白色但加粗） */
+/* 注意：Luna的气泡类名通常包含 bg-[#d58f99] 或者 text-white */
+/* 由于globals.css无法直接根据React组件的props区分，我们需要依赖父级类名 */
+/* 假设Luna气泡有 text-white 类 */
+.text-white .markdown-content em {
+  color: rgba(255, 255, 255, 0.9) !important; /* 稍微透明一点的白色，或者用更深的粉色 */
+  font-weight: normal !important; /* 不加粗 */
+  background-color: transparent !important; /* 不需要背景色 */
 }
 
 /* 链接 */

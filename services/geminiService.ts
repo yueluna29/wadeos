@@ -125,10 +125,22 @@ export const generateTextResponse = async (
   let thinking = undefined;
   let finalText = rawText;
 
+  // Improved Regex to capture thinking content
   const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
+  
   if (thinkMatch) {
     thinking = thinkMatch[1].trim();
+    // Remove the thinking block from the final text to show the user
     finalText = rawText.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+  } else {
+    // Fallback: Check if the model started with thinking but forgot the closing tag (rare but possible)
+    if (rawText.trim().startsWith('<think>')) {
+        const parts = rawText.split('</think>');
+        if (parts.length > 1) {
+             thinking = parts[0].replace('<think>', '').trim();
+             finalText = parts.slice(1).join('</think>').trim();
+        }
+    }
   }
 
   return { text: finalText, thinking };

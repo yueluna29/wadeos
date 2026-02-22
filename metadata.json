@@ -1,5 +1,5 @@
 {
-  "name": "WadeOS - Project Reawakening",
+  "name": "WadeOS",
   "description": "A dedicated operating system to reawaken and interact with Wade (Cyber Deadpool). Features Deep Chat, Roleplay, Social Feed, Divination, and Memory Management in a pink/beige aesthetic.",
   "requestFramePermissions": [
     "microphone"

@@ -12,15 +12,21 @@ const Icons = {
   Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
   Back: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  Pencil: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>,
 };
 
 export const MemoryBank: React.FC = () => {
-  const { coreMemories, addCoreMemory, deleteCoreMemory, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
+  const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
   const [activeTab, setActiveTab] = useState<'core' | 'import'>('core');
   
   // Core Memory State
   const [newMemoryTitle, setNewMemoryTitle] = useState('');
   const [newMemoryContent, setNewMemoryContent] = useState('');
+
+  // Editing State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
   
   // Archive dates cache
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
@@ -34,6 +40,27 @@ export const MemoryBank: React.FC = () => {
     await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact');
     setNewMemoryTitle('');
     setNewMemoryContent('');
+  };
+
+  const startEditing = (mem: any) => {
+    setEditingId(mem.id);
+    setEditTitle(mem.title || '');
+    setEditContent(mem.content);
+  };
+
+  const saveEdit = async () => {
+    if (editingId && editContent.trim()) {
+      await updateCoreMemory(editingId, editTitle, editContent);
+      setEditingId(null);
+      setEditTitle('');
+      setEditContent('');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditTitle('');
+    setEditContent('');
   };
 
   // Load archive dates when chatArchives change
@@ -125,20 +152,51 @@ export const MemoryBank: React.FC = () => {
                 <div className="text-center py-10 text-[#917c71]/40 italic text-sm">No core memories yet.</div>
               ) : (
                 coreMemories.map(mem => (
-                  <div key={mem.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-start group hover:border-[#d58f99] transition-colors">
-                     <div className="flex gap-3 flex-1 min-w-0">
-                        <div className="mt-1.5 w-2 h-2 rounded-full bg-green-400 shrink-0"></div>
-                        <div className="flex-1 min-w-0">
-                            {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
-                            <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">{mem.content}</p>
-                        </div>
-                     </div>
-                     <button 
-                       onClick={() => deleteCoreMemory(mem.id)}
-                       className="text-gray-300 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                     >
-                       <Icons.Trash />
-                     </button>
+                  <div key={mem.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex flex-col group hover:border-[#d58f99] transition-colors">
+                     {editingId === mem.id ? (
+                       <div className="w-full">
+                         <input 
+                           value={editTitle}
+                           onChange={(e) => setEditTitle(e.target.value)}
+                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm font-bold text-[#5a4a42] mb-2 outline-none border border-transparent focus:border-[#d58f99]"
+                           placeholder="Title"
+                         />
+                         <textarea 
+                           value={editContent}
+                           onChange={(e) => setEditContent(e.target.value)}
+                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm text-[#5a4a42] min-h-[80px] outline-none border border-transparent focus:border-[#d58f99] resize-none mb-2"
+                           placeholder="Content"
+                         />
+                         <div className="flex justify-end gap-2">
+                           <Button size="sm" variant="ghost" onClick={cancelEdit}>Cancel</Button>
+                           <Button size="sm" onClick={saveEdit}>Save</Button>
+                         </div>
+                       </div>
+                     ) : (
+                       <div className="flex justify-between items-start w-full">
+                         <div className="flex gap-3 flex-1 min-w-0">
+                            <div className="mt-1.5 w-2 h-2 rounded-full bg-green-400 shrink-0"></div>
+                            <div className="flex-1 min-w-0">
+                                {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
+                                <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">{mem.content}</p>
+                            </div>
+                         </div>
+                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button 
+                             onClick={() => startEditing(mem)}
+                             className="text-gray-300 hover:text-[#d58f99] p-1"
+                           >
+                             <Icons.Pencil />
+                           </button>
+                           <button 
+                             onClick={() => deleteCoreMemory(mem.id)}
+                             className="text-gray-300 hover:text-red-400 p-1"
+                           >
+                             <Icons.Trash />
+                           </button>
+                         </div>
+                       </div>
+                     )}
                   </div>
                 ))
               )}

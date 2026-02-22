@@ -219,10 +219,12 @@ export interface GlobalState {
   // --- NEW MEMORY ACTIONS ---
   coreMemories: CoreMemory[];
   addCoreMemory: (title: string, content: string, category?: CoreMemory['category']) => Promise<void>;
+  updateCoreMemory: (id: string, title: string, content: string) => Promise<void>;
   deleteCoreMemory: (id: string) => Promise<void>;
   chatArchives: ChatArchive[];
   importArchive: (title: string, fileContent: string) => Promise<number>;
   loadArchiveMessages: (archiveId: string) => Promise<ArchiveMessage[]>;
+  updateArchiveMessage: (id: string, newContent: string) => Promise<void>;
   deleteArchive: (id: string) => Promise<void>;
   deleteArchiveMessage: (id: string, archiveId: string) => Promise<void>;
   toggleArchiveFavorite: (id: string, archiveId: string) => Promise<void>;

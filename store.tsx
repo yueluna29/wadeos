@@ -300,7 +300,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // ... (LLM/TTS Presets CRUD - Kept same)
   const addLlmPreset = async (p: Omit<LlmPreset, 'id'>) => {
-    const { data, error } = await supabase.from('llm_presets').insert({
+    const payload = {
       provider: p.provider,
       name: p.name,
       model: p.model,
@@ -312,11 +312,14 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       top_k: p.topK,
       frequency_penalty: p.frequencyPenalty,
       presence_penalty: p.presencePenalty
-    }).select().single();
-
+    };
+    
+    const { data, error } = await supabase.from('llm_presets').insert(payload).select().single();
+    
     if (error) {
-      console.error('Failed to add LLM preset:', error);
-      throw new Error(error.message || 'Failed to add LLM preset');
+        console.error("Add LLM Preset Error:", error);
+        alert(`Failed to save preset: ${error.message}`);
+        return;
     }
 
     if (data) {
@@ -336,24 +339,27 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       }]);
     }
   };
-  const updateLlmPreset = async (id: string, p: Partial<LlmPreset>) => {
-    const { error } = await supabase.from('llm_presets').update({
-      provider: p.provider,
-      name: p.name,
-      model: p.model,
-      api_key: p.apiKey,
-      base_url: p.baseUrl,
-      api_path: p.apiPath,
-      temperature: p.temperature,
-      top_p: p.topP,
-      top_k: p.topK,
-      frequency_penalty: p.frequencyPenalty,
-      presence_penalty: p.presencePenalty
-    }).eq('id', id);
 
+  const updateLlmPreset = async (id: string, p: Partial<LlmPreset>) => {
+    const dbPayload: any = {};
+    if (p.provider !== undefined) dbPayload.provider = p.provider;
+    if (p.name !== undefined) dbPayload.name = p.name;
+    if (p.model !== undefined) dbPayload.model = p.model;
+    if (p.apiKey !== undefined) dbPayload.api_key = p.apiKey;
+    if (p.baseUrl !== undefined) dbPayload.base_url = p.baseUrl;
+    if (p.apiPath !== undefined) dbPayload.api_path = p.apiPath;
+    if (p.temperature !== undefined) dbPayload.temperature = p.temperature;
+    if (p.topP !== undefined) dbPayload.top_p = p.topP;
+    if (p.topK !== undefined) dbPayload.top_k = p.topK;
+    if (p.frequencyPenalty !== undefined) dbPayload.frequency_penalty = p.frequencyPenalty;
+    if (p.presencePenalty !== undefined) dbPayload.presence_penalty = p.presencePenalty;
+
+    const { error } = await supabase.from('llm_presets').update(dbPayload).eq('id', id);
+    
     if (error) {
-      console.error('Failed to update LLM preset:', error);
-      throw new Error(error.message || 'Failed to update LLM preset');
+        console.error("Update LLM Preset Error:", error);
+        alert(`Failed to update preset: ${error.message}`);
+        return;
     }
 
     setLlmPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
@@ -378,13 +384,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       format: p.format,
       channel: p.channel
     }).select().single();
-
-    if (error) {
-      console.error('Failed to add TTS preset:', error);
-      throw new Error(error.message || 'Failed to add TTS preset');
-    }
-
-    if (data) {
+    if (data && !error) {
       setTtsPresets(prev => [...prev, {
         id: data.id,
         name: data.name,
@@ -419,13 +419,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       format: p.format,
       channel: p.channel
     }).eq('id', id);
-
-    if (error) {
-      console.error('Failed to update TTS preset:', error);
-      throw new Error(error.message || 'Failed to update TTS preset');
+    if (!error) {
+      setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
     }
-
-    setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
   };
   const deleteTtsPreset = async (id: string) => {
     await supabase.from('tts_presets').delete().eq('id', id);
@@ -798,6 +794,23 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateCoreMemory = async (id: string, title: string, content: string) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content } : m));
+    
+    const { error } = await supabase.from('memories_core').update({
+      title,
+      content
+    }).eq('id', id);
+
+    if (error) {
+      console.error("Update Memory Error", error);
+      // Fallback if title column missing
+      if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
+         await supabase.from('memories_core').update({ content }).eq('id', id);
+      }
+    }
+  };
+
   const deleteCoreMemory = async (id: string) => {
     setCoreMemories(prev => prev.filter(m => m.id !== id));
     await supabase.from('memories_core').delete().eq('id', id);
@@ -914,6 +927,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const updateArchiveMessage = async (id: string, newContent: string) => {
+      const { error } = await supabase.from('archive_messages').update({ content: newContent }).eq('id', id);
+      if (error) {
+          console.error("Error updating archive message:", error);
+      }
+  };
+
   const deleteArchiveMessage = async (id: string, archiveId: string) => {
       await supabase.from('archive_messages').delete().eq('id', id);
   };
@@ -957,8 +977,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       recommendations,
       
       // Memory
-      coreMemories, addCoreMemory, deleteCoreMemory,
-      chatArchives, importArchive, loadArchiveMessages, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
+      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory,
+      chatArchives, importArchive, loadArchiveMessages, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
 
       activeMode, setMode,
       isNavHidden, setNavHidden,
