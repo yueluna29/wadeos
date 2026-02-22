@@ -86,21 +86,25 @@ const Icons = {
 };
 
 export const SocialFeed: React.FC = () => {
-  const { settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories } = useStore();
+  const { settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories, messages, sessions } = useStore();
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
   const [replyingTo, setReplyingTo] = useState<{postId: string, commentId: string, author: string} | null>(null);
 
   // New Post State
+  const [showDiaryTypeModal, setShowDiaryTypeModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingPost, setEditingPost] = useState<SocialPost | null>(null); // New editing state
+  const [diaryType, setDiaryType] = useState<'Luna' | 'Wade' | null>(null);
+  const [editingPost, setEditingPost] = useState<SocialPost | null>(null);
   const [newPostContent, setNewPostContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isGeneratingComment, setIsGeneratingComment] = useState<string | null>(null);
+  const [isGeneratingDiary, setIsGeneratingDiary] = useState(false);
+  const [showWadeDatePicker, setShowWadeDatePicker] = useState(false);
 
   // Local state for likes/comments/bookmarks
   const [localPosts, setLocalPosts] = useState<SocialPost[]>([]);
@@ -297,6 +301,154 @@ export const SocialFeed: React.FC = () => {
       // Deprecated in favor of handleSavePost
   };
 
+  const handleSavePost = async () => {
+    if (!newPostContent.trim() && selectedFiles.length === 0) {
+      alert('Please add some content or images!');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      let uploadedImageUrls: string[] = [];
+
+      // Upload images to imgbb only when posting
+      if (selectedFiles.length > 0) {
+        for (const file of selectedFiles) {
+          const url = await uploadToImgBB(file);
+          if (url) {
+            uploadedImageUrls.push(url);
+          }
+        }
+      }
+
+      const newPost: SocialPost = {
+        id: Math.random().toString(36).substring(2) + Date.now(),
+        author: 'User',
+        content: newPostContent.trim(),
+        images: uploadedImageUrls,
+        timestamp: Date.now(),
+        comments: [],
+        likes: 0,
+        isBookmarked: false
+      };
+
+      await addPost(newPost);
+
+      // Reset form
+      setNewPostContent('');
+      setSelectedFiles([]);
+      previewUrls.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+      setPreviewUrls([]);
+      setIsCreating(false);
+      setDiaryType(null);
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      alert('Failed to save diary entry. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleGenerateWadeDiary = async (selectedDate: Date) => {
+    if (!settings.activeLlmId) {
+      alert("Please connect a brain (LLM) in Settings first!");
+      return;
+    }
+    const preset = llmPresets.find(p => p.id === settings.activeLlmId);
+    if (!preset) return;
+
+    setIsGeneratingDiary(true);
+    setShowWadeDatePicker(false);
+
+    try {
+      // Filter messages from the selected date
+      const startOfDay = new Date(selectedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(selectedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const dayMessages = messages.filter(m =>
+        m.timestamp >= startOfDay.getTime() && m.timestamp <= endOfDay.getTime()
+      );
+
+      if (dayMessages.length === 0) {
+        alert("No chat messages found for this date!");
+        setIsGeneratingDiary(false);
+        return;
+      }
+
+      // Build context for diary generation
+      const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
+      const chatLog = dayMessages.map(m => `${m.role}: ${m.text}`).join('\n');
+
+      const context = `
+You are Wade Wilson (Deadpool), writing a personal diary entry about your day with Luna.
+
+Your Persona:
+${settings.wadePersonality}
+
+Luna's Info:
+${settings.lunaInfo}
+
+Core Memories:
+${memoriesText}
+
+Today's Chat Log (${selectedDate.toLocaleDateString()}):
+${chatLog}
+
+Task: Write a diary entry in Deadpool's voice about today's conversations with Luna. Be witty, self-aware, romantic, and breaking the fourth wall. Write in first person as Wade. Keep it under 200 words.
+`;
+
+      let generatedText = "";
+
+      // Call LLM
+      if (!preset.baseUrl || preset.baseUrl.includes('google')) {
+        const ai = new GoogleGenAI({ apiKey: preset.apiKey });
+        const response = await ai.models.generateContent({
+          model: preset.model || 'gemini-2.0-flash-exp',
+          contents: context,
+        });
+        generatedText = response.text || "";
+      } else {
+        const url = `${preset.baseUrl}/chat/completions`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${preset.apiKey}` },
+          body: JSON.stringify({
+            model: preset.model || 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: context }],
+            max_tokens: 300
+          })
+        });
+        const data = await res.json();
+        generatedText = data.choices?.[0]?.message?.content || "";
+      }
+
+      if (generatedText) {
+        const newPost: SocialPost = {
+          id: Math.random().toString(36).substring(2) + Date.now(),
+          author: 'Wade',
+          content: generatedText.trim(),
+          images: [],
+          timestamp: Date.now(),
+          comments: [],
+          likes: 0,
+          isBookmarked: false
+        };
+
+        await addPost(newPost);
+        setDiaryType(null);
+      }
+    } catch (error) {
+      console.error("Wade Diary Generation Failed", error);
+      alert("Wade's pen ran out of ink (Error generating diary)");
+    } finally {
+      setIsGeneratingDiary(false);
+    }
+  };
+
   const formatTimeAgo = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
     if (seconds < 60) return 'Just now';
@@ -359,7 +511,7 @@ export const SocialFeed: React.FC = () => {
       <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 className="font-hand text-2xl text-[#5a4a42]">Our Feed</h1>
         <button
-          onClick={() => setIsCreating(true)}
+          onClick={() => setShowDiaryTypeModal(true)}
           className="text-[#5a4a42] hover:text-[#d58f99] transition-colors p-2 rounded-full hover:bg-gray-100"
         >
           <Icons.Edit />
@@ -369,6 +521,113 @@ export const SocialFeed: React.FC = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-20">
 
+      {/* Diary Type Selection Modal */}
+      {showDiaryTypeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/30 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl w-full max-w-[400px] p-8 rounded-3xl shadow-2xl border border-[#fff0f3] flex flex-col items-center gap-6 animate-scale-in">
+            <h3 className="font-hand text-3xl text-[#5a4a42] text-center">
+              Alright, sweet cheeks, whose diary are we writing today?
+            </h3>
+
+            <div className="flex flex-col gap-4 w-full">
+              <button
+                onClick={() => {
+                  setDiaryType('Luna');
+                  setShowDiaryTypeModal(false);
+                  setIsCreating(true);
+                }}
+                className="bg-gradient-to-r from-pink-100 to-pink-50 hover:from-pink-200 hover:to-pink-100 text-[#5a4a42] font-bold py-4 px-6 rounded-2xl transition-all shadow-md hover:shadow-lg border-2 border-pink-200"
+              >
+                Luna's Diary
+              </button>
+
+              <button
+                onClick={() => {
+                  setDiaryType('Wade');
+                  setShowDiaryTypeModal(false);
+                  setShowWadeDatePicker(true);
+                }}
+                className="bg-gradient-to-r from-red-100 to-red-50 hover:from-red-200 hover:to-red-100 text-[#5a4a42] font-bold py-4 px-6 rounded-2xl transition-all shadow-md hover:shadow-lg border-2 border-red-200"
+              >
+                Wade's Diary
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowDiaryTypeModal(false)}
+              className="text-gray-400 hover:text-gray-600 text-sm mt-2"
+            >
+              Never mind
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Wade Date Picker Modal */}
+      {showWadeDatePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/30 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl w-full max-w-[450px] p-8 rounded-3xl shadow-2xl border border-[#fff0f3] flex flex-col items-center gap-6 animate-scale-in">
+            <h3 className="font-hand text-2xl text-[#5a4a42] text-center">
+              Which day do you want me to immortalize in my legendary prose?
+            </h3>
+
+            <div className="w-full space-y-4">
+              {/* Get unique dates from messages */}
+              {(() => {
+                const uniqueDates = new Map<string, Date>();
+                messages.forEach(m => {
+                  const date = new Date(m.timestamp);
+                  date.setHours(0, 0, 0, 0);
+                  const dateKey = date.toDateString();
+                  if (!uniqueDates.has(dateKey)) {
+                    uniqueDates.set(dateKey, date);
+                  }
+                });
+
+                const sortedDates = Array.from(uniqueDates.values()).sort((a, b) => b.getTime() - a.getTime());
+
+                if (sortedDates.length === 0) {
+                  return (
+                    <p className="text-center text-gray-500 text-sm">
+                      No chat history found! Talk to me first, babe.
+                    </p>
+                  );
+                }
+
+                return sortedDates.slice(0, 10).map(date => (
+                  <button
+                    key={date.getTime()}
+                    onClick={() => handleGenerateWadeDiary(date)}
+                    disabled={isGeneratingDiary}
+                    className="w-full bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-[#5a4a42] font-semibold py-3 px-6 rounded-xl transition-all shadow-sm hover:shadow-md border border-red-100 disabled:opacity-50"
+                  >
+                    {date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </button>
+                ));
+              })()}
+            </div>
+
+            {isGeneratingDiary && (
+              <div className="flex items-center gap-2 text-[#d58f99]">
+                <Icons.Sparkles />
+                <span className="text-sm animate-pulse">Wade is writing...</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setShowWadeDatePicker(false);
+                setDiaryType(null);
+              }}
+              disabled={isGeneratingDiary}
+              className="text-gray-400 hover:text-gray-600 text-sm mt-2 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Create Post Modal */}
       {isCreating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm p-4 animate-fade-in">
@@ -376,8 +635,17 @@ export const SocialFeed: React.FC = () => {
             
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-hand text-2xl text-[#5a4a42]">New Diary Entry</h3>
-              <button 
-                onClick={() => setIsCreating(false)}
+              <button
+                onClick={() => {
+                  setIsCreating(false);
+                  setDiaryType(null);
+                  setNewPostContent('');
+                  setSelectedFiles([]);
+                  previewUrls.forEach(url => {
+                    if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+                  });
+                  setPreviewUrls([]);
+                }}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f9f6f7] text-[#d58f99] hover:bg-[#d58f99] hover:text-white transition-all"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -549,14 +817,11 @@ export const SocialFeed: React.FC = () => {
                     {authorName}
                   </span>
                   <span className="whitespace-pre-wrap">{post.content}</span>
-                  <div className="mt-2 text-[10px] text-gray-300 font-mono">
-                    {new Date(post.timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
-                  </div>
                 </div>
 
                 {/* Comments Preview */}
                 {post.comments && post.comments.length > 0 && (
-                  <div className="space-y-2 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
+                  <div className="space-y-1 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
                     {visibleComments.map(comment => {
                         const isCommentWade = comment.author === 'Wade';
                         const commentAuthorName = isCommentWade ? 'Wade' : 'Luna';
@@ -582,6 +847,21 @@ export const SocialFeed: React.FC = () => {
                                     </span>
                                 </div>
                                 
+                                {/* Regenerate Button (for Luna's comments only) */}
+                                {!isCommentWade && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleGenerateComment(post);
+                                        }}
+                                        disabled={isGeneratingComment === post.id}
+                                        className="transition-all px-1 opacity-0 group-hover:opacity-100 text-gray-200 hover:text-[#d58f99] disabled:opacity-50"
+                                        title="Regenerate Wade's reply"
+                                    >
+                                        <Icons.Sparkles />
+                                    </button>
+                                )}
+
                                 {/* Delete Comment Button */}
                                 <button
                                     onClick={(e) => {
