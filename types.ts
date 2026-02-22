@@ -27,35 +27,36 @@ export interface Message {
   text: string; // The currently displayed text
   timestamp: number;
   audioData?: string; // Base64 audio if TTS was generated
-  audioCache?: string; // Cached base64 audio to avoid regeneration
   isFavorite?: boolean;
   mode: ChatMode;
   image?: string; // For image uploads
-
+  
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
   // NEW: Store "Thinking Process" for each variant
-  variantsThinking?: (string | null)[];
+  variantsThinking?: (string | null)[]; 
   selectedIndex?: number; // Index of the currently shown version
-
+  
   // UI State (Transient)
-  isRegenerating?: boolean;
+  isRegenerating?: boolean; 
 }
 
 export interface SocialPost {
   id: string;
   author: 'User' | 'Wade';
   content: string;
-  image?: string;
+  images?: string[]; // Changed from image?: string to support multiple
   timestamp: number;
   comments: SocialComment[];
   likes: number;
+  isBookmarked?: boolean;
 }
 
 export interface SocialComment {
   id: string;
   author: 'User' | 'Wade';
   text: string;
+  replyToId?: string;
 }
 
 export interface TimeCapsuleItem {
@@ -151,6 +152,7 @@ export interface AppSettings {
   
   // Wade's Side
   wadePersonality: string; // Core System instruction
+  wadeDiaryPersona: string; // NEW: Persona for non-dialogue modes (diary comments)
   wadeAvatar: string;
   exampleDialogue: string; // Few-shot examples
   
@@ -194,7 +196,6 @@ export interface GlobalState {
   messages: Message[];
   addMessage: (m: Message) => void;
   updateMessage: (id: string, newText: string) => void; // Standard edit
-  updateMessageAudioCache: (id: string, audioCache: string) => void; // Update audio cache
   
   // Updated for Thinking Process
   addVariantToMessage: (id: string, newText: string, thinking?: string) => void; 
@@ -212,6 +213,8 @@ export interface GlobalState {
   
   socialPosts: SocialPost[];
   addPost: (p: SocialPost) => void;
+  updatePost: (p: SocialPost) => void;
+  deletePost: (id: string) => Promise<void>;
   memos: Memo[];
   addMemo: (m: Memo) => void;
   capsules: TimeCapsuleItem[];
