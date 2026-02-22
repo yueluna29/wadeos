@@ -1,14 +1,3 @@
-function splitLongText(text: string, maxLength = 5000): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-  while (start < text.length) {
-    let end = Math.min(start + maxLength, text.length);
-    chunks.push(text.slice(start, end));
-    start = end;
-  }
-  return chunks;
-}
-
 // 这是型号说明书，绝对不能删！
 export interface MinimaxTTSConfig {
   apiKey: string;
@@ -25,40 +14,52 @@ export interface MinimaxTTSConfig {
   channel?: number;
 }
 
+function splitLongText(text: string, maxLength = 5000): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  while (start < text.length) {
+    let end = Math.min(start + maxLength, text.length);
+    chunks.push(text.slice(start, end));
+    start = end;
+  }
+  return chunks;
+}
+
 // 这是执行动作
 export const generateMinimaxTTS = async (
   text: string,
   config: MinimaxTTSConfig
 ): Promise<string> => {
-try {
-  const response = await fetch('https://wadeos.vercel.app/api/minimax-tts', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ text, config })
-  });
+  try {
+    const response = await fetch('https://wadeos.vercel.app/api/minimax-tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text, config })
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(errorData.error || `HTTP ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.audio) {
+      throw new Error('No audio data returned from API');
+    }
+
+    const hexAudio = data.audio;
+    const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
+    const base64Audio = btoa(String.fromCharCode(...bytes));
+
+    return base64Audio;
+  } catch (error) {
+    console.error('Minimax TTS generation failed:', error);
+    throw error;
   }
-
-  const data = await response.json();
-
-  if (!data.audio) {
-    throw new Error('No audio data returned from API');
-  }
-
-  const hexAudio = data.audio;
-  const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16)));
-  const base64Audio = btoa(String.fromCharCode(...bytes));
-
-  return base64Audio;
-} catch (error) {
-  console.error('Minimax TTS generation failed:', error);
-  throw error;
-}
+};
 
 // WebSocket 版本的 TTS 函数（先只连上，不播声音，测试连接）
 export const testMinimaxWebSocket = (apiKey: string) => {
