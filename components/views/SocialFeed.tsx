@@ -745,13 +745,14 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
 
             {/* Content */}
             <div className="w-full relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-              {wadeDiaryStep === 'mode' && (
-                <div className="grid grid-cols-2 gap-3">
+             {wadeDiaryStep === 'mode' && (
+                <div className="grid grid-cols-2 gap-x-5 gap-y-6 pt-4 pb-2 px-1">
                   {[
-                    { id: 'deep', label: 'Deep', sublabel: 'Chat', color: 'bg-[#f3e1e1]' },
-                    { id: 'sms', label: 'SMS', sublabel: '', color: 'bg-[#f7f2ec]' },
-                    { id: 'roleplay', label: 'Role', sublabel: 'play', color: 'bg-[#ebc7cc]' },
-                    { id: 'archive', label: 'Archi', sublabel: 'ves', color: 'bg-[#ddc3b5]' },
+                    // 参谋独家调色盘：完美还原你图里的燕麦、裸粉、玫瑰、灰褐
+                    { id: 'deep', label: 'Deep', sublabel: 'Chat', tabColor: 'bg-[#dbabae]', frontColor: 'bg-[#faebeb]' },
+                    { id: 'sms', label: 'SMS', sublabel: '', tabColor: 'bg-[#d0c0b6]', frontColor: 'bg-[#f7f2ef]' },
+                    { id: 'roleplay', label: 'Role', sublabel: 'play', tabColor: 'bg-[#eabfc0]', frontColor: 'bg-[#fef1f0]' },
+                    { id: 'archive', label: 'Archi', sublabel: 'ves', tabColor: 'bg-[#c7c1bf]', frontColor: 'bg-[#f4f2f0]' },
                   ].map(mode => (
                     <button
                       key={mode.id}
@@ -760,37 +761,36 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                         setWadeDiaryStep('date');
                         setCalendarViewDate(new Date());
                       }}
-                      className={`group flex flex-col items-center justify-center py-4 px-3 rounded-xl transition-all ${mode.color} border-2 border-transparent hover:border-[#d58f99]/30 hover:shadow-sm`}
+                      className="group relative w-full h-24 focus:outline-none transition-all duration-300 hover:-translate-y-2"
                     >
-                      <div className="mb-2 w-10 h-10 rounded-full bg-white/60 flex items-center justify-center text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">
-                        {mode.id === 'deep' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v6m0 6v6"/>
-                            <path d="M1 12h6m6 0h6"/>
-                          </svg>
-                        )}
-                        {mode.id === 'sms' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="4" width="20" height="16" rx="2"/>
-                            <path d="M22 6l-10 7L2 6"/>
-                          </svg>
-                        )}
-                        {mode.id === 'roleplay' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/>
-                          </svg>
-                        )}
-                        {mode.id === 'archive' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4 7V4h16v3M4 7h16M4 7v13h16V7"/>
-                            <path d="M10 11h4"/>
-                          </svg>
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <span className="font-bold text-[#5a4a42] text-sm group-hover:text-[#d58f99] transition-colors block leading-tight">{mode.label}</span>
-                        {mode.sublabel && <span className="font-bold text-[#5a4a42] text-sm group-hover:text-[#d58f99] transition-colors block leading-tight">{mode.sublabel}</span>}
+                      {/* 文件夹后面的小耳朵 (Back Tab) */}
+                      <div className={`absolute top-0 left-0 w-[45%] h-5 ${mode.tabColor} rounded-tl-lg rounded-tr-xl shadow-sm`} />
+                      
+                      {/* 文件夹后背底板 (Back Flap) */}
+                      <div className={`absolute top-2 left-0 w-full h-full ${mode.tabColor} rounded-xl shadow-sm`} />
+                      
+                      {/* 文件夹正面盖板 (Front Flap) - 稍微往下一点点，营造立体感 */}
+                      <div className={`absolute top-4 left-0 w-full h-[calc(100%-0.5rem)] ${mode.frontColor} rounded-xl shadow-sm flex flex-col items-center justify-center border border-white/60 transition-all duration-300 group-hover:brightness-95`}>
+                        
+                        {/* 里面的小图标 */}
+                        <div className="mb-1 text-[#5a4a42] opacity-60 group-hover:text-[#d58f99] group-hover:scale-110 group-hover:opacity-100 transition-all duration-300">
+                          {mode.id === 'deep' && (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/><path d="M1 12h6m6 0h6"/></svg>
+                          )}
+                          {mode.id === 'sms' && (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+                          )}
+                          {mode.id === 'roleplay' && (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
+                          )}
+                          {mode.id === 'archive' && (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7V4h16v3M4 7h16M4 7v13h16V7"/><path d="M10 11h4"/></svg>
+                          )}
+                        </div>
+
+                        {/* 文件夹上的文字 */}
+                        <span className="font-hand font-bold text-[#5a4a42] text-sm leading-none group-hover:text-[#d58f99] transition-colors">{mode.label}</span>
+                        {mode.sublabel && <span className="font-hand font-bold text-[#5a4a42] text-sm leading-none group-hover:text-[#d58f99] transition-colors">{mode.sublabel}</span>}
                       </div>
                     </button>
                   ))}
