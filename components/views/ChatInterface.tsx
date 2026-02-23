@@ -1061,15 +1061,19 @@ export const ChatInterface: React.FC = () => {
       }
     }
     if (activeMode === 'sms') {
-      setWaitingForSMS(true);
+      // SMS模式：立即发送，每次发送都重置2分钟计时器
+      // 用户可以连续发送多条消息，最后一条消息发送2分钟后AI才回复
       if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
       smsDebounceTimer.current = setTimeout(() => {
         setWadeStatus('typing');
         setTimeout(() => {
-          if (targetSessionId) triggerAIResponse(targetSessionId);
+          if (targetSessionId) {
+            triggerAIResponse(targetSessionId);
+          }
         }, 2000);
-      }, 58000);
+      }, 120000); // 2分钟 = 120000ms
     } else {
+      // Deep/RP模式：发送后进入待定状态，15秒后AI开始回复
       setIsTyping(true);
       const timer = setTimeout(() => {
         if (targetSessionId) triggerAIResponse(targetSessionId);
@@ -1811,10 +1815,10 @@ export const ChatInterface: React.FC = () => {
                 className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-5 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[48px] max-h-[120px]"
               />
               <Button
-                onClick={(isTyping || waitingForSMS) ? handleCancel : handleSend}
+                onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
                 className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
               >
-                {(isTyping || waitingForSMS) ? <Icons.Stop /> : <Icons.Send />}
+                {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.Send />}
               </Button>
             </div>
           </div>
