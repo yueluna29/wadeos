@@ -738,7 +738,7 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
 
             {/* Header */}
             <h3 className="font-hand text-2xl text-[#5a4a42] text-center relative z-10">
-              {wadeDiaryStep === 'mode' && "Pick your poison, peanut."}
+              {wadeDiaryStep === 'mode' && "Pick your poison, Muffin."}
               {wadeDiaryStep === 'date' && (wadeDiaryMode === 'archive' ? "Dust off an old file?" : "When did the magic happen?")}
               {wadeDiaryStep === 'messages' && "Cherry-pick the best bits."}
             </h3>
@@ -748,10 +748,10 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
               {wadeDiaryStep === 'mode' && (
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { id: 'deep', label: 'Deep Chat', icon: '🧠', color: 'bg-purple-50 hover:bg-purple-100 text-purple-600' },
-                    { id: 'sms', label: 'SMS', icon: '💬', color: 'bg-blue-50 hover:bg-blue-100 text-blue-600' },
-                    { id: 'roleplay', label: 'Roleplay', icon: '🎭', color: 'bg-pink-50 hover:bg-pink-100 text-pink-600' },
-                    { id: 'archive', label: 'Archives', icon: '📂', color: 'bg-amber-50 hover:bg-amber-100 text-amber-600' },
+                    { id: 'deep', label: 'Deep Chat', color: 'from-[#f3e1e1]/80 to-[#ebe2e8]/60' },
+                    { id: 'sms', label: 'SMS', color: 'from-[#f7f2ec]/80 to-[#eae2e8]/60' },
+                    { id: 'roleplay', label: 'Roleplay', color: 'from-[#ebc7cc]/80 to-[#f3e1e1]/60' },
+                    { id: 'archive', label: 'Archives', color: 'from-[#ddc3b5]/80 to-[#f7f2ec]/60' },
                   ].map(mode => (
                     <button
                       key={mode.id}
@@ -760,10 +760,41 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                         setWadeDiaryStep('date');
                         setCalendarViewDate(new Date());
                       }}
-                      className={`flex flex-col items-center justify-center p-6 rounded-2xl transition-all ${mode.color} shadow-sm hover:shadow-md`}
+                      className={`group flex flex-col items-center justify-center p-6 rounded-2xl transition-all bg-gradient-to-br ${mode.color} backdrop-blur-sm border border-white/40 shadow-sm hover:shadow-lg hover:scale-105`}
                     >
-                      <span className="text-3xl mb-2">{mode.icon}</span>
-                      <span className="font-bold">{mode.label}</span>
+                      <div className="mb-3 text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">
+                        {mode.id === 'deep' && (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+                            <path d="M8.5 8.5v.01"/>
+                            <path d="M16 15.5v.01"/>
+                            <path d="M12 12v.01"/>
+                          </svg>
+                        )}
+                        {mode.id === 'sms' && (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="M9 10h.01"/>
+                            <path d="M12 10h.01"/>
+                            <path d="M15 10h.01"/>
+                          </svg>
+                        )}
+                        {mode.id === 'roleplay' && (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2c1 3 2.5 3.5 4.5 4.5A5 5 0 0 1 20 11.5c0 3.5-2.5 6.5-8 6.5s-8-3-8-6.5A5 5 0 0 1 7.5 6.5C9.5 5.5 11 5 12 2z"/>
+                            <path d="M9 14c.5 1 1.5 2 3 2s2.5-1 3-2"/>
+                            <path d="M9 10h.01"/>
+                            <path d="M15 10h.01"/>
+                          </svg>
+                        )}
+                        {mode.id === 'archive' && (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                            <path d="M9 13h6"/>
+                          </svg>
+                        )}
+                      </div>
+                      <span className="font-bold text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">{mode.label}</span>
                     </button>
                   ))}
                 </div>
