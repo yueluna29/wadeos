@@ -746,12 +746,12 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
             {/* Content */}
             <div className="w-full relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
               {wadeDiaryStep === 'mode' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: 'deep', label: 'Deep Chat', color: 'from-[#f3e1e1]/80 to-[#ebe2e8]/60' },
-                    { id: 'sms', label: 'SMS', color: 'from-[#f7f2ec]/80 to-[#eae2e8]/60' },
-                    { id: 'roleplay', label: 'Roleplay', color: 'from-[#ebc7cc]/80 to-[#f3e1e1]/60' },
-                    { id: 'archive', label: 'Archives', color: 'from-[#ddc3b5]/80 to-[#f7f2ec]/60' },
+                    { id: 'deep', label: 'Deep', sublabel: 'Chat', color: 'bg-[#f3e1e1]' },
+                    { id: 'sms', label: 'SMS', sublabel: '', color: 'bg-[#f7f2ec]' },
+                    { id: 'roleplay', label: 'Role', sublabel: 'play', color: 'bg-[#ebc7cc]' },
+                    { id: 'archive', label: 'Archi', sublabel: 'ves', color: 'bg-[#ddc3b5]' },
                   ].map(mode => (
                     <button
                       key={mode.id}
@@ -760,41 +760,38 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                         setWadeDiaryStep('date');
                         setCalendarViewDate(new Date());
                       }}
-                      className={`group flex flex-col items-center justify-center p-6 rounded-2xl transition-all bg-gradient-to-br ${mode.color} backdrop-blur-sm border border-white/40 shadow-sm hover:shadow-lg hover:scale-105`}
+                      className={`group flex flex-col items-center justify-center py-4 px-3 rounded-xl transition-all ${mode.color} border-2 border-transparent hover:border-[#d58f99]/30 hover:shadow-sm`}
                     >
-                      <div className="mb-3 text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">
+                      <div className="mb-2 w-10 h-10 rounded-full bg-white/60 flex items-center justify-center text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">
                         {mode.id === 'deep' && (
-                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
-                            <path d="M8.5 8.5v.01"/>
-                            <path d="M16 15.5v.01"/>
-                            <path d="M12 12v.01"/>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6"/>
+                            <path d="M1 12h6m6 0h6"/>
                           </svg>
                         )}
                         {mode.id === 'sms' && (
-                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            <path d="M9 10h.01"/>
-                            <path d="M12 10h.01"/>
-                            <path d="M15 10h.01"/>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="M22 6l-10 7L2 6"/>
                           </svg>
                         )}
                         {mode.id === 'roleplay' && (
-                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2c1 3 2.5 3.5 4.5 4.5A5 5 0 0 1 20 11.5c0 3.5-2.5 6.5-8 6.5s-8-3-8-6.5A5 5 0 0 1 7.5 6.5C9.5 5.5 11 5 12 2z"/>
-                            <path d="M9 14c.5 1 1.5 2 3 2s2.5-1 3-2"/>
-                            <path d="M9 10h.01"/>
-                            <path d="M15 10h.01"/>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/>
                           </svg>
                         )}
                         {mode.id === 'archive' && (
-                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                            <path d="M9 13h6"/>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 7V4h16v3M4 7h16M4 7v13h16V7"/>
+                            <path d="M10 11h4"/>
                           </svg>
                         )}
                       </div>
-                      <span className="font-bold text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">{mode.label}</span>
+                      <div className="text-center">
+                        <span className="font-bold text-[#5a4a42] text-sm group-hover:text-[#d58f99] transition-colors block leading-tight">{mode.label}</span>
+                        {mode.sublabel && <span className="font-bold text-[#5a4a42] text-sm group-hover:text-[#d58f99] transition-colors block leading-tight">{mode.sublabel}</span>}
+                      </div>
                     </button>
                   ))}
                 </div>
