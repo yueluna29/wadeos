@@ -133,6 +133,8 @@ export interface LlmPreset {
   topK?: number;
   frequencyPenalty?: number; // -2.0 to 2.0
   presencePenalty?: number; // -2.0 to 2.0
+  isVision?: boolean; // Supports vision/image input
+  isImageGen?: boolean; // Image generation model
 }
 
 export interface TtsPreset {

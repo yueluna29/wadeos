@@ -56,6 +56,7 @@ export const Settings: React.FC = () => {
     provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '',
     // LLM Specific Parameters
     temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35,
+    isVision: false, isImageGen: false, // New Feature Flags
     // TTS Specific (Minimax)
     voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0,
     sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1
@@ -65,7 +66,7 @@ export const Settings: React.FC = () => {
   const [fetchingModels, setFetchingModels] = useState(false);
 
   const resetForm = () => {
-    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
+    setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35, isVision: false, isImageGen: false, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
     setIsFormOpen(false);
     setEditingId(null);
     setAvailableModels([]);
@@ -120,6 +121,8 @@ export const Settings: React.FC = () => {
       topK: item.topK ?? 40,
       frequencyPenalty: item.frequencyPenalty ?? 0,
       presencePenalty: item.presencePenalty ?? 0,
+      isVision: item.isVision ?? false,
+      isImageGen: item.isImageGen ?? false,
       voiceId: item.voiceId || '',
       emotion: item.emotion || '',
       speed: item.speed || 1.0,
@@ -152,7 +155,9 @@ export const Settings: React.FC = () => {
         topP: formData.topP,
         topK: formData.topK,
         frequencyPenalty: formData.frequencyPenalty,
-        presencePenalty: formData.presencePenalty
+        presencePenalty: formData.presencePenalty,
+        isVision: formData.isVision,
+        isImageGen: formData.isImageGen
       };
       if (editingId) await updateLlmPreset(editingId, payload);
       else await addLlmPreset(payload);
@@ -459,6 +464,29 @@ export const Settings: React.FC = () => {
                 <input className="input-field col-span-2 h-10" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
 
                 {activeTab === 'llm' && (
+                  <div className="col-span-2 flex gap-4 items-center bg-[#f9f6f7] p-3 rounded-lg border border-[#eae2e8]">
+                    <label className="flex items-center gap-2 cursor-pointer flex-1">
+                      <input
+                        type="checkbox"
+                        checked={formData.isVision}
+                        onChange={e => setFormData({...formData, isVision: e.target.checked})}
+                        className="w-3.5 h-3.5 rounded border-[#d58f99] text-[#d58f99] focus:ring-[#d58f99] focus:ring-offset-0"
+                      />
+                      <span className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider">Vision</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer flex-1">
+                      <input
+                        type="checkbox"
+                        checked={formData.isImageGen}
+                        onChange={e => setFormData({...formData, isImageGen: e.target.checked})}
+                        className="w-3.5 h-3.5 rounded border-[#d58f99] text-[#d58f99] focus:ring-[#d58f99] focus:ring-offset-0"
+                      />
+                      <span className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider">Image Gen</span>
+                    </label>
+                  </div>
+                )}
+
+                {activeTab === 'llm' && !formData.isImageGen && (
                   <div className="col-span-2 space-y-5 mt-2 p-5 bg-[#f9f6f7] rounded-xl border border-[#eae2e8]/60">
                     {[
                       { label: 'Temperature', value: formData.temperature, setter: (v: number) => setFormData({...formData, temperature: v}), min: 0, max: 2, step: 0.01 },
@@ -471,12 +499,12 @@ export const Settings: React.FC = () => {
                           <span className="text-[11px] font-bold text-[#917c71] uppercase tracking-wider">{field.label}</span>
                           <span className="text-[11px] font-mono text-[#5a4a42] bg-white px-2 py-0.5 rounded border border-[#eae2e8]">{field.value.toFixed(2)}</span>
                         </div>
-                        <input 
-                          type="range" 
-                          min={field.min} max={field.max} step={field.step} 
-                          value={field.value} 
-                          onChange={e => field.setter(parseFloat(e.target.value))} 
-                          className="w-full accent-[#d58f99] h-1.5 bg-[#eae2e8] rounded-lg cursor-pointer appearance-none hover:accent-[#c07a84] transition-all" 
+                        <input
+                          type="range"
+                          min={field.min} max={field.max} step={field.step}
+                          value={field.value}
+                          onChange={e => field.setter(parseFloat(e.target.value))}
+                          className="w-full accent-[#d58f99] h-1.5 bg-[#eae2e8] rounded-lg cursor-pointer appearance-none hover:accent-[#c07a84] transition-all"
                         />
                       </div>
                     ))}
@@ -484,11 +512,11 @@ export const Settings: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-bold text-[#917c71] uppercase tracking-wider">Top K</span>
-                        <input 
-                          type="number" 
-                          value={formData.topK} 
-                          onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})} 
-                          className="w-20 text-[11px] text-[#5a4a42] bg-white border border-[#eae2e8] rounded px-2 py-1 text-right outline-none focus:border-[#d58f99] transition-colors" 
+                        <input
+                          type="number"
+                          value={formData.topK}
+                          onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})}
+                          className="w-20 text-[11px] text-[#5a4a42] bg-white border border-[#eae2e8] rounded px-2 py-1 text-right outline-none focus:border-[#d58f99] transition-colors"
                         />
                       </div>
                     </div>
