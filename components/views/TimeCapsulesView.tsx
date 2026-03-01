@@ -153,37 +153,37 @@ export const TimeCapsulesView = () => {
   return (
     <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar">
       <div className="max-w-md mx-auto p-4 pt-6">
-        <div className="flex items-center mb-6">
-          <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
-            <Icons.ChevronLeft />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
+              <Icons.ChevronLeft />
+            </button>
+            <h1 className="font-bold text-xl text-[#5a4a42] ml-2">Time Capsules</h1>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-10 h-10 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#c07a84] hover:scale-105 transition-all"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
-          <h1 className="font-bold text-xl text-[#5a4a42] ml-2">Time Capsules</h1>
         </div>
 
         {/* Calendar Card */}
         <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8]/50 mb-6 overflow-hidden">
           <div className="bg-gradient-to-br from-[#fff0f3] to-[#fef8f9] px-6 py-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <button onClick={prevMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
-                  <Icons.ChevronLeft />
-                </button>
-                <div className="text-center min-w-[180px]">
-                  <h2 className="text-2xl font-bold text-[#5a4a42] mb-0.5">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
-                  <div className="text-[#d58f99] font-bold text-xs tracking-widest uppercase">Calendar</div>
-                </div>
-                <button onClick={nextMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
-                  <Icons.ChevronRight />
-                </button>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <button onClick={prevMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
+                <Icons.ChevronLeft />
+              </button>
+              <div className="text-center min-w-[180px]">
+                <h2 className="text-2xl font-bold text-[#5a4a42] mb-0.5">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
+                <div className="text-[#d58f99] font-bold text-xs tracking-widest uppercase">Calendar</div>
               </div>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="w-12 h-12 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#c07a84] hover:scale-105 transition-all"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+              <button onClick={nextMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
+                <Icons.ChevronRight />
               </button>
             </div>
           </div>
