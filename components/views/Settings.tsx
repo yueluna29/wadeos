@@ -62,35 +62,10 @@ export const Settings: React.FC = () => {
     sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1
   });
 
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [fetchingModels, setFetchingModels] = useState(false);
-
   const resetForm = () => {
     setFormData({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '', temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0.4, presencePenalty: 0.35, isVision: false, isImageGen: false, voiceId: '', emotion: '', speed: 1.0, vol: 1.0, pitch: 0, sampleRate: 32000, bitrate: 128000, format: 'mp3', channel: 1 });
     setIsFormOpen(false);
     setEditingId(null);
-    setAvailableModels([]);
-  };
-
-  const fetchModelsFromProvider = async (provider: string, apiKey: string, baseUrl: string) => {
-    if (provider !== 'OpenRouter' || !apiKey) return;
-    setFetchingModels(true);
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`
-        }
-      });
-      const data = await response.json();
-      if (data.data && Array.isArray(data.data)) {
-        const models = data.data.map((m: any) => m.id);
-        setAvailableModels(models);
-      }
-    } catch (error) {
-      console.error('Failed to fetch models:', error);
-    } finally {
-      setFetchingModels(false);
-    }
   };
 
   const handleProviderChange = (provider: string) => {
@@ -103,9 +78,6 @@ export const Settings: React.FC = () => {
         model: preset.defaultModel,
         name: prev.name || preset.label
       }));
-      if (provider === 'OpenRouter' && formData.apiKey) {
-        fetchModelsFromProvider(provider, formData.apiKey, preset.baseUrl);
-      }
     }
   };
 
@@ -440,27 +412,16 @@ export const Settings: React.FC = () => {
 
                 <input className="input-field h-10" placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
 
-                {activeTab === 'llm' && availableModels.length > 0 ? (
-                  <select
+                {activeTab === 'llm' && (
+                  <input
                     className="input-field h-10"
+                    placeholder={formData.provider === 'OpenRouter' ? 'Model (e.g. google/gemini-flash-1.5)' : 'Model (e.g. gemini-3-flash)'}
                     value={formData.model}
                     onChange={e => setFormData({...formData, model: e.target.value})}
-                  >
-                    <option value="">Select Model...</option>
-                    {availableModels.map(m => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input className="input-field h-10" placeholder="Model (e.g. gemini-3-flash)" value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} />
+                  />
                 )}
 
-                <input className="input-field col-span-2 h-10" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => {
-                  setFormData({...formData, apiKey: e.target.value});
-                  if (activeTab === 'llm' && formData.provider === 'OpenRouter' && e.target.value) {
-                    fetchModelsFromProvider('OpenRouter', e.target.value, formData.baseUrl);
-                  }
-                }} />
+                <input className="input-field col-span-2 h-10" type="password" placeholder="API Key" value={formData.apiKey} onChange={e => setFormData({...formData, apiKey: e.target.value})} />
                 <input className="input-field col-span-2 h-10" placeholder="Base URL (Optional)" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
 
                 {activeTab === 'llm' && (
