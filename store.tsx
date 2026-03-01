@@ -386,18 +386,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : [];
   });
   const [capsules, setCapsules] = useState<TimeCapsuleItem[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>(() => {
-    const saved = localStorage.getItem('wade_recs');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', type: 'movie', title: 'The Proposal', comment: 'Because Ryan Reynolds. Obviously.', coverUrl: 'https://picsum.photos/100/150' },
-      { id: '2', type: 'music', title: 'Careless Whisper', comment: 'Our song, babe.', coverUrl: 'https://picsum.photos/100/100' }
-    ];
-  });
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   // Persistence Effects (sessions/messages now persisted in Supabase only)
   useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
-  useEffect(() => localStorage.setItem('wade_recs', JSON.stringify(recommendations)), [recommendations]);
 
   // Actions
   const updateSettings = async (s: Partial<AppSettings>) => {
