@@ -190,42 +190,26 @@ export const MemoryBank: React.FC = () => {
                        </div>
                      ) : (
                        <div className="w-full">
-                         <div className="flex justify-between items-start w-full mb-2">
-                           <div className="flex gap-3 flex-1 min-w-0">
-                              <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${mem.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
-                              <div className="flex-1 min-w-0">
-                                  {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
-                                  <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">
-                                    {shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
-                                      ? getTruncatedContent(mem.content)
-                                      : mem.content}
-                                  </p>
-                                  {shouldTruncate(mem.content) && (
-                                    <button
-                                      onClick={() => toggleExpanded(mem.id)}
-                                      className="text-xs text-[#d58f99] hover:underline mt-1"
-                                    >
-                                      {expandedMemories.has(mem.id) ? 'Show less' : 'More...'}
-                                    </button>
-                                  )}
-                              </div>
-                           </div>
-                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button
-                               onClick={() => startEditing(mem)}
-                               className="text-gray-300 hover:text-[#d58f99] p-1"
-                             >
-                               <Icons.Pencil />
-                             </button>
-                             <button
-                               onClick={() => deleteCoreMemory(mem.id)}
-                               className="text-gray-300 hover:text-red-400 p-1"
-                             >
-                               <Icons.Trash />
-                             </button>
+                         <div className="flex gap-3 mb-2">
+                           <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${mem.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                           <div className="flex-1 min-w-0">
+                             {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
+                             <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">
+                               {shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
+                                 ? getTruncatedContent(mem.content)
+                                 : mem.content}
+                             </p>
+                             {shouldTruncate(mem.content) && (
+                               <button
+                                 onClick={() => toggleExpanded(mem.id)}
+                                 className="text-xs text-[#d58f99] hover:underline mt-1"
+                               >
+                                 {expandedMemories.has(mem.id) ? 'Show less' : 'More...'}
+                               </button>
+                             )}
                            </div>
                          </div>
-                         <div className="flex items-center gap-2 pt-2 border-t border-[#eae2e8]">
+                         <div className="flex items-center justify-between pt-2 border-t border-[#eae2e8]">
                            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#917c71]">
                              <input
                                type="checkbox"
@@ -235,6 +219,24 @@ export const MemoryBank: React.FC = () => {
                              />
                              <span>Enable AI to read this memory</span>
                            </label>
+                           <div className="flex gap-1">
+                             <button
+                               onClick={() => startEditing(mem)}
+                               className="text-gray-300 hover:text-[#d58f99] p-1"
+                             >
+                               <Icons.Pencil />
+                             </button>
+                             <button
+                               onClick={() => {
+                                 if (window.confirm('Are you sure you want to delete this memory?')) {
+                                   deleteCoreMemory(mem.id);
+                                 }
+                               }}
+                               className="text-gray-300 hover:text-red-400 p-1"
+                             >
+                               <Icons.Trash />
+                             </button>
+                           </div>
                          </div>
                        </div>
                      )}
