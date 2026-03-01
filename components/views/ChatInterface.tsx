@@ -1860,26 +1860,26 @@ export const ChatInterface: React.FC = () => {
                     />
 
                     {/* Menu */}
-                    <div className="absolute bottom-full left-0 mb-2 w-40 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-xl shadow-lg z-50 overflow-hidden">
                       <button
                         onClick={() => {
                           // TODO: Handle image upload
                           setShowUploadMenu(false);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
                       >
                         <Icons.Image />
-                        <span className="text-sm font-medium">Upload Image</span>
+                        <span className="text-xs font-medium">Image</span>
                       </button>
                       <button
                         onClick={() => {
                           // TODO: Handle file upload
                           setShowUploadMenu(false);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
                       >
                         <Icons.File />
-                        <span className="text-sm font-medium">Upload File</span>
+                        <span className="text-xs font-medium">File</span>
                       </button>
                     </div>
                   </>
