@@ -162,17 +162,28 @@ export const TimeCapsulesView = () => {
 
         {/* Calendar Card */}
         <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8]/50 mb-6 overflow-hidden">
-          <div className="bg-[#fff0f3] px-6 py-8 flex justify-between items-center">
-            <div>
-              <h2 className="text-4xl font-serif font-bold text-[#5a4a42] mb-1">{monthNames[currentDate.getMonth()]}</h2>
-              <span className="text-[#d58f99] font-bold text-lg tracking-wider">{currentDate.getFullYear()}</span>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={prevMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-gray-50 transition-colors">
-                <Icons.ChevronLeft />
-              </button>
-              <button onClick={nextMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-gray-50 transition-colors">
-                <Icons.ChevronRight />
+          <div className="bg-gradient-to-br from-[#fff0f3] to-[#fef8f9] px-6 py-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <button onClick={prevMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
+                  <Icons.ChevronLeft />
+                </button>
+                <div className="text-center min-w-[180px]">
+                  <h2 className="text-2xl font-bold text-[#5a4a42] mb-0.5">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
+                  <div className="text-[#d58f99] font-bold text-xs tracking-widest uppercase">Calendar</div>
+                </div>
+                <button onClick={nextMonth} className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-white hover:scale-105 transition-all">
+                  <Icons.ChevronRight />
+                </button>
+              </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="w-12 h-12 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#c07a84] hover:scale-105 transition-all"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
               </button>
             </div>
           </div>
@@ -219,7 +230,7 @@ export const TimeCapsulesView = () => {
 
         {/* Selected Day Letters */}
         {selectedDate && (
-          <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8] overflow-hidden relative pb-20">
+          <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8] overflow-hidden">
             <div className="px-6 py-4 border-b border-[#eae2e8]/50 flex justify-between items-center">
               <div className="flex items-center text-[#d58f99] font-bold text-sm tracking-wider">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
@@ -230,7 +241,7 @@ export const TimeCapsulesView = () => {
               </div>
             </div>
 
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 pb-4">
               {selectedDayCapsules.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-[#917c71]/40">
                   <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
@@ -280,14 +291,6 @@ export const TimeCapsulesView = () => {
                 })
               )}
             </div>
-
-            {/* FAB */}
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="absolute bottom-6 right-6 w-14 h-14 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#c07a84] transition-colors hover:scale-105 transform"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
           </div>
         )}
 
