@@ -745,59 +745,52 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                 <div className="flex gap-4">
                   <button
                     onClick={() => {
-                      const isLiked = currentPost.likes?.includes('User') || false;
-                      const newLikes = isLiked
-                        ? (currentPost.likes || []).filter(u => u !== 'User')
-                        : [...(currentPost.likes || []), 'User'];
+                      const newLikes = currentPost.likes > 0 ? 0 : 1;
                       const updatedPost = { ...currentPost, likes: newLikes };
                       updatePost(updatedPost);
                       setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
                     }}
-                    className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90"
+                    className={`transition-transform active:scale-125 hover:scale-110 ${currentPost.likes > 0 ? 'text-[#ed4956]' : 'text-[#5a4a42] hover:text-[#917c71]'}`}
                   >
-                    <Icons.Heart filled={currentPost.likes?.includes('User')} />
+                    <Icons.Heart filled={currentPost.likes > 0} />
                   </button>
-                  <button className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90">
+                  <button
+                    onClick={() => setActivePostId(activePostId === currentPost.id ? null : currentPost.id)}
+                    className="text-[#5a4a42] hover:text-[#917c71] hover:scale-110 transition-transform"
+                  >
                     <Icons.MessageCircle />
-                  </button>
-                  <button className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90">
-                    <Icons.Send />
                   </button>
                 </div>
                 <button
                   onClick={() => {
-                    const isBookmarked = currentPost.bookmarked || false;
-                    const updatedPost = { ...currentPost, bookmarked: !isBookmarked };
+                    const updatedPost = { ...currentPost, isBookmarked: !currentPost.isBookmarked };
                     updatePost(updatedPost);
                     setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
                   }}
-                  className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90"
+                  className={`transition-all hover:scale-110 ${currentPost.isBookmarked ? 'text-[#5a4a42]' : 'text-[#5a4a42] hover:text-[#917c71]'}`}
                 >
-                  <Icons.Bookmark filled={currentPost.bookmarked} />
+                  <Icons.Bookmark filled={currentPost.isBookmarked} />
                 </button>
               </div>
 
               {/* Likes Count */}
-              {currentPost.likes && currentPost.likes.length > 0 && (
+              {currentPost.likes > 0 && (
                 <div className="mb-2">
-                  <span className="font-bold text-[#5a4a42] text-sm">{currentPost.likes.length} {currentPost.likes.length === 1 ? 'like' : 'likes'}</span>
+                  <span className="font-bold text-[#5a4a42] text-sm">{currentPost.likes} {currentPost.likes === 1 ? 'like' : 'likes'}</span>
                 </div>
               )}
 
               {/* Post Content */}
-              <div className="mb-2">
-                <span className="font-bold text-[#5a4a42] text-sm mr-2">{authorName}</span>
-                <span className="text-[#5a4a42] text-sm leading-relaxed whitespace-pre-wrap">{currentPost.content}</span>
-              </div>
+              <PostCaption content={currentPost.content} authorName={authorName} />
 
               {/* Timestamp */}
-              <div className="text-[11px] text-[#917c71]/60 uppercase mb-4">
+              <div className="px-4 pb-3 text-[11px] text-[#917c71]/60 uppercase">
                 {new Date(currentPost.timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
 
               {/* Comments Section */}
               {currentPost.comments && currentPost.comments.length > 0 && (
-                <div className="border-t border-[#eae2e8] pt-4 space-y-3">
+                <div className="border-t border-[#eae2e8] pt-4 px-4 space-y-3">
                   {currentPost.comments.map(comment => {
                     const commentAuthorName = comment.author === 'User' ? 'Luna' : 'Wade';
                     const replyTo = comment.replyToId ? currentPost.comments.find(c => c.id === comment.replyToId) : null;
@@ -805,12 +798,12 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                     return (
                       <div key={comment.id} className="flex gap-2">
                         <div className="flex-1">
-                          <div className="flex items-start gap-2">
-                            <span className="font-bold text-[#5a4a42] text-sm">{commentAuthorName}</span>
-                            <span className="text-[#5a4a42] text-sm flex-1">{comment.text}</span>
+                          <div className="text-sm">
+                            <span className="font-bold text-[#5a4a42] mr-2">{commentAuthorName}</span>
+                            <span className="text-[#5a4a42]">{comment.text}</span>
                           </div>
                           {replyTo && (
-                            <div className="mt-1 ml-4 text-xs text-[#917c71]/60">
+                            <div className="mt-1 text-xs text-[#917c71]/60">
                               Replying to {replyTo.author === 'User' ? 'Luna' : 'Wade'}
                             </div>
                           )}
@@ -822,8 +815,8 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
               )}
 
               {/* Add Comment */}
-              <div className="border-t border-[#eae2e8] mt-4 pt-4">
-                <div className="flex gap-2">
+              <div className="border-t border-[#eae2e8] mt-4 px-4 py-3">
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
                     placeholder="Add a comment..."
