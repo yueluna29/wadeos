@@ -896,7 +896,7 @@ export const ChatInterface: React.FC = () => {
 
       const currentSession = sessions.find(s => s.id === activeSessionId);
       const response = await generateTextResponse(
-        activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
+        activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
         modePrompt,
@@ -913,7 +913,9 @@ export const ChatInterface: React.FC = () => {
           frequencyPenalty: activeLlm.frequencyPenalty,
           presencePenalty: activeLlm.presencePenalty
         } : undefined,
-        currentSession?.customPrompt
+        currentSession?.customPrompt,
+        activeLlm?.baseUrl,
+        activeLlm?.isImageGen
       );
 
       const responseText = response.text;
