@@ -189,10 +189,10 @@ export const Home: React.FC = () => {
                      <div
                        key={cap.id}
                        onClick={() => setTab('time-capsules')}
-                       className="min-w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50 cursor-pointer hover:bg-[#fff0f3]/30 transition-colors"
+                       className="min-w-[140px] w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50 cursor-pointer hover:bg-[#fff0f3]/30 transition-colors flex-shrink-0"
                      >
                         <span className="text-2xl mb-1">📅</span>
-                        <span className="text-xs font-bold">{cap.title}</span>
+                        <span className="text-xs font-bold px-2 text-center">{cap.title}</span>
                      </div>
                    );
                  }
@@ -210,14 +210,14 @@ export const Home: React.FC = () => {
                          setTab('time-capsules');
                        }
                      }}
-                     className={`min-w-[140px] h-32 rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative group cursor-pointer transition-transform hover:-translate-y-1
+                     className={`min-w-[140px] w-[140px] h-32 rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative group cursor-pointer transition-transform hover:-translate-y-1 flex-shrink-0
                        ${isUnlocked ? 'bg-gradient-to-br from-[#d58f99] to-[#c07a84]' : 'bg-gradient-to-br from-gray-300 to-gray-400'}
                      `}
                    >
                        <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">
                          {isUnlocked ? '💌' : '🔒'}
                        </span>
-                       <span className="text-xs font-bold opacity-90 px-2 text-center truncate w-full">
+                       <span className="text-xs font-bold opacity-90 px-2 text-center w-full break-words line-clamp-2">
                          {cap.title || "A Letter from Wade"}
                        </span>
                    </div>
