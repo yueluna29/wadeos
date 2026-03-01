@@ -400,7 +400,7 @@ export const WadesPicksView = () => {
                   ⚔️
                 </div>
                 <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
-                <div className="prose prose-pink max-w-none text-[#5a4a42] italic text-sm md:text-base">
+                <div className="prose prose-pink max-w-none text-[#5a4a42] text-sm md:text-base">
                   <Markdown>{selectedRec.comment}</Markdown>
                 </div>
               </div>
