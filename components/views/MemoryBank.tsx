@@ -18,19 +18,20 @@ const Icons = {
 export const MemoryBank: React.FC = () => {
   const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
   const [activeTab, setActiveTab] = useState<'core' | 'import'>('core');
-  
+
   // Core Memory State
   const [newMemoryTitle, setNewMemoryTitle] = useState('');
   const [newMemoryContent, setNewMemoryContent] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Editing State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
-  
+
   // Archive dates cache
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
-  
+
   // Archive Upload State
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +41,7 @@ export const MemoryBank: React.FC = () => {
     await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact');
     setNewMemoryTitle('');
     setNewMemoryContent('');
+    setIsModalOpen(false);
   };
 
   const startEditing = (mem: any) => {
@@ -126,25 +128,14 @@ export const MemoryBank: React.FC = () => {
         {/* TAB 1: CORE MEMORIES */}
         {activeTab === 'core' && (
           <div className="space-y-4 animate-fade-in">
-            {/* Add New Input */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8]">
-              <h3 className="text-xs font-bold text-[#5a4a42] mb-3">Add New Fact</h3>
-              <input 
-                  value={newMemoryTitle}
-                  onChange={(e) => setNewMemoryTitle(e.target.value)}
-                  placeholder="Title (Optional, e.g., 'Storage Gift')"
-                  className="w-full bg-[#f9f6f7] rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all mb-2 font-bold text-[#5a4a42]"
-              />
-              <textarea 
-                  value={newMemoryContent}
-                  onChange={(e) => setNewMemoryContent(e.target.value)}
-                  placeholder="Description (e.g., Luna bought me 2TB...)"
-                  className="w-full bg-[#f9f6f7] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all min-h-[100px] resize-none mb-3"
-              />
-              <div className="flex justify-end">
-                  <Button onClick={handleAddMemory} size="sm">Add Memory</Button>
-              </div>
-            </div>
+            {/* Add New Button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full bg-gradient-to-br from-[#d58f99] to-[#f5c6cb] text-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 font-bold text-sm hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Icons.Plus />
+              Add New Memory
+            </button>
 
             {/* List */}
             <div className="grid grid-cols-1 gap-3">
@@ -252,6 +243,59 @@ export const MemoryBank: React.FC = () => {
         )}
 
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setIsModalOpen(false)}
+        >
+          {/* Backdrop with glassmorphism */}
+          <div className="absolute inset-0 bg-[#5a4a42]/30 backdrop-blur-md"></div>
+
+          {/* Modal Content */}
+          <div
+            className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 w-full max-w-md animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-[#917c71] hover:text-[#5a4a42] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <h3 className="text-lg font-bold text-[#5a4a42] mb-4">Add New Fact</h3>
+
+            <input
+              value={newMemoryTitle}
+              onChange={(e) => setNewMemoryTitle(e.target.value)}
+              placeholder="Title (Optional, e.g., 'Storage Gift')"
+              className="w-full bg-[#f9f6f7] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all mb-3 font-bold text-[#5a4a42]"
+            />
+
+            <textarea
+              value={newMemoryContent}
+              onChange={(e) => setNewMemoryContent(e.target.value)}
+              placeholder="Description (e.g., Luna bought me 2TB...)"
+              className="w-full bg-[#f9f6f7] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all min-h-[120px] resize-none mb-4"
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button onClick={() => setIsModalOpen(false)} variant="ghost" size="sm">
+                Cancel
+              </Button>
+              <Button onClick={handleAddMemory} size="sm">
+                Add Memory
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
