@@ -1146,7 +1146,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const newRec: Recommendation = { ...r, id: Date.now().toString() };
     setRecommendations(prev => [newRec, ...prev]);
     try {
-      await supabase.from('recommendations').insert({
+      const { data, error } = await supabase.from('recommendations').insert({
         id: newRec.id,
         type: newRec.type,
         title: newRec.title,
@@ -1159,6 +1159,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         luna_rating: newRec.lunaRating,
         wade_reply: newRec.wadeReply
       });
+      if (error) {
+        console.error("Failed to insert recommendation:", error);
+        alert(`Failed to save recommendation: ${error.message}`);
+      } else {
+        console.log("Recommendation saved successfully:", data);
+      }
     } catch (e) {
       console.error("Failed to sync recommendation to Supabase", e);
     }
@@ -1167,7 +1173,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
     setRecommendations(prev => {
       const updated = prev.map(rec => rec.id === id ? { ...rec, ...r } : rec);
-      
+
       // Sync to Supabase
       const fullRec = updated.find(rec => rec.id === id);
       if (fullRec) {
@@ -1183,8 +1189,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           luna_review: fullRec.lunaReview,
           luna_rating: fullRec.lunaRating,
           wade_reply: fullRec.wadeReply
-        }).then(({ error }) => {
-          if (error) console.error("Failed to sync recommendation update to Supabase", error);
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error("Failed to sync recommendation update to Supabase", error);
+            alert(`Failed to update recommendation: ${error.message}`);
+          } else {
+            console.log("Recommendation updated successfully:", data);
+          }
         });
       }
       return updated;
