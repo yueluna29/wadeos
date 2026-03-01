@@ -37,7 +37,10 @@ const Icons = {
   Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
   Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>,
   Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
+  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
+  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  File: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
 };
 
 // --- Long Press Hook ---
@@ -425,6 +428,7 @@ export const ChatInterface: React.FC = () => {
   // Audio playback state management
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
 
@@ -1835,8 +1839,53 @@ export const ChatInterface: React.FC = () => {
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-[#eae2e8] z-30">
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-[#eae2e8] z-30">
             <div className="flex gap-2 max-w-4xl mx-auto items-end">
+              {/* File Upload Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUploadMenu(!showUploadMenu)}
+                  className="w-9 h-9 rounded-full bg-[#f9f6f7] border border-[#eae2e8] flex items-center justify-center hover:bg-[#eae2e8] transition-colors text-[#917c71] hover:text-[#5a4a42] shadow-sm"
+                >
+                  <Icons.Paperclip />
+                </button>
+
+                {/* Upload Menu Popup */}
+                {showUploadMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowUploadMenu(false)}
+                    />
+
+                    {/* Menu */}
+                    <div className="absolute bottom-full left-0 mb-2 w-40 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-2xl shadow-xl z-50 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          // TODO: Handle image upload
+                          setShowUploadMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
+                      >
+                        <Icons.Image />
+                        <span className="text-sm font-medium">Upload Image</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          // TODO: Handle file upload
+                          setShowUploadMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
+                      >
+                        <Icons.File />
+                        <span className="text-sm font-medium">Upload File</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <textarea
                 ref={textareaRef}
                 value={inputText}
@@ -1844,11 +1893,11 @@ export const ChatInterface: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeMode === 'sms' ? "Text message..." : "Type a message..."}
                 rows={1}
-                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-5 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[48px] max-h-[120px]"
+                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-2.5 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[40px] max-h-[100px] text-sm"
               />
               <Button
                 onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
-                className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
+                className="w-10 h-10 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
               >
                 {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.Send />}
               </Button>
