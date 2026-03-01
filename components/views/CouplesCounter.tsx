@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface CouplesCounterProps {
-  className?: string;
-}
-
-export const CouplesCounter: React.FC<CouplesCounterProps> = ({ className = '' }) => {
+export const CouplesCounter: React.FC = () => {
   const { settings } = useStore();
   const [activeTab, setActiveTab] = useState<'days' | 'anniversaries'>('days');
 
@@ -30,7 +26,7 @@ export const CouplesCounter: React.FC<CouplesCounterProps> = ({ className = '' }
   ];
 
   return (
-    <div className={`bg-white rounded-3xl p-6 shadow-sm border border-[#eae2e8] relative overflow-hidden ${className}`}>
+    <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#eae2e8] mb-6 relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#d58f99] to-[#5a4a42]"></div>
       
