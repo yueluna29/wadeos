@@ -9,10 +9,17 @@ const Icons = {
 };
 
 export const TimeCapsulesView = () => {
-  const { capsules, setTab } = useStore();
+  const { capsules, setTab, addCapsule } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewingCapsule, setViewingCapsule] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCapsule, setNewCapsule] = useState({
+    title: '',
+    content: '',
+    unlockDate: '',
+    unlockTime: '00:00'
+  });
 
   // Calendar logic
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -59,6 +66,29 @@ export const TimeCapsulesView = () => {
   };
 
   const selectedCapsuleData = viewingCapsule ? capsules.find(c => c.id === viewingCapsule) : null;
+
+  const handleAddCapsule = () => {
+    if (!newCapsule.title || !newCapsule.content || !newCapsule.unlockDate) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    const [year, month, day] = newCapsule.unlockDate.split('-').map(Number);
+    const [hours, minutes] = newCapsule.unlockTime.split(':').map(Number);
+    const unlockTimestamp = new Date(year, month - 1, day, hours, minutes).getTime();
+
+    addCapsule({
+      id: Date.now().toString(),
+      title: newCapsule.title,
+      content: newCapsule.content,
+      createdAt: Date.now(),
+      unlockDate: unlockTimestamp,
+      isLocked: unlockTimestamp > Date.now()
+    });
+
+    setNewCapsule({ title: '', content: '', unlockDate: '', unlockTime: '00:00' });
+    setShowAddModal(false);
+  };
 
   if (viewingCapsule && selectedCapsuleData) {
     const unlockDate = new Date(selectedCapsuleData.unlockDate);
@@ -252,9 +282,122 @@ export const TimeCapsulesView = () => {
             </div>
 
             {/* FAB */}
-            <button className="absolute bottom-6 right-6 w-14 h-14 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#c07a84] transition-colors hover:scale-105 transform">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="absolute bottom-6 right-6 w-14 h-14 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#c07a84] transition-colors hover:scale-105 transform"
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
+          </div>
+        )}
+
+        {/* Add Capsule Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-[#eae2e8]">
+              {/* Header */}
+              <div className="bg-gradient-to-br from-[#fff0f3] to-[#fdfbfb] px-6 py-5 border-b border-[#eae2e8]/50">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-sm">
+                      <svg className="w-5 h-5 text-[#d58f99]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-[#5a4a42]">New Time Capsule</h2>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setNewCapsule({ title: '', content: '', unlockDate: '', unlockTime: '00:00' });
+                    }}
+                    className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(85vh-180px)] custom-scrollbar">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Letter Title</label>
+                    <input
+                      type="text"
+                      value={newCapsule.title}
+                      onChange={(e) => setNewCapsule({ ...newCapsule, title: e.target.value })}
+                      placeholder="e.g., A Promise for Our Future"
+                      className="w-full px-4 py-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] text-[#5a4a42] focus:outline-none focus:border-[#d58f99] text-sm transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Message</label>
+                    <textarea
+                      value={newCapsule.content}
+                      onChange={(e) => setNewCapsule({ ...newCapsule, content: e.target.value })}
+                      placeholder="Write your message here... (Markdown supported)"
+                      className="w-full px-4 py-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] text-[#5a4a42] focus:outline-none focus:border-[#d58f99] min-h-[150px] text-sm resize-none transition-colors"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Unlock Date</label>
+                      <input
+                        type="date"
+                        value={newCapsule.unlockDate}
+                        onChange={(e) => setNewCapsule({ ...newCapsule, unlockDate: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] text-[#5a4a42] focus:outline-none focus:border-[#d58f99] text-sm transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Time</label>
+                      <input
+                        type="time"
+                        value={newCapsule.unlockTime}
+                        onChange={(e) => setNewCapsule({ ...newCapsule, unlockTime: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] text-[#5a4a42] focus:outline-none focus:border-[#d58f99] text-sm transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#fff0f3]/50 rounded-xl p-4 border border-[#d58f99]/10">
+                    <div className="flex items-start">
+                      <svg className="w-4 h-4 text-[#d58f99] mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-xs text-[#917c71] leading-relaxed">
+                        This letter will be sealed until the specified date and time. Perfect for future anniversaries, birthdays, or special moments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 bg-[#fdfbfb] border-t border-[#eae2e8]/50 flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setNewCapsule({ title: '', content: '', unlockDate: '', unlockTime: '00:00' });
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eae2e8] text-[#917c71] font-bold text-sm hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCapsule}
+                  className="flex-1 px-4 py-3 rounded-xl bg-[#d58f99] text-white font-bold text-sm hover:bg-[#c07a84] transition-colors shadow-sm"
+                >
+                  Seal Letter
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
