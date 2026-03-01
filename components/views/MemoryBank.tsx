@@ -85,13 +85,7 @@ export const MemoryBank: React.FC = () => {
   };
 
   const shouldTruncate = (content: string) => {
-    const lines = content.split('\n');
-    return lines.length > 10;
-  };
-
-  const getTruncatedContent = (content: string) => {
-    const lines = content.split('\n');
-    return lines.slice(0, 10).join('\n');
+    return content.length > 200;
   };
 
   // Load archive dates when chatArchives change
