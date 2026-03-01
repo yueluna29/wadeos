@@ -113,7 +113,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             topP: p.top_p ?? 1.0,
             topK: p.top_k ?? 40,
             frequencyPenalty: p.frequency_penalty ?? 0,
-            presencePenalty: p.presence_penalty ?? 0
+            presencePenalty: p.presence_penalty ?? 0,
+            isVision: p.is_vision ?? false,
+            isImageGen: p.is_image_gen ?? false
           })));
         }
 
@@ -431,11 +433,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       top_p: p.topP,
       top_k: p.topK,
       frequency_penalty: p.frequencyPenalty,
-      presence_penalty: p.presencePenalty
+      presence_penalty: p.presencePenalty,
+      is_vision: p.isVision ?? false,
+      is_image_gen: p.isImageGen ?? false
     };
-    
+
     const { data, error } = await supabase.from('llm_presets').insert(payload).select().single();
-    
+
     if (error) {
         console.error("Add LLM Preset Error:", error);
         alert(`Failed to save preset: ${error.message}`);
@@ -455,7 +459,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         topP: data.top_p,
         topK: data.top_k,
         frequencyPenalty: data.frequency_penalty,
-        presencePenalty: data.presence_penalty
+        presencePenalty: data.presence_penalty,
+        isVision: data.is_vision ?? false,
+        isImageGen: data.is_image_gen ?? false
       }]);
     }
   };
@@ -473,9 +479,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (p.topK !== undefined) dbPayload.top_k = p.topK;
     if (p.frequencyPenalty !== undefined) dbPayload.frequency_penalty = p.frequencyPenalty;
     if (p.presencePenalty !== undefined) dbPayload.presence_penalty = p.presencePenalty;
+    if (p.isVision !== undefined) dbPayload.is_vision = p.isVision;
+    if (p.isImageGen !== undefined) dbPayload.is_image_gen = p.isImageGen;
 
     const { error } = await supabase.from('llm_presets').update(dbPayload).eq('id', id);
-    
+
     if (error) {
         console.error("Update LLM Preset Error:", error);
         alert(`Failed to update preset: ${error.message}`);
