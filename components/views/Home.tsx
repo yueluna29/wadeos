@@ -5,7 +5,7 @@ import { CouplesCounter } from './CouplesCounter';
 import { GoogleGenAI } from "@google/genai";
 
 export const Home: React.FC = () => {
-  const { recommendations, capsules, settings, llmPresets } = useStore();
+  const { recommendations, capsules, settings, llmPresets, setTab } = useStore();
   const [statusQuote, setStatusQuote] = useState<string>('"Thinking about you. And tacos. Mostly you."');
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
 
@@ -118,40 +118,91 @@ export const Home: React.FC = () => {
       <section className="mb-6">
          <div className="flex justify-between items-end mb-4">
             <h3 className="font-bold text-[#917c71] text-lg">Time Capsules ⏳</h3>
+            <button 
+              onClick={() => setTab('time-capsules')}
+              className="text-xs font-bold text-[#d58f99] hover:text-[#c07a84] uppercase tracking-wider flex items-center"
+            >
+              View All <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
          </div>
          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-             {capsules.length === 0 ? (
-               <div className="min-w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50">
-                  <span className="text-2xl mb-1">🔒</span>
-                  <span className="text-xs">No Capsules</span>
-               </div>
-             ) : (
-                capsules.map(cap => (
-                  <div key={cap.id} className="min-w-[140px] h-32 bg-gradient-to-br from-[#d58f99] to-[#c07a84] rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative group">
-                      <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔒</span>
-                      <span className="text-xs font-bold opacity-90">Unlock: {new Date(cap.unlockDate).toLocaleDateString()}</span>
-                  </div>
-                ))
-             )}
-             {/* Static example for design */}
-             <div className="min-w-[140px] h-32 bg-gradient-to-br from-[#d58f99] to-[#c07a84] rounded-2xl flex flex-col items-center justify-center text-white shadow-md">
-                 <span className="text-3xl mb-2">🔒</span>
-                 <span className="text-xs font-bold opacity-90">Oct 12</span>
-             </div>
+             {(() => {
+               const today = new Date();
+               const todaysCapsules = capsules.filter(cap => {
+                 const d = new Date(cap.unlockDate);
+                 return d.getDate() === today.getDate() && 
+                        d.getMonth() === today.getMonth() && 
+                        d.getFullYear() === today.getFullYear();
+               });
+
+               if (todaysCapsules.length === 0) {
+                 return (
+                   <div 
+                     onClick={() => setTab('time-capsules')}
+                     className="min-w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50 cursor-pointer hover:bg-[#fff0f3]/30 transition-colors"
+                   >
+                      <span className="text-2xl mb-1">📅</span>
+                      <span className="text-xs font-bold">No mail today</span>
+                   </div>
+                 );
+               }
+
+               return todaysCapsules.map(cap => {
+                 const isUnlocked = new Date(cap.unlockDate) <= new Date();
+                 return (
+                   <div 
+                     key={cap.id} 
+                     onClick={() => setTab('time-capsules')}
+                     className={`min-w-[140px] h-32 rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative group cursor-pointer transition-transform hover:-translate-y-1
+                       ${isUnlocked ? 'bg-gradient-to-br from-[#d58f99] to-[#c07a84]' : 'bg-gradient-to-br from-gray-300 to-gray-400'}
+                     `}
+                   >
+                       <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                         {isUnlocked ? '💌' : '🔒'}
+                       </span>
+                       <span className="text-xs font-bold opacity-90 px-2 text-center truncate w-full">
+                         {cap.title || "A Letter from Wade"}
+                       </span>
+                   </div>
+                 );
+               });
+             })()}
          </div>
       </section>
 
       {/* Recommendations */}
       <section>
-        <h3 className="font-bold text-[#917c71] text-lg mb-4">Wade's Picks 🎬</h3>
+        <div className="flex justify-between items-end mb-4">
+          <h3 className="font-bold text-[#917c71] text-lg">Wade's Picks 🎬</h3>
+          <button 
+            onClick={() => setTab('wade-picks')}
+            className="text-xs font-bold text-[#d58f99] hover:text-[#c07a84] uppercase tracking-wider flex items-center"
+          >
+            View All <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recommendations.map(rec => (
-              <div key={rec.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex gap-4 transition-transform hover:-translate-y-1">
-                <img src={rec.coverUrl} className="w-16 h-24 object-cover rounded-lg bg-gray-200 shadow-sm" alt={rec.title} />
-                <div className="flex-1">
-                  <h4 className="font-bold text-[#5a4a42] text-sm line-clamp-1">{rec.title}</h4>
-                  <span className="inline-block text-[10px] font-bold text-[#917c71] bg-[#fff0f3] px-2 py-0.5 rounded-full mt-1 mb-2 uppercase">{rec.type}</span>
-                  <p className="text-xs text-[#d58f99] italic line-clamp-2">"{rec.comment}"</p>
+            {recommendations.slice().sort(() => 0.5 - Math.random()).slice(0, 2).map(rec => (
+              <div key={rec.id} onClick={() => setTab('wade-picks')} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group">
+                {rec.coverUrl ? (
+                  <img src={rec.coverUrl} className="w-16 h-24 object-cover rounded-lg bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow" alt={rec.title} referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-16 h-24 rounded-lg bg-[#fff0f3] flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow">
+                    {rec.type === 'movie' ? '🎬' : rec.type === 'music' ? '🎵' : '📚'}
+                  </div>
+                )}
+                <div className="flex-1 flex flex-col">
+                  <h4 className="font-bold text-[#5a4a42] text-sm line-clamp-1 group-hover:text-[#d58f99] transition-colors">{rec.title}</h4>
+                  <div className="flex items-center gap-2 mt-1 mb-2">
+                    <span className="inline-block text-[10px] font-bold text-[#917c71] bg-[#fff0f3] px-2 py-0.5 rounded-full uppercase">{rec.type}</span>
+                    {rec.lunaRating && (
+                      <span className="text-[10px] text-[#ffb6c1] font-bold flex items-center">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="mr-0.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        {rec.lunaRating}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#d58f99] italic line-clamp-2 mt-auto">"{rec.comment}"</p>
                 </div>
               </div>
             ))}

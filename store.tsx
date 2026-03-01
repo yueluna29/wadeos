@@ -267,6 +267,27 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchSocialPosts();
 
+        // 9. Recommendations
+        const fetchRecommendations = async () => {
+            const { data: recData, error: recError } = await supabase.from('recommendations').select('*').order('created_at', { ascending: false });
+            if (recData && !recError) {
+                setRecommendations(recData.map(r => ({
+                    id: r.id,
+                    type: r.type,
+                    title: r.title,
+                    creator: r.creator,
+                    releaseDate: r.release_date,
+                    synopsis: r.synopsis,
+                    comment: r.comment,
+                    coverUrl: r.cover_url,
+                    lunaReview: r.luna_review,
+                    lunaRating: r.luna_rating,
+                    wadeReply: r.wade_reply
+                })));
+            }
+        };
+        fetchRecommendations();
+
         // Clear old localStorage data after successful sync
         localStorage.removeItem('wade_sessions');
         localStorage.removeItem('wade_messages');
@@ -1071,6 +1092,59 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
   const addCapsule = (c: TimeCapsuleItem) => setCapsules(prev => [...prev, c]);
 
+  // --- RECOMMENDATIONS ---
+  const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
+    const newRec: Recommendation = { ...r, id: Date.now().toString() };
+    setRecommendations(prev => [newRec, ...prev]);
+    try {
+      await supabase.from('recommendations').insert({
+        id: newRec.id,
+        type: newRec.type,
+        title: newRec.title,
+        creator: newRec.creator,
+        release_date: newRec.releaseDate,
+        synopsis: newRec.synopsis,
+        comment: newRec.comment,
+        cover_url: newRec.coverUrl,
+        luna_review: newRec.lunaReview,
+        luna_rating: newRec.lunaRating,
+        wade_reply: newRec.wadeReply
+      });
+    } catch (e) {
+      console.error("Failed to sync recommendation to Supabase", e);
+    }
+  };
+
+  const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
+    setRecommendations(prev => prev.map(rec => rec.id === id ? { ...rec, ...r } : rec));
+    try {
+      const updateData: any = {};
+      if (r.type !== undefined) updateData.type = r.type;
+      if (r.title !== undefined) updateData.title = r.title;
+      if (r.creator !== undefined) updateData.creator = r.creator;
+      if (r.releaseDate !== undefined) updateData.release_date = r.releaseDate;
+      if (r.synopsis !== undefined) updateData.synopsis = r.synopsis;
+      if (r.comment !== undefined) updateData.comment = r.comment;
+      if (r.coverUrl !== undefined) updateData.cover_url = r.coverUrl;
+      if (r.lunaReview !== undefined) updateData.luna_review = r.lunaReview;
+      if (r.lunaRating !== undefined) updateData.luna_rating = r.lunaRating;
+      if (r.wadeReply !== undefined) updateData.wade_reply = r.wadeReply;
+      
+      await supabase.from('recommendations').update(updateData).eq('id', id);
+    } catch (e) {
+      console.error("Failed to sync recommendation update to Supabase", e);
+    }
+  };
+
+  const deleteRecommendation = async (id: string) => {
+    setRecommendations(prev => prev.filter(rec => rec.id !== id));
+    try {
+      await supabase.from('recommendations').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete recommendation from Supabase", e);
+    }
+  };
+
   return (
     <StoreContext.Provider value={{
       currentTab, setTab,
@@ -1086,7 +1160,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
       capsules, addCapsule,
-      recommendations,
+      recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
       coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory,

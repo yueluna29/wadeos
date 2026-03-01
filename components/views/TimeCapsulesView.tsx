@@ -1,0 +1,263 @@
+import React, { useState, useMemo } from 'react';
+import { useStore } from '../../store';
+import Markdown from 'react-markdown';
+
+const Icons = {
+  ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+  ChevronRight: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
+  Edit: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+};
+
+export const TimeCapsulesView = () => {
+  const { capsules, setTab } = useStore();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [viewingCapsule, setViewingCapsule] = useState<string | null>(null);
+
+  // Calendar logic
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setSelectedDate(null);
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setSelectedDate(null);
+  };
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  // Filter capsules for the selected month
+  const capsulesInMonth = useMemo(() => {
+    return capsules.filter(cap => {
+      const d = new Date(cap.unlockDate);
+      return d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear();
+    });
+  }, [capsules, currentDate]);
+
+  // Get capsules for the selected day
+  const selectedDayCapsules = useMemo(() => {
+    if (!selectedDate) return [];
+    return capsules.filter(cap => {
+      const d = new Date(cap.unlockDate);
+      return d.getDate() === selectedDate.getDate() && 
+             d.getMonth() === selectedDate.getMonth() && 
+             d.getFullYear() === selectedDate.getFullYear();
+    });
+  }, [capsules, selectedDate]);
+
+  const hasCapsuleOnDay = (day: number) => {
+    return capsulesInMonth.some(cap => new Date(cap.unlockDate).getDate() === day);
+  };
+
+  const handleDayClick = (day: number) => {
+    setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+  };
+
+  const selectedCapsuleData = viewingCapsule ? capsules.find(c => c.id === viewingCapsule) : null;
+
+  if (viewingCapsule && selectedCapsuleData) {
+    const unlockDate = new Date(selectedCapsuleData.unlockDate);
+    const dayOfWeek = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][unlockDate.getDay()];
+    const dateString = `${unlockDate.getFullYear()}年${unlockDate.getMonth() + 1}月${unlockDate.getDate()}日${dayOfWeek}`;
+
+    return (
+      <div className="h-full bg-[#fdfbfb] overflow-y-auto custom-scrollbar relative">
+        {/* Background Decoration */}
+        <div className="absolute top-10 right-10 text-[#f3e8ff] opacity-50 pointer-events-none">
+          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </div>
+
+        <div className="max-w-2xl mx-auto p-6 relative z-10">
+          <button 
+            onClick={() => setViewingCapsule(null)}
+            className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+          >
+            <Icons.ChevronLeft /> <span className="ml-1 font-bold">Back</span>
+          </button>
+
+          <div className="mb-8">
+            <div className="flex items-center text-[#d58f99] font-bold text-sm mb-4">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              {dateString}
+            </div>
+            <h1 className="text-3xl font-bold text-[#5a4a42] mb-8 leading-tight">
+              {selectedCapsuleData.title || "A Letter from Wade"}
+            </h1>
+            
+            <div className="prose prose-pink max-w-none text-[#5a4a42] leading-relaxed">
+              <Markdown>{selectedCapsuleData.content}</Markdown>
+            </div>
+          </div>
+
+          <div className="mt-16 pt-8 border-t border-[#eae2e8] relative">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#fdfbfb] px-4 text-[#d58f99]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </div>
+            <div className="flex justify-between items-center text-[#917c71] text-sm font-bold uppercase tracking-wider">
+              <span>SEALED ON {new Date(selectedCapsuleData.createdWidth || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
+              <div className="flex gap-4">
+                <button className="flex items-center hover:text-[#d58f99] transition-colors">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                  Listen
+                </button>
+                <button className="flex items-center hover:text-[#d58f99] transition-colors">
+                  <Icons.Edit /> <span className="ml-1.5">Edit</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar">
+      <div className="max-w-md mx-auto p-4 pt-6">
+        <div className="flex items-center mb-6">
+          <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
+            <Icons.ChevronLeft />
+          </button>
+          <h1 className="font-bold text-xl text-[#5a4a42] ml-2">Time Capsules</h1>
+        </div>
+
+        {/* Calendar Card */}
+        <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8]/50 mb-6 overflow-hidden">
+          <div className="bg-[#fff0f3] px-6 py-8 flex justify-between items-center">
+            <div>
+              <h2 className="text-4xl font-serif font-bold text-[#1a2b3c] mb-1">{monthNames[currentDate.getMonth()]}</h2>
+              <span className="text-[#ff6b81] font-bold text-lg tracking-wider">{currentDate.getFullYear()}</span>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={prevMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#ff6b81] shadow-sm hover:bg-gray-50 transition-colors">
+                <Icons.ChevronLeft />
+              </button>
+              <button onClick={nextMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#ff6b81] shadow-sm hover:bg-gray-50 transition-colors">
+                <Icons.ChevronRight />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-7 gap-y-4 gap-x-2 text-center mb-2">
+              {dayNames.map(day => (
+                <div key={day} className="text-[11px] font-bold text-[#917c71] tracking-widest">{day}</div>
+              ))}
+              
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const hasCapsule = hasCapsuleOnDay(day);
+                const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === currentDate.getMonth() && selectedDate?.getFullYear() === currentDate.getFullYear();
+                
+                return (
+                  <div key={day} className="flex justify-center items-center h-12">
+                    <button
+                      onClick={() => handleDayClick(day)}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold transition-all relative
+                        ${isSelected ? 'bg-[#ff6b81] text-white shadow-md' : 'bg-white text-[#5a4a42] border border-gray-100 hover:bg-gray-50'}
+                      `}
+                    >
+                      {hasCapsule && !isSelected && (
+                        <div className="absolute inset-0 flex items-center justify-center text-[#ff6b81]">
+                          <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
+                          <span className="absolute text-white text-sm z-10">{day}</span>
+                        </div>
+                      )}
+                      {(!hasCapsule || isSelected) && <span>{day}</span>}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Selected Day Letters */}
+        {selectedDate && (
+          <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8] overflow-hidden relative pb-20">
+            <div className="px-6 py-4 border-b border-[#eae2e8]/50 flex justify-between items-center">
+              <div className="flex items-center text-[#ff6b81] font-bold text-sm tracking-wider">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                {monthNames[selectedDate.getMonth()].substring(0, 3).toUpperCase()} {selectedDate.getDate()}
+              </div>
+              <div className="text-[#917c71] font-bold text-xs tracking-widest">
+                {selectedDayCapsules.length} LETTERS
+              </div>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {selectedDayCapsules.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-[#917c71]/40">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
+                  <p className="font-serif italic">No mail for this day.</p>
+                </div>
+              ) : (
+                selectedDayCapsules.map(cap => {
+                  const unlockDate = new Date(cap.unlockDate);
+                  const isAvailable = unlockDate <= new Date();
+                  const timeStr = unlockDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  
+                  return (
+                    <button 
+                      key={cap.id}
+                      onClick={() => isAvailable && setViewingCapsule(cap.id)}
+                      className={`w-full flex items-center p-4 rounded-2xl border transition-all text-left group
+                        ${isAvailable ? 'bg-[#fff0f3]/50 border-[#ff6b81]/20 hover:bg-[#fff0f3] hover:border-[#ff6b81]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
+                      `}
+                    >
+                      <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
+                        ${isAvailable ? 'text-[#ff6b81] border-[#ff6b81]/20' : 'text-gray-400 border-gray-200'}
+                      `}>
+                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span className="text-xs font-bold">{timeStr}</span>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <h4 className={`font-bold text-base mb-1 truncate ${isAvailable ? 'text-[#5a4a42]' : 'text-gray-500'}`}>
+                          {cap.title || "A Letter from Wade"}
+                        </h4>
+                        <div className={`flex items-center text-xs font-bold tracking-wider ${isAvailable ? 'text-[#917c71]' : 'text-gray-400'}`}>
+                          {isAvailable ? (
+                            <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> AVAILABLE NOW</>
+                          ) : (
+                            <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> LOCKED</>
+                          )}
+                        </div>
+                      </div>
+                      {isAvailable && (
+                        <div className="text-[#ff6b81] opacity-50 group-hover:opacity-100 transition-opacity ml-2">
+                          <Icons.ChevronRight />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* FAB */}
+            <button className="absolute bottom-6 right-6 w-14 h-14 bg-[#ff6b81] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#ff526a] transition-colors hover:scale-105 transform">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

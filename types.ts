@@ -62,6 +62,7 @@ export interface SocialComment {
 
 export interface TimeCapsuleItem {
   id: string;
+  title: string;
   content: string;
   createdWidth: number;
   unlockDate: number; // Timestamp
@@ -79,8 +80,14 @@ export interface Recommendation {
   id: string;
   type: 'book' | 'movie' | 'music';
   title: string;
+  creator?: string; // Author, Director, or Artist
+  releaseDate?: string;
+  synopsis?: string;
   comment: string; // Wade's comment
   coverUrl?: string;
+  lunaReview?: string;
+  lunaRating?: number; // 1-5
+  wadeReply?: string;
 }
 
 // --- NEW MEMORY & ARCHIVE TYPES ---
@@ -222,6 +229,9 @@ export interface GlobalState {
   capsules: TimeCapsuleItem[];
   addCapsule: (c: TimeCapsuleItem) => void;
   recommendations: Recommendation[];
+  addRecommendation: (r: Omit<Recommendation, 'id'>) => Promise<void>;
+  updateRecommendation: (id: string, r: Partial<Recommendation>) => Promise<void>;
+  deleteRecommendation: (id: string) => Promise<void>;
   
   // --- NEW MEMORY ACTIONS ---
   coreMemories: CoreMemory[];

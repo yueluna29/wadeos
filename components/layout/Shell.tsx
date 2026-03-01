@@ -113,6 +113,11 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                       <span className="text-[10px] font-bold text-[#917c71]">System</span>
                    </button>
 
+                   <button onClick={() => handleMenuClick('wade-picks')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
+                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><span className="text-xl">🎬</span></div>
+                      <span className="text-[10px] font-bold text-[#917c71]">Picks</span>
+                   </button>
+
                  </div>
                  {/* Little Triangle Pointer - Only on desktop where alignment matters more */}
                  <div className="hidden md:block absolute top-full left-4 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white/95"></div>

@@ -1,0 +1,458 @@
+import React, { useState, useMemo } from 'react';
+import { useStore } from '../../store';
+import { Recommendation } from '../../types';
+import Markdown from 'react-markdown';
+
+const Icons = {
+  ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+  ChevronRight: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
+  Edit: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
+  Trash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+  Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  Star: ({ filled }: { filled?: boolean }) => <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
+  All: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>,
+  Movie: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>,
+  Music: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>,
+  Book: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+};
+
+export const WadesPicksView = () => {
+  const { recommendations, addRecommendation, updateRecommendation, deleteRecommendation, setTab } = useStore();
+  const [viewingRecId, setViewingRecId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Recommendation>>({});
+  const [filterType, setFilterType] = useState<'all' | 'movie' | 'music' | 'book'>('all');
+
+  const selectedRec = viewingRecId ? recommendations.find(r => r.id === viewingRecId) : null;
+
+  const filteredRecs = useMemo(() => {
+    if (filterType === 'all') return recommendations;
+    return recommendations.filter(r => r.type === filterType);
+  }, [recommendations, filterType]);
+
+  const handleSave = async () => {
+    if (isEditing && viewingRecId) {
+      await updateRecommendation(viewingRecId, editForm);
+      setIsEditing(false);
+    } else {
+      await addRecommendation(editForm as Omit<Recommendation, 'id'>);
+      setIsEditing(false);
+      setEditForm({});
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this pick?")) {
+      await deleteRecommendation(id);
+      if (viewingRecId === id) setViewingRecId(null);
+    }
+  };
+
+  const handleStartEdit = (rec: Recommendation) => {
+    setEditForm(rec);
+    setIsEditing(true);
+  };
+
+  const handleStartAdd = () => {
+    setEditForm({ type: 'movie', title: '', comment: '' });
+    setViewingRecId(null);
+    setIsEditing(true);
+  };
+
+  const handleLunaReviewSave = async () => {
+    if (viewingRecId && selectedRec) {
+      await updateRecommendation(viewingRecId, { lunaReview: editForm.lunaReview, lunaRating: editForm.lunaRating });
+      // Clear edit form state for review
+      setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }));
+    }
+  };
+
+  if (isEditing && !viewingRecId) {
+    // Add New View
+    return (
+      <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
+        <div className="max-w-2xl mx-auto">
+          <button onClick={() => setIsEditing(false)} className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors">
+            <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
+          </button>
+          <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Add New Pick</h1>
+          
+          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-[#eae2e8]">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Type</label>
+                <select 
+                  value={editForm.type || 'movie'} 
+                  onChange={e => setEditForm({...editForm, type: e.target.value as any})}
+                  className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]"
+                >
+                  <option value="movie">Movie</option>
+                  <option value="music">Music</option>
+                  <option value="book">Book</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Title</label>
+                <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="Title..." />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Creator (Author/Director/Artist)</label>
+                <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="Creator..." />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Release Date</label>
+                <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="e.g. 2024" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Cover Image URL</label>
+                <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Synopsis</label>
+                <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Brief description..." />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Comment</label>
+                <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Wade's thoughts..." />
+              </div>
+              <button onClick={handleSave} className="w-full py-4 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors mt-4">
+                Save Pick
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (viewingRecId && selectedRec) {
+    if (isEditing) {
+      // Edit Existing View
+      return (
+        <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
+          <div className="max-w-2xl mx-auto">
+            <button onClick={() => setIsEditing(false)} className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors">
+              <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
+            </button>
+            <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Edit Pick</h1>
+            
+            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-[#eae2e8]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Type</label>
+                  <select 
+                    value={editForm.type || 'movie'} 
+                    onChange={e => setEditForm({...editForm, type: e.target.value as any})}
+                    className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]"
+                  >
+                    <option value="movie">Movie</option>
+                    <option value="music">Music</option>
+                    <option value="book">Book</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Title</label>
+                  <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Creator</label>
+                  <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Release Date</label>
+                  <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Cover Image URL</label>
+                  <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Synopsis</label>
+                  <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Comment</label>
+                  <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Reply to Luna</label>
+                  <textarea value={editForm.wadeReply || ''} onChange={e => setEditForm({...editForm, wadeReply: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Wade's response to Luna's review..." />
+                </div>
+                <button onClick={handleSave} className="w-full py-4 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors mt-4">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Detail View
+    return (
+      <div className="h-full bg-[#fdfbfb] overflow-y-auto custom-scrollbar relative">
+        {/* Background Decoration */}
+        <div className="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-[#fff0f3] to-transparent pointer-events-none"></div>
+
+        <div className="max-w-3xl mx-auto p-6 relative z-10">
+          <div className="flex justify-between items-center mb-8">
+            <button 
+              onClick={() => setViewingRecId(null)}
+              className="flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm"
+            >
+              <Icons.ChevronLeft /> <span className="ml-1 font-bold">Back to Picks</span>
+            </button>
+            <div className="flex gap-2">
+              <button onClick={() => handleStartEdit(selectedRec)} className="p-2 bg-white rounded-full text-[#917c71] hover:text-[#d58f99] shadow-sm transition-colors">
+                <Icons.Edit />
+              </button>
+              <button onClick={() => handleDelete(selectedRec.id)} className="p-2 bg-white rounded-full text-red-400 hover:text-red-500 shadow-sm transition-colors">
+                <Icons.Trash />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-8 mb-12">
+            {/* Cover Image */}
+            <div className="w-full md:w-1/3 flex-shrink-0">
+              <div className="aspect-[2/3] rounded-2xl overflow-hidden shadow-md bg-gray-100 border border-[#eae2e8]">
+                {selectedRec.coverUrl ? (
+                  <img src={selectedRec.coverUrl} alt={selectedRec.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#917c71]/30">
+                    <span className="text-4xl">🎬</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <div className="inline-block px-3 py-1 bg-[#fff0f3] text-[#d58f99] text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                {selectedRec.type}
+              </div>
+              <h1 className="text-4xl font-bold text-[#5a4a42] mb-2 leading-tight">{selectedRec.title}</h1>
+              
+              <div className="text-[#917c71] font-medium mb-6 flex flex-wrap gap-x-4 gap-y-2">
+                {selectedRec.creator && <span>{selectedRec.creator}</span>}
+                {selectedRec.creator && selectedRec.releaseDate && <span>•</span>}
+                {selectedRec.releaseDate && <span>{selectedRec.releaseDate}</span>}
+              </div>
+
+              {selectedRec.synopsis && (
+                <div className="mb-8">
+                  <h3 className="text-sm font-bold text-[#917c71] uppercase tracking-wider mb-2">Synopsis</h3>
+                  <p className="text-[#5a4a42] leading-relaxed opacity-90">{selectedRec.synopsis}</p>
+                </div>
+              )}
+
+              {/* Wade's Comment */}
+              <div className="bg-[#fff0f3]/50 rounded-2xl p-6 border border-[#ff6b81]/10 relative">
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
+                  ⚔️
+                </div>
+                <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
+                <div className="prose prose-pink max-w-none text-[#5a4a42] italic">
+                  <Markdown>{selectedRec.comment}</Markdown>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Luna's Review Section */}
+          <div className="border-t border-[#eae2e8] pt-10">
+            <h2 className="text-2xl font-bold text-[#5a4a42] mb-6 flex items-center">
+              <span className="mr-2">🌙</span> Luna's Thoughts
+            </h2>
+
+            {selectedRec.lunaReview || selectedRec.lunaRating ? (
+              <div className="space-y-6">
+                {/* Luna's Review Display */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-1 text-[#ffb6c1]">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Icons.Star key={star} filled={star <= (selectedRec.lunaRating || 0)} />
+                      ))}
+                    </div>
+                    <button 
+                      onClick={() => setEditForm({ lunaReview: selectedRec.lunaReview, lunaRating: selectedRec.lunaRating })}
+                      className="text-xs text-[#917c71] hover:text-[#d58f99] flex items-center"
+                    >
+                      <Icons.Edit /> <span className="ml-1">Edit</span>
+                    </button>
+                  </div>
+                  {selectedRec.lunaReview && (
+                    <p className="text-[#5a4a42] leading-relaxed whitespace-pre-wrap">{selectedRec.lunaReview}</p>
+                  )}
+                </div>
+
+                {/* Wade's Reply */}
+                {selectedRec.wadeReply && (
+                  <div className="ml-8 md:ml-12 bg-[#fff0f3]/50 rounded-2xl p-6 border border-[#ff6b81]/10 relative">
+                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
+                      ⚔️
+                    </div>
+                    <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade's Reply</h3>
+                    <p className="text-[#5a4a42] leading-relaxed italic">{selectedRec.wadeReply}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Add Review Form */
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
+                <div className="mb-4">
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Rating</label>
+                  <div className="flex gap-2 text-[#ffb6c1] cursor-pointer">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <div key={star} onClick={() => setEditForm(prev => ({ ...prev, lunaRating: star }))}>
+                        <Icons.Star filled={star <= (editForm.lunaRating || 0)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-bold text-[#917c71] mb-2">Your Review</label>
+                  <textarea 
+                    value={editForm.lunaReview || ''} 
+                    onChange={e => setEditForm(prev => ({ ...prev, lunaReview: e.target.value }))}
+                    className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" 
+                    placeholder="What did you think about it? Wade is waiting to hear..."
+                  />
+                </div>
+                <button 
+                  onClick={handleLunaReviewSave}
+                  disabled={!editForm.lunaRating && !editForm.lunaReview}
+                  className="px-6 py-2 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors disabled:opacity-50"
+                >
+                  Post Review
+                </button>
+              </div>
+            )}
+            
+            {/* If editing existing review */}
+            {(selectedRec.lunaReview || selectedRec.lunaRating) && editForm.lunaReview !== undefined && (
+               <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
+                 <h3 className="font-bold text-[#5a4a42] mb-4">Edit Review</h3>
+                 <div className="mb-4">
+                   <div className="flex gap-2 text-[#ffb6c1] cursor-pointer">
+                     {[1, 2, 3, 4, 5].map(star => (
+                       <div key={star} onClick={() => setEditForm(prev => ({ ...prev, lunaRating: star }))}>
+                         <Icons.Star filled={star <= (editForm.lunaRating || 0)} />
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+                 <div className="mb-4">
+                   <textarea 
+                     value={editForm.lunaReview || ''} 
+                     onChange={e => setEditForm(prev => ({ ...prev, lunaReview: e.target.value }))}
+                     className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" 
+                   />
+                 </div>
+                 <div className="flex gap-2">
+                   <button onClick={handleLunaReviewSave} className="px-6 py-2 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors">Save</button>
+                   <button onClick={() => setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }))} className="px-6 py-2 bg-gray-100 text-[#917c71] rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
+                 </div>
+               </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // List View
+  return (
+    <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar">
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
+              <Icons.ChevronLeft />
+            </button>
+            <h1 className="font-bold text-2xl text-[#5a4a42] ml-2">Wade's Picks</h1>
+          </div>
+          <button 
+            onClick={handleStartAdd}
+            className="flex items-center px-4 py-2 bg-[#d58f99] text-white rounded-full font-bold text-sm shadow-sm hover:bg-[#c07a84] transition-colors"
+          >
+            <Icons.Plus /> <span className="ml-1">Add Pick</span>
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+          {(['all', 'movie', 'music', 'book'] as const).map(type => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all flex-shrink-0
+                ${filterType === type 
+                  ? 'bg-[#5a4a42] text-white shadow-md' 
+                  : 'bg-white text-[#917c71] border border-[#eae2e8] hover:border-[#d58f99] hover:text-[#d58f99]'
+                }
+              `}
+              title={type === 'all' ? 'All Picks' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
+            >
+              {type === 'all' && <Icons.All />}
+              {type === 'movie' && <Icons.Movie />}
+              {type === 'music' && <Icons.Music />}
+              {type === 'book' && <Icons.Book />}
+            </button>
+          ))}
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredRecs.map(rec => (
+            <div 
+              key={rec.id}
+              onClick={() => setViewingRecId(rec.id)}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae2e8] hover:shadow-md hover:border-[#d58f99]/30 transition-all cursor-pointer group flex flex-col"
+            >
+              <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
+                {rec.coverUrl ? (
+                  <img src={rec.coverUrl} alt={rec.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#917c71]/30 text-4xl">
+                    {rec.type === 'movie' ? '🎬' : rec.type === 'music' ? '🎵' : '📚'}
+                  </div>
+                )}
+                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-[#d58f99] uppercase tracking-wider">
+                  {rec.type}
+                </div>
+              </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <h3 className="font-bold text-[#5a4a42] text-lg mb-1 line-clamp-1 group-hover:text-[#d58f99] transition-colors">{rec.title}</h3>
+                <p className="text-xs text-[#917c71] mb-3 line-clamp-1">{rec.creator || 'Unknown'}</p>
+                
+                <div className="mt-auto pt-3 border-t border-[#eae2e8]/50 flex justify-between items-center">
+                  <div className="flex text-[#ffb6c1] text-[10px]">
+                    {rec.lunaRating ? (
+                      <>
+                        <Icons.Star filled />
+                        <span className="ml-1 font-bold text-[#917c71]">{rec.lunaRating}/5</span>
+                      </>
+                    ) : (
+                      <span className="text-[#917c71]/50 font-medium">No rating</span>
+                    )}
+                  </div>
+                  {rec.wadeReply && (
+                    <span className="text-xs" title="Wade replied">⚔️</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {filteredRecs.length === 0 && (
+          <div className="text-center py-20 text-[#917c71]/50 font-serif italic">
+            No picks found in this category.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
