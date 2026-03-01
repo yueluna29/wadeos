@@ -148,6 +148,9 @@ export const SocialFeed: React.FC = () => {
   // Profile view state
   const [viewingProfile, setViewingProfile] = useState<'Luna' | 'Wade' | null>(null);
 
+  // Full post viewer state
+  const [viewingPostDetail, setViewingPostDetail] = useState<{author: 'Luna' | 'Wade', postIndex: number} | null>(null);
+
   useEffect(() => {
     setLocalPosts(socialPosts);
     localPostsRef.current = socialPosts;
@@ -678,6 +681,207 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
     );
   };
 
+  const renderPostDetailView = () => {
+    if (!viewingPostDetail) return null;
+
+    const { author, postIndex } = viewingPostDetail;
+    const userPosts = localPosts
+      .filter(p => (author === 'Luna' ? p.author === 'User' : p.author === 'Wade'))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const currentPost = userPosts[postIndex];
+    if (!currentPost) return null;
+
+    const canGoPrev = postIndex > 0;
+    const canGoNext = postIndex < userPosts.length - 1;
+
+    const goToPrev = () => {
+      if (canGoPrev) {
+        setViewingPostDetail({ author, postIndex: postIndex - 1 });
+      }
+    };
+
+    const goToNext = () => {
+      if (canGoNext) {
+        setViewingPostDetail({ author, postIndex: postIndex + 1 });
+      }
+    };
+
+    const authorName = currentPost.author === 'User' ? 'Luna' : 'Wade';
+    const avatarColor = currentPost.author === 'User' ? '#d58f99' : '#8b7a6f';
+
+    return (
+      <div className="fixed inset-0 z-[200] bg-white flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-white border-b border-[#eae2e8] px-4 py-3 flex justify-between items-center">
+          <button
+            onClick={() => setViewingPostDetail(null)}
+            className="text-[#5a4a42] hover:text-[#d58f99] transition-colors p-1"
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: avatarColor }}>
+              {authorName[0]}
+            </div>
+            <span className="font-bold text-[#5a4a42] text-sm">{authorName}</span>
+          </div>
+          <div className="w-6"></div>
+        </div>
+
+        {/* Post Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
+          <div className="max-w-xl mx-auto">
+            {/* Images Carousel */}
+            {currentPost.images && currentPost.images.length > 0 && (
+              <ImageCarousel images={currentPost.images} />
+            )}
+
+            {/* Post Info & Actions */}
+            <div className="px-4 py-3">
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      const isLiked = currentPost.likes?.includes('User') || false;
+                      const newLikes = isLiked
+                        ? (currentPost.likes || []).filter(u => u !== 'User')
+                        : [...(currentPost.likes || []), 'User'];
+                      const updatedPost = { ...currentPost, likes: newLikes };
+                      updatePost(updatedPost);
+                      setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
+                    }}
+                    className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90"
+                  >
+                    <Icons.Heart filled={currentPost.likes?.includes('User')} />
+                  </button>
+                  <button className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90">
+                    <Icons.MessageCircle />
+                  </button>
+                  <button className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90">
+                    <Icons.Send />
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    const isBookmarked = currentPost.bookmarked || false;
+                    const updatedPost = { ...currentPost, bookmarked: !isBookmarked };
+                    updatePost(updatedPost);
+                    setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
+                  }}
+                  className="text-[#5a4a42] hover:text-[#d58f99] transition-colors active:scale-90"
+                >
+                  <Icons.Bookmark filled={currentPost.bookmarked} />
+                </button>
+              </div>
+
+              {/* Likes Count */}
+              {currentPost.likes && currentPost.likes.length > 0 && (
+                <div className="mb-2">
+                  <span className="font-bold text-[#5a4a42] text-sm">{currentPost.likes.length} {currentPost.likes.length === 1 ? 'like' : 'likes'}</span>
+                </div>
+              )}
+
+              {/* Post Content */}
+              <div className="mb-2">
+                <span className="font-bold text-[#5a4a42] text-sm mr-2">{authorName}</span>
+                <span className="text-[#5a4a42] text-sm leading-relaxed whitespace-pre-wrap">{currentPost.content}</span>
+              </div>
+
+              {/* Timestamp */}
+              <div className="text-[11px] text-[#917c71]/60 uppercase mb-4">
+                {new Date(currentPost.timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
+
+              {/* Comments Section */}
+              {currentPost.comments && currentPost.comments.length > 0 && (
+                <div className="border-t border-[#eae2e8] pt-4 space-y-3">
+                  {currentPost.comments.map(comment => {
+                    const commentAuthorName = comment.author === 'User' ? 'Luna' : 'Wade';
+                    const replyTo = comment.replyToId ? currentPost.comments.find(c => c.id === comment.replyToId) : null;
+
+                    return (
+                      <div key={comment.id} className="flex gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-start gap-2">
+                            <span className="font-bold text-[#5a4a42] text-sm">{commentAuthorName}</span>
+                            <span className="text-[#5a4a42] text-sm flex-1">{comment.text}</span>
+                          </div>
+                          {replyTo && (
+                            <div className="mt-1 ml-4 text-xs text-[#917c71]/60">
+                              Replying to {replyTo.author === 'User' ? 'Luna' : 'Wade'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add Comment */}
+              <div className="border-t border-[#eae2e8] mt-4 pt-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
+                    value={activePostId === currentPost.id ? newComment : ''}
+                    onChange={(e) => {
+                      setNewComment(e.target.value);
+                      setActivePostId(currentPost.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newComment.trim()) {
+                        handleAddComment(currentPost.id, newComment, 'User');
+                        setActivePostId(null);
+                      }
+                    }}
+                    className="flex-1 bg-transparent text-sm text-[#5a4a42] placeholder-[#917c71]/40 focus:outline-none"
+                  />
+                  {activePostId === currentPost.id && newComment.trim() && (
+                    <button
+                      onClick={() => {
+                        handleAddComment(currentPost.id, newComment, 'User');
+                        setActivePostId(null);
+                      }}
+                      className="text-[#d58f99] font-semibold text-sm"
+                    >
+                      Post
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Arrows */}
+        {canGoPrev && (
+          <button
+            onClick={goToPrev}
+            className="fixed left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#5a4a42] hover:text-[#d58f99] transition-colors z-10"
+          >
+            <Icons.ChevronLeft />
+          </button>
+        )}
+        {canGoNext && (
+          <button
+            onClick={goToNext}
+            className="fixed right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#5a4a42] hover:text-[#d58f99] transition-colors z-10"
+          >
+            <Icons.ChevronRight />
+          </button>
+        )}
+
+        {/* Post Counter */}
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+          {postIndex + 1} / {userPosts.length}
+        </div>
+      </div>
+    );
+  };
+
   const renderProfileView = () => {
     const isWade = viewingProfile === 'Wade';
     const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
@@ -792,10 +996,17 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                   No posts yet.
                 </div>
               ) : (
-                userPosts.map(post => (
-                  <div key={post.id} className="aspect-square bg-[#fdfbfb] relative group cursor-pointer overflow-hidden" onClick={() => {
-                    // Could scroll to post or open modal
-                  }}>
+                userPosts.map((post, idx) => (
+                  <div
+                    key={post.id}
+                    className="aspect-square bg-[#fdfbfb] relative group cursor-pointer overflow-hidden"
+                    onClick={() => {
+                      setViewingPostDetail({
+                        author: viewingProfile === 'Luna' ? 'Luna' : 'Wade',
+                        postIndex: idx
+                      });
+                    }}
+                  >
                     {post.images && post.images.length > 0 ? (
                       <img src={post.images[0]} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
                     ) : (
@@ -820,7 +1031,9 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
 
   return (
     <div className="h-full flex flex-col bg-[#fdfbfb]">
-      {viewingProfile ? (
+      {viewingPostDetail ? (
+        renderPostDetailView()
+      ) : viewingProfile ? (
         renderProfileView()
       ) : (
         <>
