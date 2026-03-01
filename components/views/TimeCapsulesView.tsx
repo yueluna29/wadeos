@@ -224,7 +224,7 @@ export const TimeCapsulesView = () => {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {dateString}
             </div>
-            <h1 className="text-3xl font-bold text-[#5a4a42] mb-8 leading-tight">
+            <h1 className="text-3xl font-bold text-[#5a4a42] mb-8 leading-tight break-words">
               {selectedCapsuleData.title || "A Letter from Wade"}
             </h1>
             
@@ -242,7 +242,7 @@ export const TimeCapsulesView = () => {
             <div className="flex justify-between items-center text-[#917c71] text-sm font-bold uppercase tracking-wider">
               <span>SEALED ON {new Date(selectedCapsuleData.createdAt || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
               <div className="flex gap-4 items-center">
-                <div className="flex items-center gap-2 relative group">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleListenClick(false)}
                     disabled={isPlayingAudio && !currentAudio}
@@ -264,7 +264,7 @@ export const TimeCapsulesView = () => {
                     <button
                       onClick={() => handleListenClick(true)}
                       disabled={isPlayingAudio}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full hover:bg-[#fff0f3] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] disabled:opacity-30"
+                      className="w-5 h-5 rounded-full hover:bg-[#fff0f3] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] disabled:opacity-30"
                       title="Regenerate audio"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>

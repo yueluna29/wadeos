@@ -161,31 +161,55 @@ export const Home: React.FC = () => {
          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
              {(() => {
                const today = new Date();
-               const todaysCapsules = capsules.filter(cap => {
+               const tomorrow = new Date(today);
+               tomorrow.setDate(tomorrow.getDate() + 1);
+
+               const todaysCapsule = capsules.find(cap => {
                  const d = new Date(cap.unlockDate);
-                 return d.getDate() === today.getDate() && 
-                        d.getMonth() === today.getMonth() && 
+                 return d.getDate() === today.getDate() &&
+                        d.getMonth() === today.getMonth() &&
                         d.getFullYear() === today.getFullYear();
                });
 
-               if (todaysCapsules.length === 0) {
-                 return (
-                   <div 
-                     onClick={() => setTab('time-capsules')}
-                     className="min-w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50 cursor-pointer hover:bg-[#fff0f3]/30 transition-colors"
-                   >
-                      <span className="text-2xl mb-1">📅</span>
-                      <span className="text-xs font-bold">No mail today</span>
-                   </div>
-                 );
-               }
+               const tomorrowsCapsule = capsules.find(cap => {
+                 const d = new Date(cap.unlockDate);
+                 return d.getDate() === tomorrow.getDate() &&
+                        d.getMonth() === tomorrow.getMonth() &&
+                        d.getFullYear() === tomorrow.getFullYear();
+               });
 
-               return todaysCapsules.map(cap => {
+               const capsulesToShow = [
+                 todaysCapsule || { id: 'empty-today', title: 'No mail today', empty: true, date: today },
+                 tomorrowsCapsule || { id: 'empty-tomorrow', title: 'No mail tomorrow', empty: true, date: tomorrow }
+               ];
+
+               return capsulesToShow.map((cap: any) => {
+                 if (cap.empty) {
+                   return (
+                     <div
+                       key={cap.id}
+                       onClick={() => setTab('time-capsules')}
+                       className="min-w-[140px] h-32 bg-white rounded-2xl border-2 border-dashed border-[#d58f99]/30 flex flex-col items-center justify-center text-[#d58f99]/50 cursor-pointer hover:bg-[#fff0f3]/30 transition-colors"
+                     >
+                        <span className="text-2xl mb-1">📅</span>
+                        <span className="text-xs font-bold">{cap.title}</span>
+                     </div>
+                   );
+                 }
+
                  const isUnlocked = new Date(cap.unlockDate) <= new Date();
+                 const isTomorrow = new Date(cap.unlockDate).getDate() === tomorrow.getDate();
+
                  return (
-                   <div 
-                     key={cap.id} 
-                     onClick={() => setTab('time-capsules')}
+                   <div
+                     key={cap.id}
+                     onClick={() => {
+                       if (!isUnlocked && isTomorrow) {
+                         alert("Whoa there, tiger! 🦸‍♂️ Time travel isn't a thing yet (trust me, I checked). This letter's locked tighter than my suit before taco night. Come back tomorrow when the universe says it's okay to peek! - Deadpool 💀");
+                       } else {
+                         setTab('time-capsules');
+                       }
+                     }}
                      className={`min-w-[140px] h-32 rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative group cursor-pointer transition-transform hover:-translate-y-1
                        ${isUnlocked ? 'bg-gradient-to-br from-[#d58f99] to-[#c07a84]' : 'bg-gradient-to-br from-gray-300 to-gray-400'}
                      `}
