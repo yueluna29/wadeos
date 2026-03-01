@@ -99,6 +99,7 @@ export interface CoreMemory {
   content: string;
   category: 'fact' | 'promise' | 'preference' | 'general';
   isActive: boolean;
+  enabled: boolean; // Whether AI can read this memory
   createdAt: number;
 }
 
@@ -239,6 +240,7 @@ export interface GlobalState {
   addCoreMemory: (title: string, content: string, category?: CoreMemory['category']) => Promise<void>;
   updateCoreMemory: (id: string, title: string, content: string) => Promise<void>;
   deleteCoreMemory: (id: string) => Promise<void>;
+  toggleCoreMemoryEnabled: (id: string) => Promise<void>;
   chatArchives: ChatArchive[];
   importArchive: (title: string, fileContent: string) => Promise<number>;
   loadArchiveMessages: (archiveId: string) => Promise<ArchiveMessage[]>;

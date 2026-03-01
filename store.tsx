@@ -62,7 +62,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   // NEW: Memories & Archives
-  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>([]);
+  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>(() => {
+    const saved = localStorage.getItem('wade_core_memories');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [chatArchives, setChatArchives] = useState<ChatArchive[]>([]);
 
   // Load Everything from Supabase
@@ -896,52 +899,42 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       content,
       category,
       isActive: true,
+      enabled: true,
       createdAt: Date.now()
     };
     setCoreMemories(prev => [newMemory, ...prev]);
 
-    // Use try/catch for safety, assume user added column, but fallback if not
-    const payload = {
-      id: tempId,
-      title,
-      content,
-      category,
-      is_active: true
-    };
-
-    const { error } = await supabase.from('memories_core').insert(payload);
-
-    if (error) {
-       console.error("Add Memory Error", error);
-       // If schema error (missing title), try fallback
-       if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-           console.warn("Retrying memory insert without title column.");
-           const { title, ...fallback } = payload;
-           await supabase.from('memories_core').insert(fallback);
-       }
-    }
+    // Store in localStorage as backup
+    const memKey = `wade_core_memories`;
+    const current = JSON.parse(localStorage.getItem(memKey) || '[]');
+    localStorage.setItem(memKey, JSON.stringify([newMemory, ...current]));
   };
 
   const updateCoreMemory = async (id: string, title: string, content: string) => {
     setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content } : m));
-    
-    const { error } = await supabase.from('memories_core').update({
-      title,
-      content
-    }).eq('id', id);
 
-    if (error) {
-      console.error("Update Memory Error", error);
-      // Fallback if title column missing
-      if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-         await supabase.from('memories_core').update({ content }).eq('id', id);
-      }
-    }
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, title, content } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
+  };
+
+  const toggleCoreMemoryEnabled = async (id: string) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
   };
 
   const deleteCoreMemory = async (id: string) => {
     setCoreMemories(prev => prev.filter(m => m.id !== id));
-    await supabase.from('memories_core').delete().eq('id', id);
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const filtered = current.filter(m => m.id !== id);
+    localStorage.setItem(memKey, JSON.stringify(filtered));
   };
 
   const importArchive = async (title: string, fileContent: string) => {
@@ -1247,7 +1240,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
-      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory,
+      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled,
       chatArchives, importArchive, loadArchiveMessages, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
 
       activeMode, setMode,

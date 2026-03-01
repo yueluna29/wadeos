@@ -16,7 +16,7 @@ const Icons = {
 };
 
 export const MemoryBank: React.FC = () => {
-  const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
+  const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
   const [activeTab, setActiveTab] = useState<'core' | 'import'>('core');
 
   // Core Memory State
@@ -28,6 +28,9 @@ export const MemoryBank: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+
+  // Expanded memory state
+  const [expandedMemories, setExpandedMemories] = useState<Set<string>>(new Set());
 
   // Archive dates cache
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
@@ -63,6 +66,28 @@ export const MemoryBank: React.FC = () => {
     setEditingId(null);
     setEditTitle('');
     setEditContent('');
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpandedMemories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const shouldTruncate = (content: string) => {
+    const lines = content.split('\n');
+    return lines.length > 10;
+  };
+
+  const getTruncatedContent = (content: string) => {
+    const lines = content.split('\n');
+    return lines.slice(0, 10).join('\n');
   };
 
   // Load archive dates when chatArchives change
@@ -164,27 +189,52 @@ export const MemoryBank: React.FC = () => {
                          </div>
                        </div>
                      ) : (
-                       <div className="flex justify-between items-start w-full">
-                         <div className="flex gap-3 flex-1 min-w-0">
-                            <div className="mt-1.5 w-2 h-2 rounded-full bg-green-400 shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                                {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
-                                <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">{mem.content}</p>
-                            </div>
+                       <div className="w-full">
+                         <div className="flex justify-between items-start w-full mb-2">
+                           <div className="flex gap-3 flex-1 min-w-0">
+                              <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${mem.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                              <div className="flex-1 min-w-0">
+                                  {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
+                                  <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">
+                                    {shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
+                                      ? getTruncatedContent(mem.content)
+                                      : mem.content}
+                                  </p>
+                                  {shouldTruncate(mem.content) && (
+                                    <button
+                                      onClick={() => toggleExpanded(mem.id)}
+                                      className="text-xs text-[#d58f99] hover:underline mt-1"
+                                    >
+                                      {expandedMemories.has(mem.id) ? 'Show less' : 'More...'}
+                                    </button>
+                                  )}
+                              </div>
+                           </div>
+                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <button
+                               onClick={() => startEditing(mem)}
+                               className="text-gray-300 hover:text-[#d58f99] p-1"
+                             >
+                               <Icons.Pencil />
+                             </button>
+                             <button
+                               onClick={() => deleteCoreMemory(mem.id)}
+                               className="text-gray-300 hover:text-red-400 p-1"
+                             >
+                               <Icons.Trash />
+                             </button>
+                           </div>
                          </div>
-                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button 
-                             onClick={() => startEditing(mem)}
-                             className="text-gray-300 hover:text-[#d58f99] p-1"
-                           >
-                             <Icons.Pencil />
-                           </button>
-                           <button 
-                             onClick={() => deleteCoreMemory(mem.id)}
-                             className="text-gray-300 hover:text-red-400 p-1"
-                           >
-                             <Icons.Trash />
-                           </button>
+                         <div className="flex items-center gap-2 pt-2 border-t border-[#eae2e8]">
+                           <label className="flex items-center gap-2 cursor-pointer text-xs text-[#917c71]">
+                             <input
+                               type="checkbox"
+                               checked={mem.enabled}
+                               onChange={() => toggleCoreMemoryEnabled(mem.id)}
+                               className="w-4 h-4 rounded border-gray-300 text-[#d58f99] focus:ring-[#d58f99]"
+                             />
+                             <span>Enable AI to read this memory</span>
+                           </label>
                          </div>
                        </div>
                      )}
