@@ -1893,11 +1893,11 @@ export const ChatInterface: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeMode === 'sms' ? "Text message..." : "Type a message..."}
                 rows={1}
-                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-2.5 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[40px] max-h-[100px] text-sm"
+                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-2 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto h-9 text-sm"
               />
               <Button
                 onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
-                className="w-10 h-10 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
+                className="w-9 h-9 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
               >
                 {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.Send />}
               </Button>
