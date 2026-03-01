@@ -272,6 +272,10 @@ export const SocialFeed: React.FC = () => {
         const lunaComments = post.comments.filter(c => c.author === 'User').reverse();
         const mostRecentLunaComment = lunaComments[0];
 
+        const taskDescription = mostRecentLunaComment
+            ? "Write a short, witty, flirty in-character reply to Luna's latest comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis naturally."
+            : "Write a short, witty, flirty in-character comment on Luna's post. Be romantic but teasing. Keep it under 20 words. Use emojis naturally.";
+
         const context = `
 You are Wade Wilson (Deadpool).
 
@@ -291,7 +295,7 @@ ${mostRecentLunaComment ? `- Luna's Latest Comment: "${mostRecentLunaComment.tex
 All Comments so far:
 ${post.comments.map(c => `${c.author === 'User' ? 'Luna' : c.author}: ${c.text}`).join('\n')}
 
-Task: Write a short, witty, flirty in-character reply to Luna's latest comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis naturally.
+Task: ${taskDescription}
         `;
 
         let generatedText = "";
@@ -319,9 +323,9 @@ Task: Write a short, witty, flirty in-character reply to Luna's latest comment. 
             generatedText = data.choices?.[0]?.message?.content || "";
         }
 
-        if (generatedText && mostRecentLunaComment) {
-            // Reply to Luna's latest comment as a second-level reply
-            handleAddComment(post.id, generatedText.trim(), 'Wade', mostRecentLunaComment.id);
+        if (generatedText) {
+            // Reply to Luna's latest comment as a second-level reply, or to the post directly
+            handleAddComment(post.id, generatedText.trim(), 'Wade', mostRecentLunaComment?.id);
         }
 
     } catch (error) {
