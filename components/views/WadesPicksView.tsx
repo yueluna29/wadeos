@@ -30,8 +30,15 @@ export const WadesPicksView = () => {
   const selectedRec = viewingRecId ? recommendations.find(r => r.id === viewingRecId) : null;
 
   const filteredRecs = useMemo(() => {
-    if (filterType === 'all') return recommendations;
-    return recommendations.filter(r => r.type === filterType);
+    const filtered = filterType === 'all'
+      ? recommendations
+      : recommendations.filter(r => r.type === filterType);
+
+    return filtered.sort((a, b) => {
+      const titleA = a.title?.toLowerCase() || '';
+      const titleB = b.title?.toLowerCase() || '';
+      return titleA.localeCompare(titleB);
+    });
   }, [recommendations, filterType]);
 
   const handleSave = async () => {
