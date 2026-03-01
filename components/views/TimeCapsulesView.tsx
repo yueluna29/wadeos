@@ -404,7 +404,7 @@ export const TimeCapsulesView = () => {
                     <div key={cap.id} className="relative group/card">
                       <button
                         onClick={() => isAvailable && setViewingCapsule(cap.id)}
-                        className={`w-full flex items-center p-4 rounded-2xl border transition-all text-left group
+                        className={`w-full flex items-center p-4 rounded-2xl border text-left group
                           ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
                         `}
                       >
