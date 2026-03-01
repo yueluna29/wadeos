@@ -99,8 +99,8 @@ export const Home: React.FC = () => {
   }, [settings.activeLlmId]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f9f6f7] p-6">
-      <header className="mb-8 flex justify-between items-start">
+    <div className="h-full bg-[#f9f6f7] flex flex-col">
+      <header className="p-6 pb-4 flex justify-between items-start shrink-0">
         <div>
           <h1 className="font-hand text-3xl text-[#d58f99] mb-1">Welcome Home, Luna.</h1>
           <p className="text-[#917c71] text-sm opacity-80">
@@ -109,8 +109,9 @@ export const Home: React.FC = () => {
         </div>
       </header>
 
-      {/* Couples Counter */}
-      <CouplesCounter />
+      <div className="flex-1 overflow-y-auto px-6 pb-6">
+        {/* Couples Counter */}
+        <CouplesCounter className="mb-6" />
 
       {/* Wade's Status Card */}
       <section className="bg-white rounded-3xl p-6 shadow-sm border border-[#eae2e8] mb-6 relative overflow-hidden group">
@@ -268,6 +269,7 @@ export const Home: React.FC = () => {
             ))}
         </div>
       </section>
+      </div>
     </div>
   );
 };
