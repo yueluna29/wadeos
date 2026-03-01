@@ -269,7 +269,29 @@ export const WadesPicksView = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Title</label>
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="block text-sm font-bold text-[#917c71]">Title</label>
+                    <button
+                      onClick={handleAutoFill}
+                      disabled={isAutoFilling || !editForm.title}
+                      className="text-xs px-3 py-1 bg-[#eae2e8] text-[#5a4a42] rounded-full hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {isAutoFilling ? (
+                        <>
+                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Searching...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                          Auto-fill
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
                 </div>
                 <div>
