@@ -200,10 +200,12 @@ export const MemoryBank: React.FC = () => {
                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${mem.enabled ? 'bg-green-400' : 'bg-gray-300'}`}></div>
                            <div className="flex-1 min-w-0">
                              {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
-                             <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">
-                               {shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
-                                 ? getTruncatedContent(mem.content)
-                                 : mem.content}
+                             <p className={`text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap ${
+                               shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
+                                 ? 'line-clamp-6'
+                                 : ''
+                             }`}>
+                               {mem.content}
                              </p>
                              {shouldTruncate(mem.content) && (
                                <button
