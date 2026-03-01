@@ -97,8 +97,14 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
             {/* PLUS BUTTON & POPUP MENU */}
             <div className="relative">
+               {isMenuOpen && (
+                 <div
+                   className="fixed inset-0 z-[90]"
+                   onClick={() => setIsMenuOpen(false)}
+                 />
+               )}
                <div className={`fixed bottom-[5.5rem] left-1/2 -translate-x-1/2 md:left-auto md:ml-4 md:bottom-auto md:top-auto md:-translate-y-[120%] z-[100] transition-all duration-300 ${isMenuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}`}>
-                 
+
                  <div className="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#d58f99]/20 p-4 md:p-2 rounded-2xl grid grid-cols-4 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[280px] md:min-w-0 justify-items-center">
                    
                    <button onClick={() => handleMenuClick('memory')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
