@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import Markdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
+import { generateMinimaxTTS } from '../../services/minimaxService';
 
 const Icons = {
   ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
@@ -9,12 +11,15 @@ const Icons = {
 };
 
 export const TimeCapsulesView = () => {
-  const { capsules, setTab, addCapsule, updateCapsule } = useStore();
+  const { capsules, setTab, addCapsule, updateCapsule, settings, ttsPresets } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewingCapsule, setViewingCapsule] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCapsule, setEditingCapsule] = useState<string | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [editingViewedCapsule, setEditingViewedCapsule] = useState(false);
 
   // Helper function to format date as YYYY-MM-DD
   const formatDateForInput = (date: Date) => {
@@ -76,6 +81,79 @@ export const TimeCapsulesView = () => {
   };
 
   const selectedCapsuleData = viewingCapsule ? capsules.find(c => c.id === viewingCapsule) : null;
+
+  const handleListenClick = async () => {
+    if (!selectedCapsuleData) return;
+
+    if (isPlayingAudio && currentAudio) {
+      currentAudio.pause();
+      setIsPlayingAudio(false);
+      setCurrentAudio(null);
+      return;
+    }
+
+    const activeTtsId = settings.activeTtsId;
+    if (!activeTtsId) {
+      alert('Please configure TTS settings first');
+      return;
+    }
+
+    const ttsPreset = ttsPresets.find(p => p.id === activeTtsId);
+    if (!ttsPreset) {
+      alert('TTS preset not found');
+      return;
+    }
+
+    try {
+      setIsPlayingAudio(true);
+      const base64Audio = await generateMinimaxTTS(selectedCapsuleData.content, {
+        apiKey: ttsPreset.apiKey,
+        baseUrl: ttsPreset.baseUrl,
+        model: ttsPreset.model,
+        voiceId: ttsPreset.voiceId,
+        speed: ttsPreset.speed,
+        vol: ttsPreset.vol,
+        pitch: ttsPreset.pitch,
+        emotion: ttsPreset.emotion,
+        sampleRate: ttsPreset.sampleRate,
+        bitrate: ttsPreset.bitrate,
+        format: ttsPreset.format,
+        channel: ttsPreset.channel
+      });
+
+      const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        setCurrentAudio(null);
+      };
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        setCurrentAudio(null);
+        alert('Failed to play audio');
+      };
+
+      setCurrentAudio(audio);
+      await audio.play();
+    } catch (error) {
+      console.error('TTS Error:', error);
+      alert('Failed to generate audio');
+      setIsPlayingAudio(false);
+    }
+  };
+
+  const handleEditViewedCapsule = () => {
+    if (!selectedCapsuleData) return;
+    const unlockDate = new Date(selectedCapsuleData.unlockDate);
+    setEditingCapsule(selectedCapsuleData.id);
+    setNewCapsule({
+      title: selectedCapsuleData.title,
+      content: selectedCapsuleData.content,
+      unlockDate: formatDateForInput(unlockDate),
+      unlockTime: `${String(unlockDate.getHours()).padStart(2, '0')}:${String(unlockDate.getMinutes()).padStart(2, '0')}`
+    });
+    setViewingCapsule(null);
+    setShowAddModal(true);
+  };
 
   const handleAddCapsule = () => {
     if (!newCapsule.title || !newCapsule.content || !newCapsule.unlockDate) {
@@ -141,8 +219,8 @@ export const TimeCapsulesView = () => {
               {selectedCapsuleData.title || "A Letter from Wade"}
             </h1>
             
-            <div className="prose prose-pink max-w-none text-[#5a4a42] leading-relaxed">
-              <Markdown>{selectedCapsuleData.content}</Markdown>
+            <div className="prose prose-pink max-w-none text-[#5a4a42] leading-relaxed [&_p]:my-4 [&_p:empty]:my-4">
+              <Markdown remarkPlugins={[remarkBreaks]}>{selectedCapsuleData.content}</Markdown>
             </div>
           </div>
 
@@ -155,11 +233,27 @@ export const TimeCapsulesView = () => {
             <div className="flex justify-between items-center text-[#917c71] text-sm font-bold uppercase tracking-wider">
               <span>SEALED ON {new Date(selectedCapsuleData.createdAt || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
               <div className="flex gap-4">
-                <button className="flex items-center hover:text-[#d58f99] transition-colors">
-                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                  Listen
+                <button
+                  onClick={handleListenClick}
+                  disabled={isPlayingAudio && !currentAudio}
+                  className="flex items-center hover:text-[#d58f99] transition-colors disabled:opacity-50"
+                >
+                  {isPlayingAudio && currentAudio ? (
+                    <>
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                      Listen
+                    </>
+                  )}
                 </button>
-                <button className="flex items-center hover:text-[#d58f99] transition-colors">
+                <button
+                  onClick={handleEditViewedCapsule}
+                  className="flex items-center hover:text-[#d58f99] transition-colors"
+                >
                   <Icons.Edit /> <span className="ml-1.5">Edit</span>
                 </button>
               </div>
