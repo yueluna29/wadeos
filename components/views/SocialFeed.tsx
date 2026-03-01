@@ -632,6 +632,7 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
     </div>
   );
 };
+
   const ImageCarousel = ({ images }: { images: string[] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -652,16 +653,16 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
           className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500"
           onClick={() => setZoomedImage({images, index: currentIndex})}
         />
-        
+
         {images.length > 1 && (
           <>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); prevImage(); }}
               className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-[#5a4a42] hover:bg-white hover:text-[#d58f99] rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
               <Icons.ChevronLeft />
             </button>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); nextImage(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 text-[#5a4a42] hover:bg-white hover:text-[#d58f99] rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
@@ -669,8 +670,8 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
             </button>
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/20 backdrop-blur-sm px-2 py-1 rounded-full">
               {images.map((_, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/60'}`}
                 />
               ))}
