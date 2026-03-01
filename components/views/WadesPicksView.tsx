@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Recommendation } from '../../types';
 import Markdown from 'react-markdown';
-import { GoogleGenAI, Type } from "@google/genai";
 
 const Icons = {
   ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
@@ -18,21 +17,13 @@ const Icons = {
 };
 
 export const WadesPicksView = () => {
-  const { recommendations, addRecommendation, updateRecommendation, deleteRecommendation, setTab, llmPresets, settings } = useStore();
+  const { recommendations, addRecommendation, updateRecommendation, deleteRecommendation, setTab } = useStore();
   const [viewingRecId, setViewingRecId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingLunaReview, setIsEditingLunaReview] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Recommendation>>({});
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'music' | 'book'>('all');
   const [isAutoFilling, setIsAutoFilling] = useState(false);
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
-  const [showLlmSelector, setShowLlmSelector] = useState(false);
-
-  useEffect(() => {
-    if (!selectedPresetId && settings.activeLlmId) {
-      setSelectedPresetId(settings.activeLlmId);
-    }
-  }, [settings.activeLlmId, selectedPresetId]);
 
   const selectedRec = viewingRecId ? recommendations.find(r => r.id === viewingRecId) : null;
 
@@ -59,73 +50,75 @@ export const WadesPicksView = () => {
       return;
     }
 
-    const preset = llmPresets.find(p => p.id === selectedPresetId) || llmPresets[0];
-    if (!preset || !preset.apiKey) {
-      alert("Please select a valid LLM preset with an API key.");
-      return;
-    }
-
     setIsAutoFilling(true);
     try {
-      const prompt = `You are a helpful assistant. Provide information about the ${editForm.type} titled "${editForm.title}".
-      Return ONLY a valid JSON object (no markdown formatting, no backticks) with the following keys:
-      - "creator": The author, director, or main artist/band.
-      - "releaseDate": The release year (e.g., "2024").
-      - "coverUrl": A URL to the official poster, book cover, or album art (if available, otherwise empty string).
-      - "synopsis": A brief 2-3 sentence summary of the plot or description.`;
+      const encodedTitle = encodeURIComponent(editForm.title);
+      let fetchedData: Partial<Recommendation> = {};
 
-      let jsonText = "";
-
-      if (!preset.baseUrl || preset.baseUrl.includes('google')) {
-        const ai = new GoogleGenAI({ apiKey: preset.apiKey });
-        const response = await ai.models.generateContent({
-          model: preset.model || 'gemini-2.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                creator: { type: Type.STRING, description: "Author, director, or artist" },
-                releaseDate: { type: Type.STRING, description: "Release year" },
-                coverUrl: { type: Type.STRING, description: "URL to cover image" },
-                synopsis: { type: Type.STRING, description: "Brief summary" }
-              }
-            }
-          }
-        });
-        jsonText = response.text || "{}";
-      } else {
-        const response = await fetch(`${preset.baseUrl}/chat/completions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${preset.apiKey}`
-          },
-          body: JSON.stringify({
-            model: preset.model,
-            messages: [{ role: 'user', content: prompt }]
-          })
-        });
+      if (editForm.type === 'movie') {
+        const response = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=bd3f3d41348fdc904c5cb5556c9e226f&query=${encodedTitle}&language=zh-CN`
+        );
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-        jsonText = data.choices[0].message.content;
+
+        if (!data.results || data.results.length === 0) {
+          throw new Error('No results found');
+        }
+
+        const movie = data.results[0];
+        fetchedData = {
+          synopsis: movie.overview || '',
+          releaseDate: movie.release_date ? movie.release_date.substring(0, 4) : '',
+          coverUrl: movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : ''
+        };
+      } else if (editForm.type === 'music') {
+        const response = await fetch(
+          `https://itunes.apple.com/search?term=${encodedTitle}&entity=album&limit=1`
+        );
+        const data = await response.json();
+
+        if (!data.results || data.results.length === 0) {
+          throw new Error('No results found');
+        }
+
+        const album = data.results[0];
+        fetchedData = {
+          creator: album.artistName || '',
+          releaseDate: album.releaseDate ? album.releaseDate.substring(0, 4) : '',
+          coverUrl: album.artworkUrl100
+            ? album.artworkUrl100.replace('100x100bb', '600x600bb')
+            : ''
+        };
+      } else if (editForm.type === 'book') {
+        const response = await fetch(
+          `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodedTitle}`
+        );
+        const data = await response.json();
+
+        if (!data.items || data.items.length === 0) {
+          throw new Error('No results found');
+        }
+
+        const book = data.items[0].volumeInfo;
+        fetchedData = {
+          creator: book.authors ? book.authors[0] : '',
+          releaseDate: book.publishedDate ? book.publishedDate.substring(0, 4) : '',
+          synopsis: book.description || '',
+          coverUrl: book.imageLinks?.thumbnail
+            ? book.imageLinks.thumbnail.replace('http://', 'https://')
+            : ''
+        };
       }
 
-      // Clean up jsonText in case it has markdown backticks
-      jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
-      const data = JSON.parse(jsonText);
-      
       setEditForm(prev => ({
         ...prev,
-        creator: data.creator || prev.creator,
-        releaseDate: data.releaseDate || prev.releaseDate,
-        coverUrl: data.coverUrl || prev.coverUrl,
-        synopsis: data.synopsis || prev.synopsis
+        ...fetchedData
       }));
     } catch (error) {
-      console.error("Auto-fill error:", error);
-      alert("Failed to auto-fill information. Please try again or fill manually.");
+      console.warn('Auto-fill error:', error);
+      alert('未找到相关结果，请手动填写');
     } finally {
       setIsAutoFilling(false);
     }
@@ -191,68 +184,26 @@ export const WadesPicksView = () => {
               <div>
                 <div className="flex justify-between items-end mb-2">
                   <label className="block text-sm font-bold text-[#917c71]">Title</label>
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowLlmSelector(!showLlmSelector)}
-                        className="text-xs py-1 px-2 rounded-lg border border-[#eae2e8] bg-[#fdfbfb] hover:bg-[#eae2e8] transition-colors text-[#5a4a42] max-w-[140px] flex items-center gap-1"
-                      >
-                        <span className="truncate">{llmPresets.find(p => p.id === selectedPresetId)?.name || 'Select API'}</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                      </button>
-                      
-                      {showLlmSelector && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setShowLlmSelector(false)} />
-                          <div className="absolute top-full right-0 mt-1 z-50 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-2 px-2 min-w-[200px] max-w-[280px] max-h-[300px] overflow-y-auto animate-fade-in">
-                            {llmPresets.length === 0 ? (
-                              <div className="px-3 py-2 text-[10px] text-[#917c71] text-center italic">No presets configured</div>
-                            ) : (
-                              llmPresets.map((preset) => {
-                                const isActive = selectedPresetId === preset.id;
-                                return (
-                                  <button
-                                    key={preset.id}
-                                    onClick={() => {
-                                      setSelectedPresetId(preset.id);
-                                      setShowLlmSelector(false);
-                                    }}
-                                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-[11px] flex items-center justify-between ${isActive ? 'bg-[#d58f99]/20 text-[#d58f99] font-bold' : 'text-[#5a4a42] hover:bg-white/60'}`}
-                                  >
-                                    <div className="flex flex-col truncate pr-2">
-                                      <span className="truncate">{preset.name}</span>
-                                      <span className="text-[9px] text-[#917c71] opacity-70 truncate">{preset.model}</span>
-                                    </div>
-                                    {isActive && <span className="text-[#d58f99] flex-shrink-0">✓</span>}
-                                  </button>
-                                );
-                              })
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <button 
-                      onClick={handleAutoFill}
-                      disabled={isAutoFilling || !editForm.title}
-                      className="text-xs px-3 py-1 bg-[#eae2e8] text-[#5a4a42] rounded-full hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
-                    >
-                      {isAutoFilling ? (
-                        <>
-                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Searching...
-                        </>
-                      ) : (
-                        <>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                          Auto-fill
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleAutoFill}
+                    disabled={isAutoFilling || !editForm.title}
+                    className="text-xs px-3 py-1 bg-[#eae2e8] text-[#5a4a42] rounded-full hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {isAutoFilling ? (
+                      <>
+                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Auto-fill
+                      </>
+                    )}
+                  </button>
                 </div>
                 <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="Title..." />
               </div>
