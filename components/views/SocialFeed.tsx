@@ -1409,34 +1409,32 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
               {/* Action Buttons */}
               <div className="px-4 py-3 flex justify-between items-center bg-[#fdfbfb]">
                 <div className="flex gap-4 items-center">
-                  <button 
+                  <button
                     onClick={() => handleLike(post.id)}
                     className={`transition-transform active:scale-125 hover:scale-110 ${post.likes > 0 ? 'text-[#ed4956]' : 'text-[#5a4a42] hover:text-[#917c71]'}`}
                   >
                     <Icons.Heart filled={post.likes > 0} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
                     className="text-[#5a4a42] hover:text-[#917c71] hover:scale-110 transition-transform"
                   >
                     <Icons.MessageCircle />
                   </button>
-                  
-                  {/* Send / AI Generate Button */}
-                  <button 
-                    onClick={() => {
-                      if (post.author === 'User') {
-                          handleGenerateComment(post);
-                      }
-                    }}
-                    disabled={isGeneratingComment === post.id}
-                    className={`text-[#5a4a42] hover:text-[#917c71] transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
-                    title={post.author === 'User' ? "Let Wade Reply" : "Share"}
-                  >
-                    <Icons.Send />
-                  </button>
+
+                  {/* AI Generate Button - Only show for User's posts */}
+                  {post.author === 'User' && (
+                    <button
+                      onClick={() => handleGenerateComment(post)}
+                      disabled={isGeneratingComment === post.id}
+                      className={`text-[#5a4a42] hover:text-[#d58f99] transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
+                      title="Let Wade Reply"
+                    >
+                      <Icons.Sparkles />
+                    </button>
+                  )}
                 </div>
-                <button 
+                <button
                   onClick={() => handleBookmark(post.id)}
                   className={`transition-all hover:scale-110 ${post.isBookmarked ? 'text-[#5a4a42] fill-current' : 'text-[#5a4a42] hover:text-[#917c71]'}`}
                 >
@@ -1462,8 +1460,8 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                         const isReply = !!comment.replyToId;
                         
                         return (
-                            <div 
-                                key={comment.id} 
+                            <div
+                                key={comment.id}
                                 className={`text-[13px] flex gap-2 items-start group ${isReply ? 'ml-6 border-l-2 border-[#eae2e8] pl-3' : ''}`}
                             >
                                 <div
@@ -1480,21 +1478,6 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                                         {comment.text}
                                     </span>
                                 </div>
-                                
-                                {/* Regenerate Button (for Luna's comments only) */}
-                                {!isCommentWade && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleGenerateComment(post);
-                                        }}
-                                        disabled={isGeneratingComment === post.id}
-                                        className="transition-all p-1.5 mt-0.5 opacity-0 group-hover:opacity-100 text-[#917c71] hover:text-[#d58f99] disabled:opacity-50 hover:bg-white rounded-md"
-                                        title="Regenerate Wade's reply"
-                                    >
-                                        <Icons.Sparkles />
-                                    </button>
-                                )}
 
                                 {/* Delete Comment Button */}
                                 <button
