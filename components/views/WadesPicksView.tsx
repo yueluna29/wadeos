@@ -336,18 +336,18 @@ export const WadesPicksView = () => {
 
         <div className="max-w-3xl mx-auto p-6 relative z-10">
           <div className="flex justify-between items-center mb-8">
-            <button 
+            <button
               onClick={() => setViewingRecId(null)}
-              className="flex items-center justify-center w-10 h-10 text-[#917c71] hover:text-[#d58f99] transition-colors bg-white/50 backdrop-blur-sm rounded-full shadow-sm"
+              className="flex items-center justify-center w-10 h-10 text-[#917c71] hover:text-[#d58f99] transition-colors bg-white rounded-full shadow-sm"
               title="Back to Picks"
             >
               <Icons.ChevronLeft />
             </button>
             <div className="flex gap-2">
-              <button onClick={() => handleStartEdit(selectedRec)} className="p-2 bg-white rounded-full text-[#917c71] hover:text-[#d58f99] shadow-sm transition-colors">
+              <button onClick={() => handleStartEdit(selectedRec)} className="flex items-center justify-center w-10 h-10 bg-white rounded-full text-[#917c71] hover:text-[#d58f99] shadow-sm transition-colors">
                 <Icons.Edit />
               </button>
-              <button onClick={() => handleDelete(selectedRec.id)} className="p-2 bg-white rounded-full text-red-400 hover:text-red-500 shadow-sm transition-colors">
+              <button onClick={() => handleDelete(selectedRec.id)} className="flex items-center justify-center w-10 h-10 bg-white rounded-full text-red-400 hover:text-red-500 shadow-sm transition-colors">
                 <Icons.Trash />
               </button>
             </div>
