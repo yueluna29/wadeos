@@ -175,16 +175,16 @@ export const MemoryBank: React.FC = () => {
                   <div key={mem.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex flex-col group hover:border-[#d58f99] transition-colors">
                      {editingId === mem.id ? (
                        <div className="w-full">
-                         <input 
+                         <input
                            value={editTitle}
                            onChange={(e) => setEditTitle(e.target.value)}
-                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm font-bold text-[#5a4a42] mb-2 outline-none border border-transparent focus:border-[#d58f99]"
+                           className="w-full bg-[#f9f6f7] rounded-lg px-4 py-3 text-sm font-bold text-[#5a4a42] mb-3 outline-none border border-transparent focus:border-[#d58f99]"
                            placeholder="Title"
                          />
-                         <textarea 
+                         <textarea
                            value={editContent}
                            onChange={(e) => setEditContent(e.target.value)}
-                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm text-[#5a4a42] min-h-[80px] outline-none border border-transparent focus:border-[#d58f99] resize-none mb-2"
+                           className="w-full bg-[#f9f6f7] rounded-lg px-4 py-3 text-sm text-[#5a4a42] min-h-[120px] outline-none border border-transparent focus:border-[#d58f99] resize-y mb-3"
                            placeholder="Content"
                          />
                          <div className="flex justify-end gap-2">
