@@ -64,7 +64,7 @@ export interface TimeCapsuleItem {
   id: string;
   title: string;
   content: string;
-  createdWidth: number;
+  createdAt: number;
   unlockDate: number; // Timestamp
   isLocked: boolean;
 }

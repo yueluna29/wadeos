@@ -68,7 +68,7 @@ export const TimeCapsulesView = () => {
     return (
       <div className="h-full bg-[#fdfbfb] overflow-y-auto custom-scrollbar relative">
         {/* Background Decoration */}
-        <div className="absolute top-10 right-10 text-[#f3e8ff] opacity-50 pointer-events-none">
+        <div className="absolute top-10 right-10 text-[#eae2e8] opacity-50 pointer-events-none">
           <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
           </svg>
@@ -103,7 +103,7 @@ export const TimeCapsulesView = () => {
               </svg>
             </div>
             <div className="flex justify-between items-center text-[#917c71] text-sm font-bold uppercase tracking-wider">
-              <span>SEALED ON {new Date(selectedCapsuleData.createdWidth || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
+              <span>SEALED ON {new Date(selectedCapsuleData.createdAt || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
               <div className="flex gap-4">
                 <button className="flex items-center hover:text-[#d58f99] transition-colors">
                   <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
@@ -134,14 +134,14 @@ export const TimeCapsulesView = () => {
         <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8]/50 mb-6 overflow-hidden">
           <div className="bg-[#fff0f3] px-6 py-8 flex justify-between items-center">
             <div>
-              <h2 className="text-4xl font-serif font-bold text-[#1a2b3c] mb-1">{monthNames[currentDate.getMonth()]}</h2>
-              <span className="text-[#ff6b81] font-bold text-lg tracking-wider">{currentDate.getFullYear()}</span>
+              <h2 className="text-4xl font-serif font-bold text-[#5a4a42] mb-1">{monthNames[currentDate.getMonth()]}</h2>
+              <span className="text-[#d58f99] font-bold text-lg tracking-wider">{currentDate.getFullYear()}</span>
             </div>
             <div className="flex gap-3">
-              <button onClick={prevMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#ff6b81] shadow-sm hover:bg-gray-50 transition-colors">
+              <button onClick={prevMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-gray-50 transition-colors">
                 <Icons.ChevronLeft />
               </button>
-              <button onClick={nextMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#ff6b81] shadow-sm hover:bg-gray-50 transition-colors">
+              <button onClick={nextMonth} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#d58f99] shadow-sm hover:bg-gray-50 transition-colors">
                 <Icons.ChevronRight />
               </button>
             </div>
@@ -167,11 +167,11 @@ export const TimeCapsulesView = () => {
                     <button
                       onClick={() => handleDayClick(day)}
                       className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold transition-all relative
-                        ${isSelected ? 'bg-[#ff6b81] text-white shadow-md' : 'bg-white text-[#5a4a42] border border-gray-100 hover:bg-gray-50'}
+                        ${isSelected ? 'bg-[#d58f99] text-white shadow-md' : 'bg-white text-[#5a4a42] border border-gray-100 hover:bg-gray-50'}
                       `}
                     >
                       {hasCapsule && !isSelected && (
-                        <div className="absolute inset-0 flex items-center justify-center text-[#ff6b81]">
+                        <div className="absolute inset-0 flex items-center justify-center text-[#d58f99]">
                           <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                           </svg>
@@ -191,7 +191,7 @@ export const TimeCapsulesView = () => {
         {selectedDate && (
           <div className="bg-white rounded-[32px] shadow-sm border border-[#eae2e8] overflow-hidden relative pb-20">
             <div className="px-6 py-4 border-b border-[#eae2e8]/50 flex justify-between items-center">
-              <div className="flex items-center text-[#ff6b81] font-bold text-sm tracking-wider">
+              <div className="flex items-center text-[#d58f99] font-bold text-sm tracking-wider">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {monthNames[selectedDate.getMonth()].substring(0, 3).toUpperCase()} {selectedDate.getDate()}
               </div>
@@ -219,11 +219,11 @@ export const TimeCapsulesView = () => {
                       key={cap.id}
                       onClick={() => isAvailable && setViewingCapsule(cap.id)}
                       className={`w-full flex items-center p-4 rounded-2xl border transition-all text-left group
-                        ${isAvailable ? 'bg-[#fff0f3]/50 border-[#ff6b81]/20 hover:bg-[#fff0f3] hover:border-[#ff6b81]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
+                        ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
                       `}
                     >
                       <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
-                        ${isAvailable ? 'text-[#ff6b81] border-[#ff6b81]/20' : 'text-gray-400 border-gray-200'}
+                        ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/20' : 'text-gray-400 border-gray-200'}
                       `}>
                         <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span className="text-xs font-bold">{timeStr}</span>
@@ -241,7 +241,7 @@ export const TimeCapsulesView = () => {
                         </div>
                       </div>
                       {isAvailable && (
-                        <div className="text-[#ff6b81] opacity-50 group-hover:opacity-100 transition-opacity ml-2">
+                        <div className="text-[#d58f99] opacity-50 group-hover:opacity-100 transition-opacity ml-2">
                           <Icons.ChevronRight />
                         </div>
                       )}
@@ -252,7 +252,7 @@ export const TimeCapsulesView = () => {
             </div>
 
             {/* FAB */}
-            <button className="absolute bottom-6 right-6 w-14 h-14 bg-[#ff6b81] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#ff526a] transition-colors hover:scale-105 transform">
+            <button className="absolute bottom-6 right-6 w-14 h-14 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#c07a84] transition-colors hover:scale-105 transform">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
           </div>

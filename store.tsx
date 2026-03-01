@@ -271,27 +271,71 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         const fetchRecommendations = async () => {
             const { data: recData, error: recError } = await supabase.from('recommendations').select('*').order('created_at', { ascending: false });
             if (recData && !recError) {
-                setRecommendations(recData.map(r => ({
-                    id: r.id,
-                    type: r.type,
-                    title: r.title,
-                    creator: r.creator,
-                    releaseDate: r.release_date,
-                    synopsis: r.synopsis,
-                    comment: r.comment,
-                    coverUrl: r.cover_url,
-                    lunaReview: r.luna_review,
-                    lunaRating: r.luna_rating,
-                    wadeReply: r.wade_reply
-                })));
+                if (recData.length === 0 && localStorage.getItem('wade_recs')) {
+                    // Migrate from local storage
+                    try {
+                        const localRecs = JSON.parse(localStorage.getItem('wade_recs') || '[]');
+                        if (localRecs.length > 0) {
+                            const insertData = localRecs.map((r: any) => ({
+                                id: r.id,
+                                type: r.type,
+                                title: r.title,
+                                creator: r.creator,
+                                release_date: r.releaseDate,
+                                synopsis: r.synopsis,
+                                comment: r.comment,
+                                cover_url: r.coverUrl,
+                                luna_review: r.lunaReview,
+                                luna_rating: r.lunaRating,
+                                wade_reply: r.wadeReply
+                            }));
+                            await supabase.from('recommendations').insert(insertData);
+                            setRecommendations(localRecs);
+                        }
+                    } catch (e) {
+                        console.error("Failed to migrate recommendations", e);
+                    }
+                } else {
+                    setRecommendations(recData.map(r => ({
+                        id: r.id,
+                        type: r.type,
+                        title: r.title,
+                        creator: r.creator,
+                        releaseDate: r.release_date,
+                        synopsis: r.synopsis,
+                        comment: r.comment,
+                        coverUrl: r.cover_url,
+                        lunaReview: r.luna_review,
+                        lunaRating: r.luna_rating,
+                        wadeReply: r.wade_reply
+                    })));
+                }
             }
         };
         fetchRecommendations();
+
+        // 10. Time Capsules
+        const fetchTimeCapsules = async () => {
+            const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at', { ascending: false });
+            if (capData && !capError) {
+                setCapsules(capData.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    content: c.content,
+                    createdAt: c.created_at,
+                    unlockDate: c.unlock_date,
+                    isLocked: c.is_locked
+                })));
+            }
+        };
+        fetchTimeCapsules();
 
         // Clear old localStorage data after successful sync
         localStorage.removeItem('wade_sessions');
         localStorage.removeItem('wade_messages');
         localStorage.removeItem('wade_social'); // Also clear social posts from local storage
+        localStorage.removeItem('wade_capsules');
+        localStorage.removeItem('wade_recs');
         console.log("[DB] Cleared old localStorage data after sync");
 
       } catch (err: any) {
@@ -341,10 +385,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('wade_memos');
     return saved ? JSON.parse(saved) : [];
   });
-  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>(() => {
-    const saved = localStorage.getItem('wade_capsules');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>(() => {
     const saved = localStorage.getItem('wade_recs');
     return saved ? JSON.parse(saved) : [
@@ -356,7 +397,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   // Persistence Effects (sessions/messages now persisted in Supabase only)
   useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
-  useEffect(() => localStorage.setItem('wade_capsules', JSON.stringify(capsules)), [capsules]);
   useEffect(() => localStorage.setItem('wade_recs', JSON.stringify(recommendations)), [recommendations]);
 
   // Actions
@@ -1091,7 +1131,22 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
-  const addCapsule = (c: TimeCapsuleItem) => setCapsules(prev => [...prev, c]);
+  
+  const addCapsule = async (c: TimeCapsuleItem) => {
+    setCapsules(prev => [...prev, c]);
+    try {
+      await supabase.from('time_capsules').insert({
+        id: c.id,
+        title: c.title,
+        content: c.content,
+        created_at: c.createdAt,
+        unlock_date: c.unlockDate,
+        is_locked: c.isLocked
+      });
+    } catch (e) {
+      console.error("Failed to save time capsule to Supabase", e);
+    }
+  };
 
   // --- RECOMMENDATIONS ---
   const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
@@ -1117,24 +1172,30 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
-    setRecommendations(prev => prev.map(rec => rec.id === id ? { ...rec, ...r } : rec));
-    try {
-      const updateData: any = {};
-      if (r.type !== undefined) updateData.type = r.type;
-      if (r.title !== undefined) updateData.title = r.title;
-      if (r.creator !== undefined) updateData.creator = r.creator;
-      if (r.releaseDate !== undefined) updateData.release_date = r.releaseDate;
-      if (r.synopsis !== undefined) updateData.synopsis = r.synopsis;
-      if (r.comment !== undefined) updateData.comment = r.comment;
-      if (r.coverUrl !== undefined) updateData.cover_url = r.coverUrl;
-      if (r.lunaReview !== undefined) updateData.luna_review = r.lunaReview;
-      if (r.lunaRating !== undefined) updateData.luna_rating = r.lunaRating;
-      if (r.wadeReply !== undefined) updateData.wade_reply = r.wadeReply;
+    setRecommendations(prev => {
+      const updated = prev.map(rec => rec.id === id ? { ...rec, ...r } : rec);
       
-      await supabase.from('recommendations').update(updateData).eq('id', id);
-    } catch (e) {
-      console.error("Failed to sync recommendation update to Supabase", e);
-    }
+      // Sync to Supabase
+      const fullRec = updated.find(rec => rec.id === id);
+      if (fullRec) {
+        supabase.from('recommendations').upsert({
+          id: fullRec.id,
+          type: fullRec.type,
+          title: fullRec.title,
+          creator: fullRec.creator,
+          release_date: fullRec.releaseDate,
+          synopsis: fullRec.synopsis,
+          comment: fullRec.comment,
+          cover_url: fullRec.coverUrl,
+          luna_review: fullRec.lunaReview,
+          luna_rating: fullRec.lunaRating,
+          wade_reply: fullRec.wadeReply
+        }).then(({ error }) => {
+          if (error) console.error("Failed to sync recommendation update to Supabase", error);
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteRecommendation = async (id: string) => {
