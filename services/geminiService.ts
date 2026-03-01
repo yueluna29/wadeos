@@ -143,7 +143,22 @@ const generateOpenAICompatibleResponse = async (
     }
 
     const data = await response.json();
-    const rawText = data.choices?.[0]?.message?.content || "";
+    console.log("[OpenAI API] Full Response:", JSON.stringify(data, null, 2));
+
+    const message = data.choices?.[0]?.message;
+
+    // Handle image generation response
+    if (isImageGen && message?.images && message.images.length > 0) {
+      console.log("[OpenAI API] Image generation detected");
+      const imageUrl = message.images[0].image_url?.url;
+      if (imageUrl) {
+        // Return the base64 image URL as the text response
+        return { text: imageUrl, thinking: undefined };
+      }
+    }
+
+    // Handle text response
+    const rawText = message?.content || "";
 
     // Parse <think> tags
     let thinking = undefined;

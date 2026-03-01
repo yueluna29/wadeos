@@ -96,6 +96,9 @@ const MessageBubble = ({
   const idx = msg.selectedIndex || 0;
   const thinkingContent = msg.variantsThinking?.[idx];
 
+  // Check if the message is a base64 image
+  const isBase64Image = msg.text.startsWith('data:image/');
+
   // FIX FOR "|||": Replace separators with visual spacing before rendering
   const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
 
@@ -206,9 +209,18 @@ const MessageBubble = ({
               </div>
             )}
 
-            <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-            </div>
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+                <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+              </div>
+            )}
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
             {formatTime(msg.timestamp)}
@@ -296,7 +308,16 @@ const MessageBubble = ({
 
           {/* MAIN TEXT */}
           <div className="px-4 py-2 text-[14px] leading-relaxed tracking-wide markdown-content">
-            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            )}
           </div>
         </div>
       </div>
@@ -327,9 +348,18 @@ const MessageBubble = ({
         style={{ WebkitTouchCallout: 'none' }}
         className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
-        <div className="text-[14px] leading-relaxed markdown-content">
-          <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-        </div>
+        {isBase64Image ? (
+          <img
+            src={msg.text}
+            alt="User uploaded image"
+            className="max-w-full rounded-lg"
+            style={{ maxHeight: '400px', width: 'auto' }}
+          />
+        ) : (
+          <div className="text-[14px] leading-relaxed markdown-content">
+            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+          </div>
+        )}
       </div>
     </div>
   );
