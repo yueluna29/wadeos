@@ -99,6 +99,11 @@ const generateOpenAICompatibleResponse = async (
     messages: messages
   };
 
+  // Add modalities parameter for image generation models (OpenRouter requirement)
+  if (isImageGen) {
+    requestBody.modalities = ["image", "text"];
+  }
+
   // Only add generation params if NOT an image generation model
   if (!isImageGen && modelParams) {
     if (modelParams.temperature !== undefined) requestBody.temperature = modelParams.temperature;
