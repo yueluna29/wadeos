@@ -9,11 +9,12 @@ const Icons = {
 };
 
 export const TimeCapsulesView = () => {
-  const { capsules, setTab, addCapsule } = useStore();
+  const { capsules, setTab, addCapsule, updateCapsule } = useStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewingCapsule, setViewingCapsule] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCapsule, setEditingCapsule] = useState<string | null>(null);
 
   // Helper function to format date as YYYY-MM-DD
   const formatDateForInput = (date: Date) => {
@@ -86,14 +87,24 @@ export const TimeCapsulesView = () => {
     const [hours, minutes] = newCapsule.unlockTime.split(':').map(Number);
     const unlockTimestamp = new Date(year, month - 1, day, hours, minutes).getTime();
 
-    addCapsule({
-      id: Date.now().toString(),
-      title: newCapsule.title,
-      content: newCapsule.content,
-      createdAt: Date.now(),
-      unlockDate: unlockTimestamp,
-      isLocked: unlockTimestamp > Date.now()
-    });
+    if (editingCapsule) {
+      updateCapsule(editingCapsule, {
+        title: newCapsule.title,
+        content: newCapsule.content,
+        unlockDate: unlockTimestamp,
+        isLocked: unlockTimestamp > Date.now()
+      });
+      setEditingCapsule(null);
+    } else {
+      addCapsule({
+        id: Date.now().toString(),
+        title: newCapsule.title,
+        content: newCapsule.content,
+        createdAt: Date.now(),
+        unlockDate: unlockTimestamp,
+        isLocked: unlockTimestamp > Date.now()
+      });
+    }
 
     setNewCapsule({ title: '', content: '', unlockDate: '', unlockTime: '00:00' });
     setShowAddModal(false);
@@ -275,37 +286,57 @@ export const TimeCapsulesView = () => {
                   const timeStr = unlockDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                   
                   return (
-                    <button 
-                      key={cap.id}
-                      onClick={() => isAvailable && setViewingCapsule(cap.id)}
-                      className={`w-full flex items-center p-4 rounded-2xl border transition-all text-left group
-                        ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
-                      `}
-                    >
-                      <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
-                        ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/20' : 'text-gray-400 border-gray-200'}
-                      `}>
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span className="text-xs font-bold">{timeStr}</span>
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <h4 className={`font-bold text-base mb-1 truncate ${isAvailable ? 'text-[#5a4a42]' : 'text-gray-500'}`}>
-                          {cap.title || "A Letter from Wade"}
-                        </h4>
-                        <div className={`flex items-center text-xs font-bold tracking-wider ${isAvailable ? 'text-[#917c71]' : 'text-gray-400'}`}>
-                          {isAvailable ? (
-                            <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> AVAILABLE NOW</>
-                          ) : (
-                            <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> LOCKED</>
-                          )}
+                    <div key={cap.id} className="relative group/card">
+                      <button
+                        onClick={() => isAvailable && setViewingCapsule(cap.id)}
+                        className={`w-full flex items-center p-4 rounded-2xl border transition-all text-left group
+                          ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
+                        `}
+                      >
+                        <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
+                          ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/20' : 'text-gray-400 border-gray-200'}
+                        `}>
+                          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <span className="text-xs font-bold">{timeStr}</span>
                         </div>
-                      </div>
-                      {isAvailable && (
-                        <div className="text-[#d58f99] opacity-50 group-hover:opacity-100 transition-opacity ml-2">
-                          <Icons.ChevronRight />
+                        <div className="flex-1 overflow-hidden">
+                          <h4 className={`font-bold text-base mb-1 truncate ${isAvailable ? 'text-[#5a4a42]' : 'text-gray-500'}`}>
+                            {cap.title || "A Letter from Wade"}
+                          </h4>
+                          <div className={`flex items-center text-xs font-bold tracking-wider ${isAvailable ? 'text-[#917c71]' : 'text-gray-400'}`}>
+                            {isAvailable ? (
+                              <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> AVAILABLE NOW</>
+                            ) : (
+                              <><svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> LOCKED</>
+                            )}
+                          </div>
                         </div>
+                        {isAvailable && (
+                          <div className="text-[#d58f99] opacity-50 group-hover:opacity-100 transition-opacity ml-2">
+                            <Icons.ChevronRight />
+                          </div>
+                        )}
+                      </button>
+                      {!isAvailable && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const unlockDate = new Date(cap.unlockDate);
+                            setEditingCapsule(cap.id);
+                            setNewCapsule({
+                              title: cap.title,
+                              content: cap.content,
+                              unlockDate: formatDateForInput(unlockDate),
+                              unlockTime: `${String(unlockDate.getHours()).padStart(2, '0')}:${String(unlockDate.getMinutes()).padStart(2, '0')}`
+                            });
+                            setShowAddModal(true);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/card:opacity-100 transition-opacity w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#917c71] hover:text-[#d58f99] hover:bg-[#fff0f3] shadow-sm border border-gray-200"
+                        >
+                          <Icons.Edit />
+                        </button>
                       )}
-                    </button>
+                    </div>
                   );
                 })
               )}
@@ -326,11 +357,12 @@ export const TimeCapsulesView = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <h2 className="text-xl font-bold text-[#5a4a42]">New Time Capsule</h2>
+                    <h2 className="text-xl font-bold text-[#5a4a42]">{editingCapsule ? 'Edit Time Capsule' : 'New Time Capsule'}</h2>
                   </div>
                   <button
                     onClick={() => {
                       setShowAddModal(false);
+                      setEditingCapsule(null);
                     }}
                     className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"
                   >
@@ -405,6 +437,7 @@ export const TimeCapsulesView = () => {
                 <button
                   onClick={() => {
                     setShowAddModal(false);
+                    setEditingCapsule(null);
                   }}
                   className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eae2e8] text-[#917c71] font-bold text-sm hover:bg-gray-50 transition-colors"
                 >
@@ -414,7 +447,7 @@ export const TimeCapsulesView = () => {
                   onClick={handleAddCapsule}
                   className="flex-1 px-4 py-3 rounded-xl bg-[#d58f99] text-white font-bold text-sm hover:bg-[#c07a84] transition-colors shadow-sm"
                 >
-                  Seal Letter
+                  {editingCapsule ? 'Update Letter' : 'Seal Letter'}
                 </button>
               </div>
             </div>

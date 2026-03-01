@@ -1141,6 +1141,22 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateCapsule = async (id: string, updates: Partial<TimeCapsuleItem>) => {
+    setCapsules(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.content !== undefined) dbUpdates.content = updates.content;
+      if (updates.unlockDate !== undefined) {
+        dbUpdates.unlock_date = updates.unlockDate;
+        dbUpdates.is_locked = updates.unlockDate > Date.now();
+      }
+      await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
+    } catch (e) {
+      console.error("Failed to update time capsule in Supabase", e);
+    }
+  };
+
   // --- RECOMMENDATIONS ---
   const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
     const newRec: Recommendation = { ...r, id: Date.now().toString() };
@@ -1225,7 +1241,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       forkSession, 
       socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
-      capsules, addCapsule,
+      capsules, addCapsule, updateCapsule,
       recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
