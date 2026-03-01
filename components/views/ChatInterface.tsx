@@ -80,6 +80,102 @@ const useLongPress = (callback: () => void, ms = 500) => {
   };
 };
 
+// Session Item Component with Editable Title
+const SessionItem = ({
+  session,
+  onOpen,
+  onDelete,
+  onUpdateTitle
+}: {
+  session: any;
+  onOpen: (id: string) => void;
+  onDelete: (id: string) => void;
+  onUpdateTitle: (id: string, title: string) => void;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(session.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== session.title) {
+      onUpdateTitle(session.id, editedTitle.trim());
+    } else {
+      setEditedTitle(session.title);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(session.title);
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <div
+      className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer"
+      onClick={() => !isEditing && onOpen(session.id)}
+    >
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        {session.isPinned && (
+          <div className="text-[#d58f99] flex-shrink-0">
+            <Icons.Pin />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+            />
+          ) : (
+            <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+          )}
+          <p className="text-[10px] text-[#917c71] mt-1">
+            {new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsEditing(true);
+          }}
+          className="p-2 text-gray-300 hover:text-[#d58f99] transition-colors opacity-0 group-hover:opacity-100"
+        >
+          <Icons.Edit />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(session.id);
+          }}
+          className="p-2 text-gray-300 hover:text-red-400 transition-colors"
+        >
+          <Icons.Trash />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const MessageBubble = ({
   msg, settings, onSelect, isSMS, onPlayTTS, onRegenerateTTS, searchQuery, playingMessageId, isPaused
 }: {
@@ -1287,20 +1383,13 @@ export const ChatInterface: React.FC = () => {
                   })
                   .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
                   .map(session => (
-                    <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
-                        {session.isPinned && (
-                          <div className="text-[#d58f99] flex-shrink-0">
-                            <Icons.Pin />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
-                          <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
-                      </div>
-                      <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
-                    </div>
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      onOpen={handleOpenSession}
+                      onDelete={deleteSession}
+                      onUpdateTitle={updateSessionTitle}
+                    />
                   ))}
                 
                 {/* Pagination Controls */}

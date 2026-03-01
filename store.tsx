@@ -586,8 +586,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateSessionTitle = async (id: string, title: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, title } : s));
-    await supabase.from('chat_sessions').update({ title }).eq('id', id);
+    const now = Date.now();
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: now } : s));
+    await supabase.from('chat_sessions').update({ title, updated_at: now }).eq('id', id);
   };
 
   const updateSession = async (id: string, updates: Partial<ChatSession>) => {
