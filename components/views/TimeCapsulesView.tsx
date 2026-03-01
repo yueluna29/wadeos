@@ -82,7 +82,7 @@ export const TimeCapsulesView = () => {
 
   const selectedCapsuleData = viewingCapsule ? capsules.find(c => c.id === viewingCapsule) : null;
 
-  const handleListenClick = async () => {
+  const handleListenClick = async (forceRegenerate = false) => {
     if (!selectedCapsuleData) return;
 
     if (isPlayingAudio && currentAudio) {
@@ -106,20 +106,29 @@ export const TimeCapsulesView = () => {
 
     try {
       setIsPlayingAudio(true);
-      const base64Audio = await generateMinimaxTTS(selectedCapsuleData.content, {
-        apiKey: ttsPreset.apiKey,
-        baseUrl: ttsPreset.baseUrl,
-        model: ttsPreset.model,
-        voiceId: ttsPreset.voiceId,
-        speed: ttsPreset.speed,
-        vol: ttsPreset.vol,
-        pitch: ttsPreset.pitch,
-        emotion: ttsPreset.emotion,
-        sampleRate: ttsPreset.sampleRate,
-        bitrate: ttsPreset.bitrate,
-        format: ttsPreset.format,
-        channel: ttsPreset.channel
-      });
+
+      let base64Audio = '';
+
+      if (!forceRegenerate && selectedCapsuleData.audioCache) {
+        base64Audio = selectedCapsuleData.audioCache;
+      } else {
+        base64Audio = await generateMinimaxTTS(selectedCapsuleData.content, {
+          apiKey: ttsPreset.apiKey,
+          baseUrl: ttsPreset.baseUrl,
+          model: ttsPreset.model,
+          voiceId: ttsPreset.voiceId,
+          speed: ttsPreset.speed,
+          vol: ttsPreset.vol,
+          pitch: ttsPreset.pitch,
+          emotion: ttsPreset.emotion,
+          sampleRate: ttsPreset.sampleRate,
+          bitrate: ttsPreset.bitrate,
+          format: ttsPreset.format,
+          channel: ttsPreset.channel
+        });
+
+        await updateCapsule(selectedCapsuleData.id, { audioCache: base64Audio });
+      }
 
       const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
       audio.onended = () => {
@@ -232,24 +241,36 @@ export const TimeCapsulesView = () => {
             </div>
             <div className="flex justify-between items-center text-[#917c71] text-sm font-bold uppercase tracking-wider">
               <span>SEALED ON {new Date(selectedCapsuleData.createdAt || selectedCapsuleData.unlockDate).toLocaleDateString()}</span>
-              <div className="flex gap-4">
-                <button
-                  onClick={handleListenClick}
-                  disabled={isPlayingAudio && !currentAudio}
-                  className="flex items-center hover:text-[#d58f99] transition-colors disabled:opacity-50"
-                >
-                  {isPlayingAudio && currentAudio ? (
-                    <>
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      Stop
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                      Listen
-                    </>
+              <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-2 relative group">
+                  <button
+                    onClick={() => handleListenClick(false)}
+                    disabled={isPlayingAudio && !currentAudio}
+                    className="flex items-center hover:text-[#d58f99] transition-colors disabled:opacity-50"
+                  >
+                    {isPlayingAudio && currentAudio ? (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Stop
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        Listen
+                      </>
+                    )}
+                  </button>
+                  {selectedCapsuleData.audioCache && (
+                    <button
+                      onClick={() => handleListenClick(true)}
+                      disabled={isPlayingAudio}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full hover:bg-[#fff0f3] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] disabled:opacity-30"
+                      title="Regenerate audio"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    </button>
                   )}
-                </button>
+                </div>
                 <button
                   onClick={handleEditViewedCapsule}
                   className="flex items-center hover:text-[#d58f99] transition-colors"

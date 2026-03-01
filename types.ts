@@ -67,6 +67,7 @@ export interface TimeCapsuleItem {
   createdAt: number;
   unlockDate: number; // Timestamp
   isLocked: boolean;
+  audioCache?: string; // Base64 encoded audio
 }
 
 export interface Memo {

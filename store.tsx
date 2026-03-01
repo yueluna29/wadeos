@@ -324,7 +324,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                     content: c.content,
                     createdAt: c.created_at,
                     unlockDate: c.unlock_date,
-                    isLocked: c.is_locked
+                    isLocked: c.is_locked,
+                    audioCache: c.audio_cache
                 })));
             }
         };
@@ -1151,6 +1152,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         dbUpdates.unlock_date = updates.unlockDate;
         dbUpdates.is_locked = updates.unlockDate > Date.now();
       }
+      if (updates.audioCache !== undefined) dbUpdates.audio_cache = updates.audioCache;
       await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
     } catch (e) {
       console.error("Failed to update time capsule in Supabase", e);
