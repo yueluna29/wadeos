@@ -180,12 +180,14 @@ export const MemoryBank: React.FC = () => {
                            onChange={(e) => setEditTitle(e.target.value)}
                            className="w-full bg-[#f9f6f7] rounded-lg px-4 py-3 text-sm font-bold text-[#5a4a42] mb-3 outline-none border border-transparent focus:border-[#d58f99]"
                            placeholder="Title"
+                           autoFocus={false}
                          />
                          <textarea
                            value={editContent}
                            onChange={(e) => setEditContent(e.target.value)}
                            className="w-full bg-[#f9f6f7] rounded-lg px-4 py-3 text-sm text-[#5a4a42] min-h-[120px] outline-none border border-transparent focus:border-[#d58f99] resize-y mb-3"
                            placeholder="Content"
+                           autoFocus={false}
                          />
                          <div className="flex justify-end gap-2">
                            <Button size="sm" variant="ghost" onClick={cancelEdit}>Cancel</Button>
