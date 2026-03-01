@@ -311,27 +311,28 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       {
         id: 'sample-1',
         author: 'User', // Luna
-        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 #DateNight",
-        images: ['https://picsum.photos/seed/date/800/600', 'https://picsum.photos/seed/hands/800/600'],
+        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 \n\n最后那个反派的死法也太搞笑了，Wade笑得爆米花都撒了一地！\n\n#DateNight #MovieTime #Wade",
+        images: ['https://picsum.photos/seed/date/800/800', 'https://picsum.photos/seed/hands/800/800', 'https://picsum.photos/seed/popcorn/800/800'],
         timestamp: Date.now() - 3600000 * 2,
         likes: 12,
+        isBookmarked: true,
         comments: [
-          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘" },
-          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡" },
-          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！" }
+          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘", timestamp: Date.now() - 3500000 * 2 },
+          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
+          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！", timestamp: Date.now() - 3300000 * 2 }
         ]
       },
       {
         id: 'sample-2',
         author: 'Wade',
-        content: "Luna insisted on cooking tonight. I'm currently hiding the fire extinguisher behind my back. Just in case. 🔥🍳 #ChefLuna #HazardPay",
-        images: ['https://picsum.photos/seed/cooking/800/800'],
-        timestamp: Date.now() - 3600000 * 24,
+        content: "Someone told me I need to be more 'aesthetic' on this app. So here is a picture of a chimichanga I found in the fridge. \n\nIt was delicious. \n\n#FoodPorn #ChimichangaLife #Aesthetic #NotReally",
+        images: ['https://picsum.photos/seed/chimichanga/800/800'],
+        timestamp: Date.now() - 86400000,
         likes: 42,
+        isBookmarked: false,
         comments: [
-          { id: 'c2-1', author: 'User', text: "Wade Wilson!! It was just a LITTLE crispy! 😤" },
-          { id: 'c2-2', author: 'Wade', text: "Babe, the smoke alarm is singing the song of its people." },
-          { id: 'c2-3', author: 'User', text: "You're sleeping on the couch." }
+          { id: 'c2-1', author: 'User', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
+          { id: 'c2-2', author: 'Wade', text: "Finders keepers, sweetie! I'll buy you a new one. Maybe.", timestamp: Date.now() - 84000000 }
         ]
       }
     ];

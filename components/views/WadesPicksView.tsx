@@ -20,6 +20,7 @@ export const WadesPicksView = () => {
   const { recommendations, addRecommendation, updateRecommendation, deleteRecommendation, setTab } = useStore();
   const [viewingRecId, setViewingRecId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingLunaReview, setIsEditingLunaReview] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Recommendation>>({});
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'music' | 'book'>('all');
 
@@ -34,6 +35,7 @@ export const WadesPicksView = () => {
     if (isEditing && viewingRecId) {
       await updateRecommendation(viewingRecId, editForm);
       setIsEditing(false);
+      setEditForm({});
     } else {
       await addRecommendation(editForm as Omit<Recommendation, 'id'>);
       setIsEditing(false);
@@ -64,6 +66,7 @@ export const WadesPicksView = () => {
       await updateRecommendation(viewingRecId, { lunaReview: editForm.lunaReview, lunaRating: editForm.lunaRating });
       // Clear edit form state for review
       setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }));
+      setIsEditingLunaReview(false);
     }
   };
 
@@ -72,7 +75,13 @@ export const WadesPicksView = () => {
     return (
       <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
         <div className="max-w-2xl mx-auto">
-          <button onClick={() => setIsEditing(false)} className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors">
+          <button 
+            onClick={() => {
+              setIsEditing(false);
+              setEditForm({});
+            }} 
+            className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+          >
             <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
           </button>
           <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Add New Pick</h1>
@@ -131,7 +140,13 @@ export const WadesPicksView = () => {
       return (
         <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
           <div className="max-w-2xl mx-auto">
-            <button onClick={() => setIsEditing(false)} className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors">
+            <button 
+              onClick={() => {
+                setIsEditing(false);
+                setEditForm({});
+              }} 
+              className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+            >
               <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
             </button>
             <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Edit Pick</h1>
@@ -198,9 +213,10 @@ export const WadesPicksView = () => {
           <div className="flex justify-between items-center mb-8">
             <button 
               onClick={() => setViewingRecId(null)}
-              className="flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm"
+              className="flex items-center justify-center w-10 h-10 text-[#917c71] hover:text-[#d58f99] transition-colors bg-white/50 backdrop-blur-sm rounded-full shadow-sm"
+              title="Back to Picks"
             >
-              <Icons.ChevronLeft /> <span className="ml-1 font-bold">Back to Picks</span>
+              <Icons.ChevronLeft />
             </button>
             <div className="flex gap-2">
               <button onClick={() => handleStartEdit(selectedRec)} className="p-2 bg-white rounded-full text-[#917c71] hover:text-[#d58f99] shadow-sm transition-colors">
@@ -212,47 +228,54 @@ export const WadesPicksView = () => {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-8 mb-12">
-            {/* Cover Image */}
-            <div className="w-full md:w-1/3 flex-shrink-0">
-              <div className="aspect-[2/3] rounded-2xl overflow-hidden shadow-md bg-gray-100 border border-[#eae2e8]">
-                {selectedRec.coverUrl ? (
-                  <img src={selectedRec.coverUrl} alt={selectedRec.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#917c71]/30">
-                    <span className="text-4xl">🎬</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              <div className="inline-block px-3 py-1 bg-[#fff0f3] text-[#d58f99] text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+          <div className="mb-12">
+            {/* Header Info */}
+            <div className="mb-6">
+              <div className="inline-block px-3 py-1 bg-[#fff0f3] text-[#d58f99] text-xs font-bold uppercase tracking-wider rounded-full mb-3">
                 {selectedRec.type}
               </div>
-              <h1 className="text-4xl font-bold text-[#5a4a42] mb-2 leading-tight">{selectedRec.title}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-[#5a4a42] mb-2 leading-tight">{selectedRec.title}</h1>
               
-              <div className="text-[#917c71] font-medium mb-6 flex flex-wrap gap-x-4 gap-y-2">
+              <div className="text-[#917c71] font-medium flex flex-wrap gap-x-4 gap-y-2">
                 {selectedRec.creator && <span>{selectedRec.creator}</span>}
                 {selectedRec.creator && selectedRec.releaseDate && <span>•</span>}
                 {selectedRec.releaseDate && <span>{selectedRec.releaseDate}</span>}
               </div>
+            </div>
 
-              {selectedRec.synopsis && (
-                <div className="mb-8">
-                  <h3 className="text-sm font-bold text-[#917c71] uppercase tracking-wider mb-2">Synopsis</h3>
-                  <p className="text-[#5a4a42] leading-relaxed opacity-90">{selectedRec.synopsis}</p>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-row gap-6">
+                {/* Cover Image */}
+                <div className="w-1/3 md:w-1/4 flex-shrink-0">
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-md bg-gray-100 border border-[#eae2e8]">
+                    {selectedRec.coverUrl ? (
+                      <img src={selectedRec.coverUrl} alt={selectedRec.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#917c71]/30">
+                        <span className="text-4xl">🎬</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+
+                {/* Info */}
+                <div className="flex-1 flex flex-col gap-6">
+                  {selectedRec.synopsis && (
+                    <div>
+                      <h3 className="text-sm font-bold text-[#917c71] uppercase tracking-wider mb-2">Synopsis</h3>
+                      <p className="text-[#5a4a42] leading-relaxed opacity-90 text-sm md:text-base">{selectedRec.synopsis}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Wade's Comment */}
-              <div className="bg-[#fff0f3]/50 rounded-2xl p-6 border border-[#ff6b81]/10 relative">
+              <div className="bg-[#fff0f3]/50 rounded-2xl p-4 md:p-6 border border-[#ff6b81]/10 relative mt-2">
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
                   ⚔️
                 </div>
                 <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
-                <div className="prose prose-pink max-w-none text-[#5a4a42] italic">
+                <div className="prose prose-pink max-w-none text-[#5a4a42] italic text-sm md:text-base">
                   <Markdown>{selectedRec.comment}</Markdown>
                 </div>
               </div>
@@ -276,7 +299,10 @@ export const WadesPicksView = () => {
                       ))}
                     </div>
                     <button 
-                      onClick={() => setEditForm({ lunaReview: selectedRec.lunaReview, lunaRating: selectedRec.lunaRating })}
+                      onClick={() => {
+                        setEditForm({ lunaReview: selectedRec.lunaReview || '', lunaRating: selectedRec.lunaRating || 0 });
+                        setIsEditingLunaReview(true);
+                      }}
                       className="text-xs text-[#917c71] hover:text-[#d58f99] flex items-center"
                     >
                       <Icons.Edit /> <span className="ml-1">Edit</span>
@@ -331,7 +357,7 @@ export const WadesPicksView = () => {
             )}
             
             {/* If editing existing review */}
-            {(selectedRec.lunaReview || selectedRec.lunaRating) && editForm.lunaReview !== undefined && (
+            {(selectedRec.lunaReview || selectedRec.lunaRating) && isEditingLunaReview && (
                <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
                  <h3 className="font-bold text-[#5a4a42] mb-4">Edit Review</h3>
                  <div className="mb-4">
@@ -352,7 +378,10 @@ export const WadesPicksView = () => {
                  </div>
                  <div className="flex gap-2">
                    <button onClick={handleLunaReviewSave} className="px-6 py-2 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors">Save</button>
-                   <button onClick={() => setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }))} className="px-6 py-2 bg-gray-100 text-[#917c71] rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
+                   <button onClick={() => {
+                     setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }));
+                     setIsEditingLunaReview(false);
+                   }} className="px-6 py-2 bg-gray-100 text-[#917c71] rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
                  </div>
                </div>
             )}
@@ -371,13 +400,14 @@ export const WadesPicksView = () => {
             <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
               <Icons.ChevronLeft />
             </button>
-            <h1 className="font-bold text-2xl text-[#5a4a42] ml-2">Wade's Picks</h1>
+            <h1 className="font-hand text-3xl text-[#d58f99] ml-2">Wade's Picks</h1>
           </div>
           <button 
             onClick={handleStartAdd}
-            className="flex items-center px-4 py-2 bg-[#d58f99] text-white rounded-full font-bold text-sm shadow-sm hover:bg-[#c07a84] transition-colors"
+            className="flex items-center justify-center w-10 h-10 bg-[#fff0f3] text-[#d58f99] rounded-full shadow-sm hover:bg-[#d58f99] hover:text-white transition-all border border-[#d58f99]/20"
+            title="Add Pick"
           >
-            <Icons.Plus /> <span className="ml-1">Add Pick</span>
+            <Icons.Plus />
           </button>
         </div>
 
@@ -430,10 +460,11 @@ export const WadesPicksView = () => {
                 <div className="mt-auto pt-3 border-t border-[#eae2e8]/50 flex justify-between items-center">
                   <div className="flex text-[#ffb6c1] text-[10px]">
                     {rec.lunaRating ? (
-                      <>
-                        <Icons.Star filled />
-                        <span className="ml-1 font-bold text-[#917c71]">{rec.lunaRating}/5</span>
-                      </>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Icons.Star key={star} filled={star <= rec.lunaRating!} />
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-[#917c71]/50 font-medium">No rating</span>
                     )}
