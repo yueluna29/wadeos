@@ -212,14 +212,13 @@ export const MemoryBank: React.FC = () => {
                            </div>
                          </div>
                          <div className="flex items-center justify-between pt-2 border-t border-[#eae2e8]">
-                           <label className="flex items-center gap-2 cursor-pointer text-xs text-[#917c71]">
+                           <label className="flex items-center gap-2 cursor-pointer">
                              <input
                                type="checkbox"
                                checked={mem.enabled}
                                onChange={() => toggleCoreMemoryEnabled(mem.id)}
                                className="w-4 h-4 rounded border-gray-300 text-[#d58f99] focus:ring-[#d58f99]"
                              />
-                             <span>Enable AI to read this memory</span>
                            </label>
                            <div className="flex gap-1">
                              <button
