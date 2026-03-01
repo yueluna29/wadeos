@@ -57,7 +57,7 @@ export const WadesPicksView = () => {
 
       if (editForm.type === 'movie') {
         const response = await fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=bd3f3d41348fdc904c5cb5556c9e226f&query=${encodedTitle}&language=zh-CN`
+          `https://api.themoviedb.org/3/search/movie?api_key=bd3f3d41348fdc904c5cb5556c9e226f&query=${encodedTitle}&language=en-US`
         );
         const data = await response.json();
 
