@@ -1056,7 +1056,7 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
               </div>
               <div className="flex gap-4 overflow-x-auto hide-scrollbar max-w-xl mx-auto px-1">
                 <button onClick={() => setShowDiaryTypeModal(true)} className="flex flex-col items-center gap-1.5 flex-shrink-0 group relative">
-                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-white shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-white shadow-sm">
                     <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-[#eae2e8]" />
                   </div>
                   <div className="absolute bottom-5 right-0 bg-[#0095f6] text-white rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
@@ -1065,13 +1065,13 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
                   <span className="text-[11px] text-[#917c71]">Your Story</span>
                 </button>
                 <button onClick={() => setViewingProfile('Luna')} className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
-                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-[#d58f99] via-purple-300 to-[#d58f99] shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-[#d58f99] via-purple-300 to-[#d58f99] shadow-sm">
                     <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
                   <span className="text-[11px] font-medium text-[#5a4a42]">Luna</span>
                 </button>
                 <button onClick={() => setViewingProfile('Wade')} className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
-                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-red-500 via-orange-400 to-yellow-400 shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-red-500 via-orange-400 to-yellow-400 shadow-sm">
                     <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
                   <span className="text-[11px] font-medium text-[#5a4a42]">Wade</span>
