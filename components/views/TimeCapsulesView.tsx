@@ -87,6 +87,9 @@ export const TimeCapsulesView = () => {
 
     if (isPlayingAudio && currentAudio) {
       currentAudio.pause();
+      if (currentAudio.src.startsWith('blob:')) {
+        URL.revokeObjectURL(currentAudio.src);
+      }
       setIsPlayingAudio(false);
       setCurrentAudio(null);
       return;
@@ -112,32 +115,45 @@ export const TimeCapsulesView = () => {
       if (!forceRegenerate && selectedCapsuleData.audioCache) {
         base64Audio = selectedCapsuleData.audioCache;
       } else {
-        base64Audio = await generateMinimaxTTS(selectedCapsuleData.content, {
+        const cleanText = selectedCapsuleData.content.replace(/[*_~`#]/g, '');
+        base64Audio = await generateMinimaxTTS(cleanText, {
           apiKey: ttsPreset.apiKey,
-          baseUrl: ttsPreset.baseUrl,
-          model: ttsPreset.model,
-          voiceId: ttsPreset.voiceId,
-          speed: ttsPreset.speed,
-          vol: ttsPreset.vol,
-          pitch: ttsPreset.pitch,
+          baseUrl: ttsPreset.baseUrl || 'https://api.minimax.io',
+          model: ttsPreset.model || 'speech-2.8-hd',
+          voiceId: ttsPreset.voiceId || 'English_expressive_narrator',
+          speed: ttsPreset.speed || 1,
+          vol: ttsPreset.vol || 1,
+          pitch: ttsPreset.pitch || 0,
           emotion: ttsPreset.emotion,
-          sampleRate: ttsPreset.sampleRate,
-          bitrate: ttsPreset.bitrate,
-          format: ttsPreset.format,
-          channel: ttsPreset.channel
+          sampleRate: ttsPreset.sampleRate || 32000,
+          bitrate: ttsPreset.bitrate || 128000,
+          format: ttsPreset.format || 'mp3',
+          channel: ttsPreset.channel || 1
         });
 
         await updateCapsule(selectedCapsuleData.id, { audioCache: base64Audio });
       }
 
-      const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+      const binaryString = atob(base64Audio);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const blob = new Blob([bytes], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
+
+      const audio = new Audio(url);
       audio.onended = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
+        URL.revokeObjectURL(url);
       };
       audio.onerror = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
+        URL.revokeObjectURL(url);
         alert('Failed to play audio');
       };
 
