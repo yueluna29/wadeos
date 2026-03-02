@@ -1928,7 +1928,7 @@ export const ChatInterface: React.FC = () => {
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-[#eae2e8] z-30">
+          <div className="absolute bottom-0 left-0 right-0 p-3 pb-6 md:pb-3 bg-white border-t border-[#eae2e8] z-30">
             <div className="flex gap-2 max-w-4xl mx-auto items-end">
               {/* File Upload Button */}
               <div className="relative">
