@@ -321,16 +321,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
         // 10. Time Capsules
         const fetchTimeCapsules = async () => {
-            const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at_ts', { ascending: false });
+            const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at', { ascending: false });
             if (capData && !capError) {
                 setCapsules(capData.map(c => ({
                     id: c.id,
                     title: c.title,
                     content: c.content,
-                    createdAt: typeof c.created_at === 'number' ? c.created_at : Date.now(),
-                    unlockDate: typeof c.unlock_date === 'number' ? c.unlock_date : Date.now(),
-                    isLocked: c.is_locked ?? true,
-                    audioCache: c.audio_cache || undefined
+                    createdAt: c.created_at,
+                    unlockDate: c.unlock_date,
+                    isLocked: c.is_locked,
+                    audioCache: c.audio_cache
                 })));
             }
         };
