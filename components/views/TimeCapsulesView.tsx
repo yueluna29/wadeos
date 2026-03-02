@@ -404,12 +404,12 @@ export const TimeCapsulesView = () => {
                     <div key={cap.id} className="relative group/card">
                       <button
                         onClick={() => isAvailable && setViewingCapsule(cap.id)}
-                        className={`w-full flex items-center p-4 rounded-2xl border text-left group
-                          ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
+                        className={`w-full flex items-center p-4 rounded-2xl border text-left group backdrop-blur-sm transition-all
+                          ${isAvailable ? 'bg-white/60 border-[#d58f99]/30 hover:bg-white/80 hover:border-[#d58f99]/50 hover:shadow-sm cursor-pointer' : 'bg-white/40 border-gray-300/50 opacity-70 cursor-not-allowed'}
                         `}
                       >
-                        <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
-                          ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/20' : 'text-gray-400 border-gray-200'}
+                        <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border backdrop-blur-sm
+                          ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/30 bg-white/70' : 'text-gray-400 border-gray-300/50 bg-white/50'}
                         `}>
                           <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           <span className="text-xs font-bold">{timeStr}</span>
