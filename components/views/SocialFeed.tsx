@@ -1032,7 +1032,7 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
       ) : (
         <>
           {/* Header */}
-          <div className="flex-shrink-0 bg-[#fdfbfb]/80 backdrop-blur-md border-b border-[#eae2e8] px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+          <div className="fixed top-0 left-0 right-0 bg-[#fdfbfb]/80 backdrop-blur-md border-b border-[#eae2e8] px-4 py-3 flex justify-between items-center z-40">
             <button className="text-[#5a4a42] hover:text-[#d58f99] transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
             </button>
@@ -1046,7 +1046,7 @@ const PostCaption = ({ content, authorName }: { content: string, authorName: str
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar pt-[60px]">
             
             {/* Stories Bar */}
             <div className="bg-white border-b border-[#eae2e8] px-4 pt-3 pb-4 mb-2">
