@@ -20,7 +20,7 @@ export interface GeminiResponse {
 const generateOpenAICompatibleResponse = async (
   modelName: string,
   prompt: string,
-  history: { role: string; parts: { text: string }[] }[],
+  history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
   systemInstruction: string,
   lunaInfo?: string,
   exampleDialogue?: string,
@@ -86,10 +86,34 @@ const generateOpenAICompatibleResponse = async (
   // Transform history
   const messages = [
     { role: 'system', content: fullSystemPrompt },
-    ...history.map(h => ({
-      role: h.role === 'Luna' ? 'user' : 'assistant',
-      content: h.parts[0].text
-    })),
+    ...history.map(h => {
+      const content = h.parts.map(p => {
+        if ('text' in p) {
+          return { type: 'text', text: p.text };
+        } else if ('inlineData' in p) {
+          return {
+            type: 'image_url',
+            image_url: {
+              url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`
+            }
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      // If content is just one text part, simplify (optional but cleaner)
+      if (content.length === 1 && content[0]?.type === 'text') {
+        return {
+          role: h.role === 'Luna' ? 'user' : 'assistant',
+          content: content[0].text
+        };
+      }
+
+      return {
+        role: h.role === 'Luna' ? 'user' : 'assistant',
+        content: content
+      };
+    }),
     { role: 'user', content: prompt }
   ];
 
@@ -180,7 +204,7 @@ const generateOpenAICompatibleResponse = async (
 export const generateTextResponse = async (
   modelName: string,
   prompt: string,
-  history: { role: string; parts: { text: string }[] }[],
+  history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
   systemInstruction: string,
   lunaInfo?: string,
   exampleDialogue?: string,

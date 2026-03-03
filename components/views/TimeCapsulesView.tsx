@@ -87,9 +87,6 @@ export const TimeCapsulesView = () => {
 
     if (isPlayingAudio && currentAudio) {
       currentAudio.pause();
-      if (currentAudio.src.startsWith('blob:')) {
-        URL.revokeObjectURL(currentAudio.src);
-      }
       setIsPlayingAudio(false);
       setCurrentAudio(null);
       return;
@@ -115,45 +112,32 @@ export const TimeCapsulesView = () => {
       if (!forceRegenerate && selectedCapsuleData.audioCache) {
         base64Audio = selectedCapsuleData.audioCache;
       } else {
-        const cleanText = selectedCapsuleData.content.replace(/[*_~`#]/g, '');
-        base64Audio = await generateMinimaxTTS(cleanText, {
+        base64Audio = await generateMinimaxTTS(selectedCapsuleData.content, {
           apiKey: ttsPreset.apiKey,
-          baseUrl: ttsPreset.baseUrl || 'https://api.minimax.io',
-          model: ttsPreset.model || 'speech-2.8-hd',
-          voiceId: ttsPreset.voiceId || 'English_expressive_narrator',
-          speed: ttsPreset.speed || 1,
-          vol: ttsPreset.vol || 1,
-          pitch: ttsPreset.pitch || 0,
+          baseUrl: ttsPreset.baseUrl,
+          model: ttsPreset.model,
+          voiceId: ttsPreset.voiceId,
+          speed: ttsPreset.speed,
+          vol: ttsPreset.vol,
+          pitch: ttsPreset.pitch,
           emotion: ttsPreset.emotion,
-          sampleRate: ttsPreset.sampleRate || 32000,
-          bitrate: ttsPreset.bitrate || 128000,
-          format: ttsPreset.format || 'mp3',
-          channel: ttsPreset.channel || 1
+          sampleRate: ttsPreset.sampleRate,
+          bitrate: ttsPreset.bitrate,
+          format: ttsPreset.format,
+          channel: ttsPreset.channel
         });
 
         await updateCapsule(selectedCapsuleData.id, { audioCache: base64Audio });
       }
 
-      const binaryString = atob(base64Audio);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      const blob = new Blob([bytes], { type: 'audio/mp3' });
-      const url = URL.createObjectURL(blob);
-
-      const audio = new Audio(url);
+      const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
       audio.onended = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
-        URL.revokeObjectURL(url);
       };
       audio.onerror = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
-        URL.revokeObjectURL(url);
         alert('Failed to play audio');
       };
 
@@ -420,12 +404,12 @@ export const TimeCapsulesView = () => {
                     <div key={cap.id} className="relative group/card">
                       <button
                         onClick={() => isAvailable && setViewingCapsule(cap.id)}
-                        className={`w-full flex items-center p-4 rounded-2xl border text-left group backdrop-blur-sm transition-all
-                          ${isAvailable ? 'bg-white/60 border-[#d58f99]/30 hover:bg-white/80 hover:border-[#d58f99]/50 hover:shadow-sm cursor-pointer' : 'bg-white/40 border-gray-300/50 opacity-70 cursor-not-allowed'}
+                        className={`w-full flex items-center p-4 rounded-2xl border text-left group
+                          ${isAvailable ? 'bg-[#fff0f3]/50 border-[#d58f99]/20 hover:bg-[#fff0f3] hover:border-[#d58f99]/40 cursor-pointer' : 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed'}
                         `}
                       >
-                        <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border backdrop-blur-sm
-                          ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/30 bg-white/70' : 'text-gray-400 border-gray-300/50 bg-white/50'}
+                        <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl mr-4 flex-shrink-0 border bg-white
+                          ${isAvailable ? 'text-[#d58f99] border-[#d58f99]/20' : 'text-gray-400 border-gray-200'}
                         `}>
                           <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           <span className="text-xs font-bold">{timeStr}</span>

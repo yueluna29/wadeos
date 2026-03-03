@@ -30,12 +30,15 @@ export interface Message {
   isFavorite?: boolean;
   mode: ChatMode;
   image?: string; // For image uploads
+  attachments?: { type: 'image' | 'file', content: string, mimeType: string, name: string }[]; // Generic attachments
   audioCache?: string; // 参谋加的：装录音带的抽屉
   
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
   // NEW: Store "Thinking Process" for each variant
   variantsThinking?: (string | null)[]; 
+  // NEW: Store Audio for each variant
+  variantsAudio?: (string | null)[];
   selectedIndex?: number; // Index of the currently shown version
   
   // UI State (Transient)
@@ -232,6 +235,8 @@ export interface GlobalState {
   addMemo: (m: Memo) => void;
   capsules: TimeCapsuleItem[];
   addCapsule: (c: TimeCapsuleItem) => void;
+  updateCapsule: (id: string, updates: Partial<TimeCapsuleItem>) => void;
+  deleteCapsule: (id: string) => Promise<void>;
   recommendations: Recommendation[];
   addRecommendation: (r: Omit<Recommendation, 'id'>) => Promise<void>;
   updateRecommendation: (id: string, r: Partial<Recommendation>) => Promise<void>;

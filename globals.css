@@ -28,6 +28,20 @@ body {
   animation: fade-in 0.2s ease-in-out;
 }
 
+/* Slide up animation for bottom sheet */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Scale in animation for modal */
 @keyframes scale-in {
   from {
@@ -61,8 +75,14 @@ body {
 
 /* 重新设置段落间距 - 紧凑模式 */
 .markdown-content p {
-  margin-bottom: 0.2em !important; /* 进一步缩小间距 */
-  line-height: 1.5 !important; /* 降低行高，减少视觉间隙 */
+  margin-bottom: 0.25em !important; /* 显著缩小段落间距 */
+  line-height: 1.5 !important; 
+}
+
+/* 移除之前的 br 样式，防止干扰 */
+.markdown-content br {
+  display: inline;
+  margin: 0;
 }
 
 .markdown-content p:last-child {

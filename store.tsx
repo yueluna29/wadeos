@@ -190,6 +190,25 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              }
              while (parsedThinking.length < parsedVariants.length) parsedThinking.push(null);
 
+             // Parse Audio Variants
+             let parsedAudio: (string|null)[] = [];
+             if (row.audio_cache) {
+                // Try to parse as JSON array first
+                try {
+                  const parsed = JSON.parse(row.audio_cache);
+                  if (Array.isArray(parsed)) {
+                    parsedAudio = parsed;
+                  } else {
+                    // Legacy: Single string, assign to index 0
+                    parsedAudio = [row.audio_cache];
+                  }
+                } catch (e) {
+                  // Not JSON, assume legacy single string
+                  parsedAudio = [row.audio_cache];
+                }
+             }
+             while (parsedAudio.length < parsedVariants.length) parsedAudio.push(null);
+
             return {
               id: row.id,
               sessionId: row.session_id,
@@ -200,8 +219,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
+              variantsAudio: parsedAudio,
               selectedIndex: row.selected_index || 0,
-              audioCache: row.audio_cache // 把数据库里的录音带拿出来！
+              audioCache: parsedAudio[row.selected_index || 0] || undefined // Backwards compatibility for UI
             };
           };
 
@@ -588,7 +608,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const updateSessionTitle = async (id: string, title: string) => {
     const now = Date.now();
     setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: now } : s));
-    await supabase.from('chat_sessions').update({ title, updated_at: now }).eq('id', id);
+    const { error } = await supabase.from('chat_sessions').update({ title, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) {
+      console.error("Failed to update session title:", error);
+    }
   };
 
   const updateSession = async (id: string, updates: Partial<ChatSession>) => {
@@ -733,13 +756,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateMessageAudioCache = async (id: string, base64Audio: string) => {
-    // 1. 塞进前端的口袋
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache: base64Audio } : m));
-    // 2. 焊死在 Supabase 的云端抽屉里
     const msg = messages.find(m => m.id === id);
-    if (msg && msg.mode !== 'archive') {
+    if (!msg) return;
+
+    const currentIdx = msg.selectedIndex || 0;
+    const newVariantsAudio = [...(msg.variantsAudio || [])];
+    while (newVariantsAudio.length <= currentIdx) newVariantsAudio.push(null);
+    newVariantsAudio[currentIdx] = base64Audio;
+
+    // 1. 塞进前端的口袋
+    setMessages(prev => prev.map(m => m.id === id ? { 
+      ...m, 
+      variantsAudio: newVariantsAudio,
+      audioCache: base64Audio 
+    } : m));
+
+    // 2. 焊死在 Supabase 的云端抽屉里
+    if (msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      await safeDbUpdate(tableName, id, { audio_cache: base64Audio });
+      // Store as JSON string to support multiple variants
+      await safeDbUpdate(tableName, id, { audio_cache: JSON.stringify(newVariantsAudio) });
     }
   };
 
@@ -749,6 +785,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     const newVariants = [...(msg.variants || [msg.text]), newText];
     const newThinking = [...(msg.variantsThinking || Array(msg.variants?.length || 1).fill(null)), thinking || null];
+    const newVariantsAudio = [...(msg.variantsAudio || Array(msg.variants?.length || 1).fill(null)), null]; // Add null for new variant
     const newIndex = newVariants.length - 1;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
@@ -756,7 +793,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       text: newText, 
       variants: newVariants,
       variantsThinking: newThinking,
+      variantsAudio: newVariantsAudio,
       selectedIndex: newIndex,
+      audioCache: undefined, // Clear current audio cache for new variant
       isRegenerating: false 
     } : m));
 
@@ -766,6 +805,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         content: newText,
         variants: newVariants,
         variants_thinking: newThinking,
+        audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
         selected_index: newIndex
       });
     }
@@ -776,11 +816,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (!msg || !msg.variants || !msg.variants[index]) return;
 
     const selectedText = msg.variants[index];
+    const selectedAudio = msg.variantsAudio ? msg.variantsAudio[index] : undefined;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: selectedText, 
-      selectedIndex: index 
+      selectedIndex: index,
+      audioCache: selectedAudio || undefined // Switch to audio for this variant
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
@@ -1162,6 +1204,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // --- RECOMMENDATIONS ---
+  const deleteCapsule = async (id: string) => {
+    setCapsules(prev => prev.filter(c => c.id !== id));
+    try {
+      await supabase.from('time_capsules').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete time capsule from Supabase", e);
+    }
+  };
+
   const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
     const newRec: Recommendation = { ...r, id: Date.now().toString() };
     setRecommendations(prev => [newRec, ...prev]);
@@ -1245,7 +1296,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       forkSession, 
       socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
-      capsules, addCapsule, updateCapsule,
+      capsules, addCapsule, updateCapsule, deleteCapsule,
       recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
