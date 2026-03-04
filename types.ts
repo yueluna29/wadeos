@@ -30,12 +30,15 @@ export interface Message {
   isFavorite?: boolean;
   mode: ChatMode;
   image?: string; // For image uploads
+  attachments?: { type: 'image' | 'file', content: string, mimeType: string, name: string }[]; // Generic attachments
   audioCache?: string; // 参谋加的：装录音带的抽屉
   
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
   // NEW: Store "Thinking Process" for each variant
   variantsThinking?: (string | null)[]; 
+  // NEW: Store Audio for each variant
+  variantsAudio?: (string | null)[];
   selectedIndex?: number; // Index of the currently shown version
   
   // UI State (Transient)
@@ -62,10 +65,12 @@ export interface SocialComment {
 
 export interface TimeCapsuleItem {
   id: string;
+  title: string;
   content: string;
-  createdWidth: number;
+  createdAt: number;
   unlockDate: number; // Timestamp
   isLocked: boolean;
+  audioCache?: string; // Base64 encoded audio
 }
 
 export interface Memo {
@@ -79,8 +84,14 @@ export interface Recommendation {
   id: string;
   type: 'book' | 'movie' | 'music';
   title: string;
+  creator?: string; // Author, Director, or Artist
+  releaseDate?: string;
+  synopsis?: string;
   comment: string; // Wade's comment
   coverUrl?: string;
+  lunaReview?: string;
+  lunaRating?: number; // 1-5
+  wadeReply?: string;
 }
 
 // --- NEW MEMORY & ARCHIVE TYPES ---
@@ -91,6 +102,7 @@ export interface CoreMemory {
   content: string;
   category: 'fact' | 'promise' | 'preference' | 'general';
   isActive: boolean;
+  enabled: boolean; // Whether AI can read this memory
   createdAt: number;
 }
 
@@ -124,6 +136,8 @@ export interface LlmPreset {
   topK?: number;
   frequencyPenalty?: number; // -2.0 to 2.0
   presencePenalty?: number; // -2.0 to 2.0
+  isVision?: boolean; // Supports vision/image input
+  isImageGen?: boolean; // Image generation model
 }
 
 export interface TtsPreset {
@@ -221,13 +235,19 @@ export interface GlobalState {
   addMemo: (m: Memo) => void;
   capsules: TimeCapsuleItem[];
   addCapsule: (c: TimeCapsuleItem) => void;
+  updateCapsule: (id: string, updates: Partial<TimeCapsuleItem>) => void;
+  deleteCapsule: (id: string) => Promise<void>;
   recommendations: Recommendation[];
+  addRecommendation: (r: Omit<Recommendation, 'id'>) => Promise<void>;
+  updateRecommendation: (id: string, r: Partial<Recommendation>) => Promise<void>;
+  deleteRecommendation: (id: string) => Promise<void>;
   
   // --- NEW MEMORY ACTIONS ---
   coreMemories: CoreMemory[];
   addCoreMemory: (title: string, content: string, category?: CoreMemory['category']) => Promise<void>;
   updateCoreMemory: (id: string, title: string, content: string) => Promise<void>;
   deleteCoreMemory: (id: string) => Promise<void>;
+  toggleCoreMemoryEnabled: (id: string) => Promise<void>;
   chatArchives: ChatArchive[];
   importArchive: (title: string, fileContent: string) => Promise<number>;
   loadArchiveMessages: (archiveId: string) => Promise<ArchiveMessage[]>;

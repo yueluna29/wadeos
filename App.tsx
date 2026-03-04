@@ -10,6 +10,8 @@ import { PersonaTuning } from './components/views/PersonaTuning';
 import { Memos } from './components/views/Memos';
 import { MemoryBank } from './components/views/MemoryBank';
 import { Home } from './components/views/Home';
+import { TimeCapsulesView } from './components/views/TimeCapsulesView';
+import { WadesPicksView } from './components/views/WadesPicksView';
 
 const AppContent = () => {
   const { currentTab } = useStore();
@@ -23,7 +25,9 @@ const AppContent = () => {
       case 'settings': return <Settings />;
       case 'persona': return <PersonaTuning />;
       case 'favorites': return <Memos />; 
-      case 'memory': return <MemoryBank />; // New Route
+      case 'memory': return <MemoryBank />;
+      case 'time-capsules': return <TimeCapsulesView />;
+      case 'wade-picks': return <WadesPicksView />;
       default: return <Home />;
     }
   };

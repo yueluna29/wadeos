@@ -29,18 +29,30 @@
         font-family: 'Pacifico', cursive;
       }
       /* Custom Scrollbar for the pink aesthetic */
-      ::-webkit-scrollbar {
-        width: 8px;
+      @media (min-width: 768px) {
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #eae2e8; 
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #d58f99; 
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #c07a84; 
+        }
       }
-      ::-webkit-scrollbar-track {
-        background: #eae2e8; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #d58f99; 
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #c07a84; 
+      @media (max-width: 767px) {
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        * {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       }
       /* Markdown Styles - Tighter for Novel Feel */
       .markdown-content { white-space: pre-wrap; }

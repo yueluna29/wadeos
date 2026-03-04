@@ -37,7 +37,14 @@ const Icons = {
   Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
   Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>,
   Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
+  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
+  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  File: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
+  RotateThin: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>,
+  TextSelect: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>,
+  PlusThin: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  ArrowUpThin: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
 };
 
 // --- Long Press Hook ---
@@ -77,6 +84,109 @@ const useLongPress = (callback: () => void, ms = 500) => {
   };
 };
 
+// Session Item Component with Editable Title
+const SessionItem = ({
+  session,
+  onOpen,
+  onLongPress,
+  isRenaming,
+  onRenameSubmit,
+  onRenameCancel
+}: {
+  session: any;
+  onOpen: (id: string) => void;
+  onLongPress: (id: string) => void;
+  isRenaming: boolean;
+  onRenameSubmit: (id: string, title: string) => void;
+  onRenameCancel: () => void;
+}) => {
+  const [editedTitle, setEditedTitle] = useState(session.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLongPressTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    } else {
+      setEditedTitle(session.title);
+    }
+  }, [isRenaming, session.title]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== session.title) {
+      onRenameSubmit(session.id, editedTitle.trim());
+    } else {
+      onRenameCancel();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(session.title);
+      onRenameCancel();
+    }
+  };
+
+  const { onContextMenu, ...longPressHandlers } = useLongPress(() => {
+    isLongPressTriggered.current = true;
+    onLongPress(session.id);
+  });
+
+  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isRenaming) return;
+    
+    // If long press was triggered, don't open the session
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false;
+      return;
+    }
+    onOpen(session.id);
+  };
+
+  return (
+    <div
+      {...longPressHandlers}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-[#d58f99] ring-1 ring-[#d58f99]/20' : 'active:scale-[0.98]'}`}
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        // Treat right click as long press for desktop, but don't set isLongPressTriggered
+        onLongPress(session.id);
+      }}
+    >
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        {session.isPinned && (
+          <div className="text-[#d58f99] flex-shrink-0">
+            <Icons.Pin />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          {isRenaming ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+            />
+          ) : (
+            <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+          )}
+          <p className="text-[10px] text-[#917c71] mt-1">
+            {new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MessageBubble = ({
   msg, settings, onSelect, isSMS, onPlayTTS, onRegenerateTTS, searchQuery, playingMessageId, isPaused
 }: {
@@ -96,8 +206,31 @@ const MessageBubble = ({
   const idx = msg.selectedIndex || 0;
   const thinkingContent = msg.variantsThinking?.[idx];
 
+  // Check if the message is a base64 image
+  const isBase64Image = msg.text.startsWith('data:image/');
+
   // FIX FOR "|||": Replace separators with visual spacing before rendering
   const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
+
+  const renderAttachments = () => {
+    const attachments = msg.attachments || [];
+    if (attachments.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 mb-2">
+        {attachments.map((att, i) => (
+          att.type === 'image' ? (
+             <img key={i} src={`data:${att.mimeType};base64,${att.content}`} className="max-w-full rounded-lg max-h-[200px] object-cover" />
+          ) : (
+             <div key={i} className="flex items-center gap-2 p-2 bg-white/90 rounded-lg border border-gray-200 shadow-sm">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+               <span className="text-xs truncate max-w-[150px] text-gray-700">{att.name}</span>
+             </div>
+          )
+        ))}
+      </div>
+    );
+  };
 
   // Custom markdown renderer with search highlighting
   const MarkdownWithHighlight = ({ content, query }: { content: string, query?: string }) => {
@@ -206,9 +339,19 @@ const MessageBubble = ({
               </div>
             )}
 
-            <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-            </div>
+            {renderAttachments()}
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+                <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+              </div>
+            )}
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
             {formatTime(msg.timestamp)}
@@ -258,10 +401,10 @@ const MessageBubble = ({
                 {msg.audioCache && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                    className="w-4 h-4 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
                     title="Regenerate voice"
                   >
-                    <Icons.Refresh />
+                    <Icons.RotateThin size={14} />
                   </button>
                 )}
               </div>
@@ -296,7 +439,17 @@ const MessageBubble = ({
 
           {/* MAIN TEXT */}
           <div className="px-4 py-2 text-[14px] leading-relaxed tracking-wide markdown-content">
-            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            {renderAttachments()}
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            )}
           </div>
         </div>
       </div>
@@ -327,9 +480,19 @@ const MessageBubble = ({
         style={{ WebkitTouchCallout: 'none' }}
         className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
-        <div className="text-[14px] leading-relaxed markdown-content">
-          <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-        </div>
+        {renderAttachments()}
+        {isBase64Image ? (
+          <img
+            src={msg.text}
+            alt="User uploaded image"
+            className="max-w-full rounded-lg"
+            style={{ maxHeight: '400px', width: 'auto' }}
+          />
+        ) : (
+          <div className="text-[14px] leading-relaxed markdown-content">
+            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -370,7 +533,13 @@ export const ChatInterface: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
+  const [textSelectionMsg, setTextSelectionMsg] = useState<Message | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Session Actions State
+  const [actionSessionId, setActionSessionId] = useState<string | null>(null);
+  const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
+  const [sessionDeleteConfirm, setSessionDeleteConfirm] = useState(false);
 
   // Search & Map State
   const [showSearch, setShowSearch] = useState(false);
@@ -395,8 +564,12 @@ export const ChatInterface: React.FC = () => {
   // Audio playback state management
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const [attachments, setAttachments] = useState<{ type: 'image' | 'file', content: string, mimeType: string, name: string }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const messagesRef = useRef(messages);
   useEffect(() => {
@@ -599,6 +772,13 @@ export const ChatInterface: React.FC = () => {
   };
   const selectedMsg = displayMessages.find(m => m.id === selectedMsgId);
 
+  const handleTextSelection = () => {
+    if (selectedMsg) {
+      setTextSelectionMsg(selectedMsg);
+      closeActions();
+    }
+  };
+
   const handleCopy = () => {
     if (selectedMsg) {
       let textToCopy = selectedMsg.text;
@@ -720,7 +900,7 @@ export const ChatInterface: React.FC = () => {
 
       // Check for cached audio
       const message = messages.find(m => m.id === messageId);
-      let base64Audio: string;
+      let base64Audio: string | undefined;
 
       if (!forceRegenerate && message?.audioCache) {
         // 抽屉里有，直接白嫖！
@@ -756,6 +936,10 @@ export const ChatInterface: React.FC = () => {
         if (base64Audio) {
           updateMessageAudioCache(messageId, base64Audio);
         }
+      }
+
+      if (!base64Audio) {
+        throw new Error("Failed to generate audio");
       }
 
       const binaryString = atob(base64Audio);
@@ -876,7 +1060,31 @@ export const ChatInterface: React.FC = () => {
           const thought = m.variantsThinking?.[idx];
           if (thought) content = `<think>${thought}</think>\n${content}`;
         }
-        return { role: m.role, parts: [{ text: content }] };
+        
+        const parts: any[] = [];
+        if (content) parts.push({ text: content });
+
+        if (m.attachments && m.attachments.length > 0) {
+           m.attachments.forEach(att => {
+               parts.push({
+                   inlineData: {
+                       mimeType: att.mimeType,
+                       data: att.content
+                   }
+               });
+           });
+        } else if (m.image) {
+            parts.push({
+                inlineData: {
+                    mimeType: 'image/png',
+                    data: m.image
+                }
+            });
+        }
+        
+        if (parts.length === 0) parts.push({ text: "..." });
+
+        return { role: m.role, parts: parts };
       }).slice(-15);
 
       let modePrompt = settings.wadePersonality;
@@ -896,7 +1104,7 @@ export const ChatInterface: React.FC = () => {
 
       const currentSession = sessions.find(s => s.id === activeSessionId);
       const response = await generateTextResponse(
-        activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
+        activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
         modePrompt,
@@ -913,7 +1121,9 @@ export const ChatInterface: React.FC = () => {
           frequencyPenalty: activeLlm.frequencyPenalty,
           presencePenalty: activeLlm.presencePenalty
         } : undefined,
-        currentSession?.customPrompt
+        currentSession?.customPrompt,
+        activeLlm?.baseUrl,
+        activeLlm?.isImageGen
       );
 
       const responseText = response.text;
@@ -996,6 +1206,67 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check model support
+    const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+    // Default to true if no preset (using default Gemini)
+    const isVision = activeLlm ? activeLlm.isVision : true; 
+
+    if (!isVision) {
+      alert(`The current model (${activeLlm?.name || 'Unknown'}) does not support images. Please switch to a vision-capable model.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'image',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
+      setShowUploadMenu(false);
+    };
+    reader.readAsDataURL(file);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check model support (PDFs usually require vision/multimodal models too)
+    const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+    const isVision = activeLlm ? activeLlm.isVision : true;
+
+    if (file.type === 'application/pdf' && !isVision) {
+       alert(`The current model (${activeLlm?.name || 'Unknown'}) might not support PDF files. Please switch to a multimodal model.`);
+       return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'file',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
+      setShowUploadMenu(false);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCancel = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -1028,7 +1299,7 @@ export const ChatInterface: React.FC = () => {
   };
 
   const handleSend = async () => {
-    if (!inputText.trim() || activeMode === 'archive') return;
+    if ((!inputText.trim() && attachments.length === 0) || activeMode === 'archive') return;
     let targetSessionId = activeSessionId;
     if (!targetSessionId) {
       targetSessionId = await createSession(activeMode);
@@ -1042,12 +1313,20 @@ export const ChatInterface: React.FC = () => {
       role: 'Luna',
       text: inputText,
       timestamp: Date.now(),
-      mode: activeMode
+      mode: activeMode,
+      attachments: attachments.map(a => ({
+          type: a.type,
+          content: a.content.split(',')[1],
+          mimeType: a.mimeType,
+          name: a.name
+      })),
+      image: attachments.find(a => a.type === 'image')?.content.split(',')[1]
     };
     addMessage(newMessage);
     setLastSentMessageId(newMessage.id);
     setLastInputText(currentInput);
     setInputText('');
+    setAttachments([]);
     if (textareaRef.current) textareaRef.current.style.height = '48px';
     if (isFirstMessage) {
       const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
@@ -1251,20 +1530,18 @@ export const ChatInterface: React.FC = () => {
                   })
                   .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
                   .map(session => (
-                    <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
-                        {session.isPinned && (
-                          <div className="text-[#d58f99] flex-shrink-0">
-                            <Icons.Pin />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
-                          <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
-                      </div>
-                      <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
-                    </div>
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      onOpen={handleOpenSession}
+                      onLongPress={(id) => setActionSessionId(id)}
+                      isRenaming={renamingSessionId === session.id}
+                      onRenameSubmit={(id, title) => {
+                        updateSessionTitle(id, title);
+                        setRenamingSessionId(null);
+                      }}
+                      onRenameCancel={() => setRenamingSessionId(null)}
+                    />
                   ))}
                 
                 {/* Pagination Controls */}
@@ -1287,6 +1564,72 @@ export const ChatInterface: React.FC = () => {
                     >
                       <Icons.ChevronRight />
                     </button>
+                  </div>
+                )}
+
+                {/* Session Action Sheet (Bottom Sheet) */}
+                {actionSessionId && (
+                  <div className="fixed inset-0 z-50 flex items-end justify-center">
+                    <div 
+                      className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in"
+                      onClick={() => {
+                        setActionSessionId(null);
+                        setSessionDeleteConfirm(false);
+                      }}
+                    />
+                    <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl p-5 animate-slide-up border-t border-[#eae2e8]">
+                      <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5 opacity-50" />
+                      
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => {
+                            setRenamingSessionId(actionSessionId);
+                            setActionSessionId(null);
+                            setSessionDeleteConfirm(false);
+                          }}
+                          className="flex items-center gap-3 p-3 bg-white rounded-xl border border-[#eae2e8] text-[#5a4a42] font-semibold text-sm hover:bg-[#f9f6f7] transition-colors active:scale-[0.98]"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#d58f99]">
+                            <Icons.Edit />
+                          </div>
+                          <span>Edit Title</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (sessionDeleteConfirm) {
+                              deleteSession(actionSessionId);
+                              setActionSessionId(null);
+                              setSessionDeleteConfirm(false);
+                            } else {
+                              setSessionDeleteConfirm(true);
+                            }
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-xl border font-semibold text-sm transition-all active:scale-[0.98] ${
+                            sessionDeleteConfirm 
+                              ? 'bg-red-500 border-red-500 text-white hover:bg-red-600' 
+                              : 'bg-white border-red-100 text-red-500 hover:bg-red-50'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                            sessionDeleteConfirm ? 'bg-white/20 text-white' : 'bg-red-50 text-red-500'
+                          }`}>
+                            <Icons.Trash />
+                          </div>
+                          <span>{sessionDeleteConfirm ? "Confirm Delete?" : "Delete Conversation"}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActionSessionId(null);
+                            setSessionDeleteConfirm(false);
+                          }}
+                          className="mt-2 p-3 text-center text-[#917c71] text-sm font-medium hover:text-[#5a4a42] transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
@@ -1626,11 +1969,11 @@ export const ChatInterface: React.FC = () => {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full bg-[#f9f6f7] rounded-xl p-3 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] min-h-[100px] mb-3"
+                    className="w-full bg-[#f9f6f7] rounded-xl p-3 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-sm min-h-[300px] mb-3 resize-none"
                   />
                   <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => setIsEditing(false)} className="flex-1">Cancel</Button>
-                    <Button onClick={handleSaveEdit} className="flex-1">Save</Button>
+                    <Button variant="ghost" onClick={() => setIsEditing(false)} className="flex-1 text-sm">Cancel</Button>
+                    <Button onClick={handleSaveEdit} className="flex-1 text-sm">Save</Button>
                   </div>
                 </div>
               ) : (
@@ -1646,6 +1989,11 @@ export const ChatInterface: React.FC = () => {
                     <button onClick={(e) => { e.stopPropagation(); handleCopy(); }} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Copy /></div>
                       <span className="text-[10px] text-[#917c71]">Copy</span>
+                    </button>
+
+                    <button onClick={(e) => { e.stopPropagation(); handleTextSelection(); }} className="flex flex-col items-center gap-2 group">
+                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.TextSelect /></div>
+                      <span className="text-[10px] text-[#917c71]">Select</span>
                     </button>
 
                     {activeMode !== 'archive' && canRegenerate && (
@@ -1694,9 +2042,9 @@ export const ChatInterface: React.FC = () => {
                         {selectedMsg.audioCache && (
                           <button onClick={(e) => { e.stopPropagation(); regenerateTTS(); }} className="flex flex-col items-center gap-2 group">
                             <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
-                              <Icons.Refresh />
+                              <Icons.RotateThin />
                             </div>
-                            <span className="text-[10px] text-[#917c71]">Regen</span>
+                            <span className="text-[10px] text-[#917c71]">Re-Speak</span>
                           </button>
                         )}
                       </>
@@ -1718,6 +2066,29 @@ export const ChatInterface: React.FC = () => {
           </>
         )
       }
+
+      {/* Text Selection Modal */}
+      {textSelectionMsg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setTextSelectionMsg(null)}>
+          <div className="bg-white w-[90%] max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-[#eae2e8] flex justify-between items-center bg-[#f9f6f7]">
+              <h3 className="font-bold text-[#5a4a42] flex items-center gap-2">
+                <Icons.TextSelect />
+                Select Text
+              </h3>
+              <button onClick={() => setTextSelectionMsg(null)} className="p-2 hover:bg-[#eae2e8] rounded-full transition-colors text-[#917c71]"><Icons.Close /></button>
+            </div>
+            <div className="p-6 overflow-y-auto select-text cursor-text text-[#5a4a42] text-sm leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {textSelectionMsg.text}
+              </ReactMarkdown>
+            </div>
+            <div className="p-4 border-t border-[#eae2e8] bg-[#f9f6f7] text-center">
+              <p className="text-xs text-[#917c71]">Long press or drag to select text to copy</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Conversation Map Modal */}
       {
@@ -1803,8 +2174,91 @@ export const ChatInterface: React.FC = () => {
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-[#eae2e8] z-30">
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-[#eae2e8] z-30">
+            {/* Attachment Preview */}
+            {attachments.length > 0 && (
+              <div className="flex gap-2 mb-2 overflow-x-auto px-2 pb-2">
+                {attachments.map((att, index) => (
+                  <div key={index} className="relative group flex-shrink-0">
+                    {att.type === 'image' ? (
+                      <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-[#eae2e8]" />
+                    ) : (
+                      <div className="h-16 w-16 bg-[#f9f6f7] rounded-lg border border-[#eae2e8] flex flex-col items-center justify-center p-1">
+                        <Icons.File />
+                        <span className="text-[8px] truncate w-full text-center mt-1 text-[#5a4a42]">{att.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => removeAttachment(index)}
+                      className="absolute -top-2 -right-2 bg-[#d58f99] text-white rounded-full p-0.5 shadow-md hover:bg-[#c07a84] transition-colors w-5 h-5 flex items-center justify-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2 max-w-4xl mx-auto items-end">
+              {/* File Upload Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUploadMenu(!showUploadMenu)}
+                  className="w-9 h-9 rounded-full bg-[#f9f6f7] border border-[#eae2e8] flex items-center justify-center hover:bg-[#eae2e8] transition-colors text-[#917c71] hover:text-[#5a4a42] shadow-sm"
+                >
+                  <Icons.PlusThin />
+                </button>
+
+                {/* Hidden Inputs */}
+                <input
+                  type="file"
+                  ref={imageInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.txt,.md,.json"
+                  onChange={handleFileSelect}
+                />
+
+                {/* Upload Menu Popup */}
+                {showUploadMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowUploadMenu(false)}
+                    />
+
+                    {/* Menu */}
+                    <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-xl shadow-lg z-50 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          imageInputRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
+                      >
+                        <Icons.Image />
+                        <span className="text-xs font-medium">Image</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
+                      >
+                        <Icons.File />
+                        <span className="text-xs font-medium">File</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <textarea
                 ref={textareaRef}
                 value={inputText}
@@ -1812,13 +2266,13 @@ export const ChatInterface: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeMode === 'sms' ? "Text message..." : "Type a message..."}
                 rows={1}
-                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-5 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[48px] max-h-[120px]"
+                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-2 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto h-9 text-sm"
               />
               <Button
                 onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
-                className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
+                className="w-9 h-9 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
               >
-                {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.Send />}
+                {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.ArrowUpThin />}
               </Button>
             </div>
           </div>

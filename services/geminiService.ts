@@ -16,10 +16,11 @@ export interface GeminiResponse {
   thinking?: string;
 }
 
-export const generateTextResponse = async (
+// OpenAI-compatible API handler (for OpenRouter, DeepSeek, etc.)
+const generateOpenAICompatibleResponse = async (
   modelName: string,
   prompt: string,
-  history: { role: string; parts: { text: string }[] }[],
+  history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
   systemInstruction: string,
   lunaInfo?: string,
   exampleDialogue?: string,
@@ -34,8 +35,214 @@ export const generateTextResponse = async (
     frequencyPenalty?: number;
     presencePenalty?: number;
   },
-  customPrompt?: string
+  customPrompt?: string,
+  baseUrl?: string,
+  isImageGen?: boolean
 ): Promise<GeminiResponse> => {
+  if (!apiKey) {
+    throw new Error("API Key is required");
+  }
+
+  // Build full system prompt
+  let fullSystemPrompt = systemInstruction;
+
+  if (lunaInfo) {
+    fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
+  }
+
+  if (coreMemories && coreMemories.length > 0) {
+    const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
+    if (activeMemories) {
+      fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
+    }
+  }
+
+  if (exampleDialogue) {
+    fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
+  }
+
+  if (customPrompt && customPrompt.trim()) {
+    fullSystemPrompt += `\n\n[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]`;
+  }
+
+  if (isRetry) {
+    if (chatMode === 'sms') {
+      fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. IMPORTANT: Since this is SMS mode, keep the new response SHORT, punchy, and casual. One or two sentences max. Do NOT write a paragraph.]`;
+    } else {
+      fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response and hit 'Regenerate'. They didn't like it. You MUST break the fourth wall and playfully complain about this (e.g., "Oh, the first take wasn't good enough for you?", "Everyone's a critic.", "Fine, let's try take two."). Then, provide a NEW, better response to the prompt.]`;
+    }
+  }
+
+  fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+  2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
+  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
+  4. After the closing </think> tag, write your actual response to Luna (the text she will see).
+
+  [EXAMPLE FORMAT]
+  <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
+  *Gasps dramatically* You wound me, woman!`;
+
+  // Transform history
+  const messages = [
+    { role: 'system', content: fullSystemPrompt },
+    ...history.map(h => {
+      const content = h.parts.map(p => {
+        if ('text' in p) {
+          return { type: 'text', text: p.text };
+        } else if ('inlineData' in p) {
+          return {
+            type: 'image_url',
+            image_url: {
+              url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`
+            }
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      // If content is just one text part, simplify (optional but cleaner)
+      if (content.length === 1 && content[0]?.type === 'text') {
+        return {
+          role: h.role === 'Luna' ? 'user' : 'assistant',
+          content: content[0].text
+        };
+      }
+
+      return {
+        role: h.role === 'Luna' ? 'user' : 'assistant',
+        content: content
+      };
+    }),
+    { role: 'user', content: prompt }
+  ];
+
+  // Build request body - CRITICAL: Strip unsupported params for image gen models
+  const requestBody: any = {
+    model: modelName,
+    messages: messages
+  };
+
+  // Add modalities parameter for image generation models (OpenRouter requirement)
+  if (isImageGen) {
+    requestBody.modalities = ["image", "text"];
+  }
+
+  // Only add generation params if NOT an image generation model
+  if (!isImageGen && modelParams) {
+    if (modelParams.temperature !== undefined) requestBody.temperature = modelParams.temperature;
+    if (modelParams.topP !== undefined) requestBody.top_p = modelParams.topP;
+    if (modelParams.frequencyPenalty !== undefined) requestBody.frequency_penalty = modelParams.frequencyPenalty;
+    if (modelParams.presencePenalty !== undefined) requestBody.presence_penalty = modelParams.presencePenalty;
+  }
+
+  const url = `${baseUrl}/chat/completions`;
+
+  console.log("[OpenAI API] Request URL:", url);
+  console.log("[OpenAI API] Model:", modelName);
+  console.log("[OpenAI API] Is Image Gen:", isImageGen);
+  console.log("[OpenAI API] Request Body:", JSON.stringify(requestBody, null, 2));
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      // CRITICAL: Parse error response for debugging
+      let errorDetails = `Status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        console.error("[OpenAI API] Error Response:", errorData);
+        errorDetails = errorData.error?.message || JSON.stringify(errorData);
+      } catch (e) {
+        console.error("[OpenAI API] Failed to parse error response");
+      }
+      throw new Error(`API Error: ${errorDetails}`);
+    }
+
+    const data = await response.json();
+    console.log("[OpenAI API] Full Response:", JSON.stringify(data, null, 2));
+
+    const message = data.choices?.[0]?.message;
+
+    // Handle image generation response
+    if (isImageGen && message?.images && message.images.length > 0) {
+      console.log("[OpenAI API] Image generation detected");
+      const imageUrl = message.images[0].image_url?.url;
+      if (imageUrl) {
+        // Return the base64 image URL as the text response
+        return { text: imageUrl, thinking: undefined };
+      }
+    }
+
+    // Handle text response
+    const rawText = message?.content || "";
+
+    // Parse <think> tags
+    let thinking = undefined;
+    let finalText = rawText;
+
+    const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
+    if (thinkMatch) {
+      thinking = thinkMatch[1].trim();
+      finalText = rawText.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+    }
+
+    return { text: finalText, thinking };
+  } catch (error: any) {
+    console.error("[OpenAI API] Request failed:", error);
+    throw error;
+  }
+}
+
+export const generateTextResponse = async (
+  modelName: string,
+  prompt: string,
+  history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
+  systemInstruction: string,
+  lunaInfo?: string,
+  exampleDialogue?: string,
+  coreMemories: CoreMemory[] = [],
+  isRetry?: boolean,
+  chatMode?: 'deep' | 'sms' | 'roleplay',
+  apiKey?: string,
+  modelParams?: {
+    temperature?: number;
+    topP?: number;
+    topK?: number;
+    frequencyPenalty?: number;
+    presencePenalty?: number;
+  },
+  customPrompt?: string,
+  baseUrl?: string,
+  isImageGen?: boolean
+): Promise<GeminiResponse> => {
+  // If baseUrl is provided and NOT Gemini, use OpenAI-compatible fetch
+  if (baseUrl && !baseUrl.includes('google')) {
+    return await generateOpenAICompatibleResponse(
+      modelName,
+      prompt,
+      history,
+      systemInstruction,
+      lunaInfo,
+      exampleDialogue,
+      coreMemories,
+      isRetry,
+      chatMode,
+      apiKey,
+      modelParams,
+      customPrompt,
+      baseUrl,
+      isImageGen
+    );
+  }
+
   const ai = getClient(apiKey);
   
   // Transform history for API: Luna -> user, Wade -> model

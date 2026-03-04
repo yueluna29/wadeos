@@ -62,7 +62,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   // NEW: Memories & Archives
-  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>([]);
+  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>(() => {
+    const saved = localStorage.getItem('wade_core_memories');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [chatArchives, setChatArchives] = useState<ChatArchive[]>([]);
 
   // Load Everything from Supabase
@@ -110,7 +113,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             topP: p.top_p ?? 1.0,
             topK: p.top_k ?? 40,
             frequencyPenalty: p.frequency_penalty ?? 0,
-            presencePenalty: p.presence_penalty ?? 0
+            presencePenalty: p.presence_penalty ?? 0,
+            isVision: p.is_vision ?? false,
+            isImageGen: p.is_image_gen ?? false
           })));
         }
 
@@ -185,6 +190,25 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              }
              while (parsedThinking.length < parsedVariants.length) parsedThinking.push(null);
 
+             // Parse Audio Variants
+             let parsedAudio: (string|null)[] = [];
+             if (row.audio_cache) {
+                // Try to parse as JSON array first
+                try {
+                  const parsed = JSON.parse(row.audio_cache);
+                  if (Array.isArray(parsed)) {
+                    parsedAudio = parsed;
+                  } else {
+                    // Legacy: Single string, assign to index 0
+                    parsedAudio = [row.audio_cache];
+                  }
+                } catch (e) {
+                  // Not JSON, assume legacy single string
+                  parsedAudio = [row.audio_cache];
+                }
+             }
+             while (parsedAudio.length < parsedVariants.length) parsedAudio.push(null);
+
             return {
               id: row.id,
               sessionId: row.session_id,
@@ -195,8 +219,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
+              variantsAudio: parsedAudio,
               selectedIndex: row.selected_index || 0,
-              audioCache: row.audio_cache // 把数据库里的录音带拿出来！
+              audioCache: parsedAudio[row.selected_index || 0] || undefined // Backwards compatibility for UI
             };
           };
 
@@ -267,15 +292,86 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchSocialPosts();
 
+        // 9. Recommendations
+        const fetchRecommendations = async () => {
+            const { data: recData, error: recError } = await supabase.from('recommendations').select('*').order('created_at', { ascending: false });
+            if (recData && !recError) {
+                if (recData.length === 0 && localStorage.getItem('wade_recs')) {
+                    // Migrate from local storage
+                    try {
+                        const localRecs = JSON.parse(localStorage.getItem('wade_recs') || '[]');
+                        if (localRecs.length > 0) {
+                            const insertData = localRecs.map((r: any) => ({
+                                id: r.id,
+                                type: r.type,
+                                title: r.title,
+                                creator: r.creator,
+                                release_date: r.releaseDate,
+                                synopsis: r.synopsis,
+                                comment: r.comment,
+                                cover_url: r.coverUrl,
+                                luna_review: r.lunaReview,
+                                luna_rating: r.lunaRating,
+                                wade_reply: r.wadeReply
+                            }));
+                            await supabase.from('recommendations').insert(insertData);
+                            setRecommendations(localRecs);
+                        }
+                    } catch (e) {
+                        console.error("Failed to migrate recommendations", e);
+                    }
+                } else {
+                    setRecommendations(recData.map(r => ({
+                        id: r.id,
+                        type: r.type,
+                        title: r.title,
+                        creator: r.creator,
+                        releaseDate: r.release_date,
+                        synopsis: r.synopsis,
+                        comment: r.comment,
+                        coverUrl: r.cover_url,
+                        lunaReview: r.luna_review,
+                        lunaRating: r.luna_rating,
+                        wadeReply: r.wade_reply
+                    })));
+                }
+            }
+        };
+        fetchRecommendations();
+
+        // 10. Time Capsules
+        const fetchTimeCapsules = async () => {
+            const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at', { ascending: false });
+            if (capData && !capError) {
+                setCapsules(capData.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    content: c.content,
+                    createdAt: c.created_at,
+                    unlockDate: c.unlock_date,
+                    isLocked: c.is_locked,
+                    audioCache: c.audio_cache
+                })));
+            }
+        };
+        fetchTimeCapsules();
+
         // Clear old localStorage data after successful sync
         localStorage.removeItem('wade_sessions');
         localStorage.removeItem('wade_messages');
         localStorage.removeItem('wade_social'); // Also clear social posts from local storage
+        localStorage.removeItem('wade_capsules');
+        localStorage.removeItem('wade_recs');
         console.log("[DB] Cleared old localStorage data after sync");
 
       } catch (err: any) {
         console.error("Supabase Sync Failed:", err);
-        setSyncError(err.message || "Unknown DB Error");
+        // Handle "Failed to fetch" (Network Error / Offline) gracefully
+        if (err.message === 'Failed to fetch' || err.name === 'TypeError' || err.message.includes('fetch')) {
+             console.warn("Network error during sync, running in offline mode.");
+        } else {
+             setSyncError(err.message || "Unknown DB Error");
+        }
       }
     };
     fetchData();
@@ -290,27 +386,28 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       {
         id: 'sample-1',
         author: 'User', // Luna
-        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 #DateNight",
-        images: ['https://picsum.photos/seed/date/800/600', 'https://picsum.photos/seed/hands/800/600'],
+        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 \n\n最后那个反派的死法也太搞笑了，Wade笑得爆米花都撒了一地！\n\n#DateNight #MovieTime #Wade",
+        images: ['https://picsum.photos/seed/date/800/800', 'https://picsum.photos/seed/hands/800/800', 'https://picsum.photos/seed/popcorn/800/800'],
         timestamp: Date.now() - 3600000 * 2,
         likes: 12,
+        isBookmarked: true,
         comments: [
-          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘" },
-          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡" },
-          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！" }
+          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘", timestamp: Date.now() - 3500000 * 2 },
+          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
+          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！", timestamp: Date.now() - 3300000 * 2 }
         ]
       },
       {
         id: 'sample-2',
         author: 'Wade',
-        content: "Luna insisted on cooking tonight. I'm currently hiding the fire extinguisher behind my back. Just in case. 🔥🍳 #ChefLuna #HazardPay",
-        images: ['https://picsum.photos/seed/cooking/800/800'],
-        timestamp: Date.now() - 3600000 * 24,
+        content: "Someone told me I need to be more 'aesthetic' on this app. So here is a picture of a chimichanga I found in the fridge. \n\nIt was delicious. \n\n#FoodPorn #ChimichangaLife #Aesthetic #NotReally",
+        images: ['https://picsum.photos/seed/chimichanga/800/800'],
+        timestamp: Date.now() - 86400000,
         likes: 42,
+        isBookmarked: false,
         comments: [
-          { id: 'c2-1', author: 'User', text: "Wade Wilson!! It was just a LITTLE crispy! 😤" },
-          { id: 'c2-2', author: 'Wade', text: "Babe, the smoke alarm is singing the song of its people." },
-          { id: 'c2-3', author: 'User', text: "You're sleeping on the couch." }
+          { id: 'c2-1', author: 'User', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
+          { id: 'c2-2', author: 'Wade', text: "Finders keepers, sweetie! I'll buy you a new one. Maybe.", timestamp: Date.now() - 84000000 }
         ]
       }
     ];
@@ -319,23 +416,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('wade_memos');
     return saved ? JSON.parse(saved) : [];
   });
-  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>(() => {
-    const saved = localStorage.getItem('wade_capsules');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [recommendations, setRecommendations] = useState<Recommendation[]>(() => {
-    const saved = localStorage.getItem('wade_recs');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', type: 'movie', title: 'The Proposal', comment: 'Because Ryan Reynolds. Obviously.', coverUrl: 'https://picsum.photos/100/150' },
-      { id: '2', type: 'music', title: 'Careless Whisper', comment: 'Our song, babe.', coverUrl: 'https://picsum.photos/100/100' }
-    ];
-  });
+  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   // Persistence Effects (sessions/messages now persisted in Supabase only)
   useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
-  useEffect(() => localStorage.setItem('wade_capsules', JSON.stringify(capsules)), [capsules]);
-  useEffect(() => localStorage.setItem('wade_recs', JSON.stringify(recommendations)), [recommendations]);
 
   // Actions
   const updateSettings = async (s: Partial<AppSettings>) => {
@@ -372,11 +458,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       top_p: p.topP,
       top_k: p.topK,
       frequency_penalty: p.frequencyPenalty,
-      presence_penalty: p.presencePenalty
+      presence_penalty: p.presencePenalty,
+      is_vision: p.isVision ?? false,
+      is_image_gen: p.isImageGen ?? false
     };
-    
+
     const { data, error } = await supabase.from('llm_presets').insert(payload).select().single();
-    
+
     if (error) {
         console.error("Add LLM Preset Error:", error);
         alert(`Failed to save preset: ${error.message}`);
@@ -396,7 +484,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         topP: data.top_p,
         topK: data.top_k,
         frequencyPenalty: data.frequency_penalty,
-        presencePenalty: data.presence_penalty
+        presencePenalty: data.presence_penalty,
+        isVision: data.is_vision ?? false,
+        isImageGen: data.is_image_gen ?? false
       }]);
     }
   };
@@ -414,9 +504,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (p.topK !== undefined) dbPayload.top_k = p.topK;
     if (p.frequencyPenalty !== undefined) dbPayload.frequency_penalty = p.frequencyPenalty;
     if (p.presencePenalty !== undefined) dbPayload.presence_penalty = p.presencePenalty;
+    if (p.isVision !== undefined) dbPayload.is_vision = p.isVision;
+    if (p.isImageGen !== undefined) dbPayload.is_image_gen = p.isImageGen;
 
     const { error } = await supabase.from('llm_presets').update(dbPayload).eq('id', id);
-    
+
     if (error) {
         console.error("Update LLM Preset Error:", error);
         alert(`Failed to update preset: ${error.message}`);
@@ -519,8 +611,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateSessionTitle = async (id: string, title: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, title } : s));
-    await supabase.from('chat_sessions').update({ title }).eq('id', id);
+    const now = Date.now();
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: now } : s));
+    const { error } = await supabase.from('chat_sessions').update({ title, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) {
+      console.error("Failed to update session title:", error);
+    }
   };
 
   const updateSession = async (id: string, updates: Partial<ChatSession>) => {
@@ -665,13 +761,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateMessageAudioCache = async (id: string, base64Audio: string) => {
-    // 1. 塞进前端的口袋
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache: base64Audio } : m));
-    // 2. 焊死在 Supabase 的云端抽屉里
     const msg = messages.find(m => m.id === id);
-    if (msg && msg.mode !== 'archive') {
+    if (!msg) return;
+
+    const currentIdx = msg.selectedIndex || 0;
+    const newVariantsAudio = [...(msg.variantsAudio || [])];
+    while (newVariantsAudio.length <= currentIdx) newVariantsAudio.push(null);
+    newVariantsAudio[currentIdx] = base64Audio;
+
+    // 1. 塞进前端的口袋
+    setMessages(prev => prev.map(m => m.id === id ? { 
+      ...m, 
+      variantsAudio: newVariantsAudio,
+      audioCache: base64Audio 
+    } : m));
+
+    // 2. 焊死在 Supabase 的云端抽屉里
+    if (msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      await safeDbUpdate(tableName, id, { audio_cache: base64Audio });
+      // Store as JSON string to support multiple variants
+      await safeDbUpdate(tableName, id, { audio_cache: JSON.stringify(newVariantsAudio) });
     }
   };
 
@@ -681,6 +790,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     const newVariants = [...(msg.variants || [msg.text]), newText];
     const newThinking = [...(msg.variantsThinking || Array(msg.variants?.length || 1).fill(null)), thinking || null];
+    const newVariantsAudio = [...(msg.variantsAudio || Array(msg.variants?.length || 1).fill(null)), null]; // Add null for new variant
     const newIndex = newVariants.length - 1;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
@@ -688,7 +798,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       text: newText, 
       variants: newVariants,
       variantsThinking: newThinking,
+      variantsAudio: newVariantsAudio,
       selectedIndex: newIndex,
+      audioCache: undefined, // Clear current audio cache for new variant
       isRegenerating: false 
     } : m));
 
@@ -698,6 +810,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         content: newText,
         variants: newVariants,
         variants_thinking: newThinking,
+        audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
         selected_index: newIndex
       });
     }
@@ -708,11 +821,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (!msg || !msg.variants || !msg.variants[index]) return;
 
     const selectedText = msg.variants[index];
+    const selectedAudio = msg.variantsAudio ? msg.variantsAudio[index] : undefined;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: selectedText, 
-      selectedIndex: index 
+      selectedIndex: index,
+      audioCache: selectedAudio || undefined // Switch to audio for this variant
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
@@ -840,52 +955,42 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       content,
       category,
       isActive: true,
+      enabled: true,
       createdAt: Date.now()
     };
     setCoreMemories(prev => [newMemory, ...prev]);
 
-    // Use try/catch for safety, assume user added column, but fallback if not
-    const payload = {
-      id: tempId,
-      title,
-      content,
-      category,
-      is_active: true
-    };
-
-    const { error } = await supabase.from('memories_core').insert(payload);
-
-    if (error) {
-       console.error("Add Memory Error", error);
-       // If schema error (missing title), try fallback
-       if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-           console.warn("Retrying memory insert without title column.");
-           const { title, ...fallback } = payload;
-           await supabase.from('memories_core').insert(fallback);
-       }
-    }
+    // Store in localStorage as backup
+    const memKey = `wade_core_memories`;
+    const current = JSON.parse(localStorage.getItem(memKey) || '[]');
+    localStorage.setItem(memKey, JSON.stringify([newMemory, ...current]));
   };
 
   const updateCoreMemory = async (id: string, title: string, content: string) => {
     setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content } : m));
-    
-    const { error } = await supabase.from('memories_core').update({
-      title,
-      content
-    }).eq('id', id);
 
-    if (error) {
-      console.error("Update Memory Error", error);
-      // Fallback if title column missing
-      if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-         await supabase.from('memories_core').update({ content }).eq('id', id);
-      }
-    }
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, title, content } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
+  };
+
+  const toggleCoreMemoryEnabled = async (id: string) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
   };
 
   const deleteCoreMemory = async (id: string) => {
     setCoreMemories(prev => prev.filter(m => m.id !== id));
-    await supabase.from('memories_core').delete().eq('id', id);
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const filtered = current.filter(m => m.id !== id);
+    localStorage.setItem(memKey, JSON.stringify(filtered));
   };
 
   const importArchive = async (title: string, fileContent: string) => {
@@ -1069,7 +1174,118 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
-  const addCapsule = (c: TimeCapsuleItem) => setCapsules(prev => [...prev, c]);
+  
+  const addCapsule = async (c: TimeCapsuleItem) => {
+    setCapsules(prev => [...prev, c]);
+    try {
+      await supabase.from('time_capsules').insert({
+        id: c.id,
+        title: c.title,
+        content: c.content,
+        created_at: c.createdAt,
+        unlock_date: c.unlockDate,
+        is_locked: c.isLocked
+      });
+    } catch (e) {
+      console.error("Failed to save time capsule to Supabase", e);
+    }
+  };
+
+  const updateCapsule = async (id: string, updates: Partial<TimeCapsuleItem>) => {
+    setCapsules(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.content !== undefined) dbUpdates.content = updates.content;
+      if (updates.unlockDate !== undefined) {
+        dbUpdates.unlock_date = updates.unlockDate;
+        dbUpdates.is_locked = updates.unlockDate > Date.now();
+      }
+      if (updates.audioCache !== undefined) dbUpdates.audio_cache = updates.audioCache;
+      await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
+    } catch (e) {
+      console.error("Failed to update time capsule in Supabase", e);
+    }
+  };
+
+  // --- RECOMMENDATIONS ---
+  const deleteCapsule = async (id: string) => {
+    setCapsules(prev => prev.filter(c => c.id !== id));
+    try {
+      await supabase.from('time_capsules').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete time capsule from Supabase", e);
+    }
+  };
+
+  const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
+    const newRec: Recommendation = { ...r, id: Date.now().toString() };
+    setRecommendations(prev => [newRec, ...prev]);
+    try {
+      const { data, error } = await supabase.from('recommendations').insert({
+        id: newRec.id,
+        type: newRec.type,
+        title: newRec.title,
+        creator: newRec.creator,
+        release_date: newRec.releaseDate,
+        synopsis: newRec.synopsis,
+        comment: newRec.comment,
+        cover_url: newRec.coverUrl,
+        luna_review: newRec.lunaReview,
+        luna_rating: newRec.lunaRating,
+        wade_reply: newRec.wadeReply
+      });
+      if (error) {
+        console.error("Failed to insert recommendation:", error);
+        alert(`Failed to save recommendation: ${error.message}`);
+      } else {
+        console.log("Recommendation saved successfully:", data);
+      }
+    } catch (e) {
+      console.error("Failed to sync recommendation to Supabase", e);
+    }
+  };
+
+  const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
+    setRecommendations(prev => {
+      const updated = prev.map(rec => rec.id === id ? { ...rec, ...r } : rec);
+
+      // Sync to Supabase
+      const fullRec = updated.find(rec => rec.id === id);
+      if (fullRec) {
+        supabase.from('recommendations').upsert({
+          id: fullRec.id,
+          type: fullRec.type,
+          title: fullRec.title,
+          creator: fullRec.creator,
+          release_date: fullRec.releaseDate,
+          synopsis: fullRec.synopsis,
+          comment: fullRec.comment,
+          cover_url: fullRec.coverUrl,
+          luna_review: fullRec.lunaReview,
+          luna_rating: fullRec.lunaRating,
+          wade_reply: fullRec.wadeReply
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error("Failed to sync recommendation update to Supabase", error);
+            alert(`Failed to update recommendation: ${error.message}`);
+          } else {
+            console.log("Recommendation updated successfully:", data);
+          }
+        });
+      }
+      return updated;
+    });
+  };
+
+  const deleteRecommendation = async (id: string) => {
+    setRecommendations(prev => prev.filter(rec => rec.id !== id));
+    try {
+      await supabase.from('recommendations').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete recommendation from Supabase", e);
+    }
+  };
 
   return (
     <StoreContext.Provider value={{
@@ -1085,11 +1301,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       forkSession, 
       socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
-      capsules, addCapsule,
-      recommendations,
+      capsules, addCapsule, updateCapsule, deleteCapsule,
+      recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
-      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory,
+      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled,
       chatArchives, importArchive, loadArchiveMessages, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
 
       activeMode, setMode,
