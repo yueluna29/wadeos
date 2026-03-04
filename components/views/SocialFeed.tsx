@@ -608,7 +608,7 @@ const PostCaption = ({ content, authorName, hideAuthor }: { content: string, aut
           <Markdown 
             remarkPlugins={[remarkGfm, remarkBreaks]}
             components={{
-              p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />,
+              p: ({node, ...props}) => <p className="mb-[0.5em] last:mb-0" {...props} />,
               a: ({node, href, children, ...props}) => {
                 if (href?.startsWith('#')) {
                   return <span className="text-[#00376b] cursor-pointer hover:underline">{children}</span>;
@@ -1539,7 +1539,7 @@ const PostCaption = ({ content, authorName, hideAuthor }: { content: string, aut
           const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 2);
 
           return (
-            <div key={post.id} className="bg-white border-b border-gray-200 pb-2 font-sans">
+            <div key={post.id} className="bg-white border-b border-gray-200 pb-2 mb-3 font-sans">
               {/* Post Header */}
               <div className="flex items-center justify-between px-3 py-2">
                 <div 
