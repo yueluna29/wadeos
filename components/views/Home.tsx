@@ -104,8 +104,8 @@ export const Home: React.FC = () => {
 
   return (
     <div className="h-full overflow-y-auto bg-[#f9f6f7] p-6">
-      <header className="mb-8 flex justify-between items-start">
-        <div>
+      <header className="mb-8 flex justify-center items-start">
+        <div className="text-center">
           <h1 className="font-hand text-3xl text-[#d58f99] mb-1">Welcome Home, Luna.</h1>
           <p className="text-[#917c71] text-sm opacity-80">
             {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
