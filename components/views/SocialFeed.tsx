@@ -1652,7 +1652,12 @@ const PostCaption = ({ content, authorName, hideAuthor }: { content: string, aut
                 <span className="font-semibold mr-1">{authorUsername}</span>
                 <PostCaption content={post.content} authorName={authorName} hideAuthor={true} />
               </div>
-              
+
+              {/* Date */}
+              <div className="px-3 mt-1 mb-1">
+                <span className="text-[10px] text-gray-500 uppercase tracking-wide">{formatTimeAgo(post.timestamp)}</span>
+              </div>
+
               {/* Comments Section */}
               {post.comments && post.comments.length > 0 && (
                 <div className="px-3 mt-1">
@@ -1742,11 +1747,6 @@ const PostCaption = ({ content, authorName, hideAuthor }: { content: string, aut
                   </div>
                 </div>
               )}
-
-              {/* Date */}
-              <div className="px-3 mt-1 mb-2">
-                <span className="text-[10px] text-gray-500 uppercase tracking-wide">{formatTimeAgo(post.timestamp)}</span>
-              </div>
 
               {/* Add Comment Input */}
               {activePostId === post.id && (
