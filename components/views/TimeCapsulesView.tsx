@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
