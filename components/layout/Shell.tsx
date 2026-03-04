@@ -85,7 +85,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       <div className="w-full h-full max-w-4xl bg-white md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-white ring-0 md:ring-1 ring-[#d58f99]/20 relative">
         
         {/* Navigation Bar */}
-        <nav className={`bg-[#fff0f3] md:w-16 w-full h-[4.5rem] md:h-full ${isNavHidden ? 'hidden md:flex' : 'flex'} md:flex-col flex-row items-center justify-evenly z-30 border-t md:border-t-0 md:border-r border-[#d58f99]/10 order-2 md:order-1 shrink-0 relative animate-fade-in pb-1 md:pb-0`}>
+        <nav className={`bg-[#fff0f3] md:w-16 w-full md:h-full ${isNavHidden ? 'hidden md:flex' : 'flex'} md:flex-col flex-row items-center justify-evenly z-30 border-t md:border-t-0 md:border-r border-[#d58f99]/10 order-2 md:order-1 shrink-0 relative animate-fade-in pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:pb-0 md:pt-0`}>
             
             <button onClick={() => setTab('home')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'home' ? 'text-[#d58f99] scale-110' : 'text-[#d58f99]/50 hover:text-[#d58f99]/80'}`}>
               <Icons.Home className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'home' ? 'stroke-[2.5px] fill-[#d58f99]/10' : 'stroke-[2px]'}`} />

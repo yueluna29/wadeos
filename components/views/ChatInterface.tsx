@@ -2174,7 +2174,7 @@ export const ChatInterface: React.FC = () => {
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-[#eae2e8] z-30">
+          <div className="absolute bottom-0 left-0 right-0 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white border-t border-[#eae2e8] z-30">
             {/* Attachment Preview */}
             {attachments.length > 0 && (
               <div className="flex gap-2 mb-2 overflow-x-auto px-2 pb-2">
