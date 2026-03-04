@@ -391,16 +391,14 @@ export const TimeCapsulesView = () => {
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-4 pt-6 pb-4">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-6 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setTab('home')} className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] hover:border-[#d58f99] transition-all shadow-sm">
-              <Icons.ChevronLeft />
-            </button>
-            <div>
-              <h1 className="font-hand text-3xl text-[#5a4a42] tracking-tight">Time Capsules</h1>
-              <p className="text-xs text-[#917c71] font-medium tracking-wide uppercase opacity-80">
-                {capsules.length} Memories Sealed
-              </p>
-            </div>
+          <button onClick={() => setTab('home')} className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] hover:border-[#d58f99] transition-all shadow-sm flex-shrink-0">
+            <Icons.ChevronLeft />
+          </button>
+          <div className="text-center">
+            <h1 className="font-hand text-3xl text-[#5a4a42] tracking-tight">Time Capsules</h1>
+            <p className="text-xs text-[#917c71] font-medium tracking-wide uppercase opacity-80">
+              {capsules.length} Memories Sealed
+            </p>
           </div>
           <button
             onClick={() => {
