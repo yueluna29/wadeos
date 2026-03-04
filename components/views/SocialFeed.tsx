@@ -1684,13 +1684,13 @@ const PostCaption = ({ content, authorName, hideAuthor }: { content: string, aut
                                 className={`text-[14px] flex gap-2 items-start group ${isReply ? 'ml-6 border-l-2 border-gray-200 pl-3' : ''}`}
                             >
                                 <div
-                                    className="flex-1 flex items-baseline gap-x-2 cursor-pointer rounded-lg transition-colors leading-snug"
+                                    className="flex-1 cursor-pointer rounded-lg transition-colors leading-snug"
                                     onClick={() => {
                                         setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorUsername, text: comment.text});
                                         setActivePostId(post.id);
                                     }}
                                 >
-                                    <span className="font-semibold shrink-0 text-black">
+                                    <span className="font-semibold text-black mr-2">
                                         {commentAuthorUsername}
                                     </span>
                                     <span className="text-black break-words">
