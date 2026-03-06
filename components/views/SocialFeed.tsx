@@ -5,6 +5,9 @@ import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
 import { SocialPost, ArchiveMessage } from '../../types';
 import { GoogleGenAI } from "@google/genai";
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 // --- Icons ---
 const Icons = {
@@ -30,7 +33,7 @@ const Icons = {
     </svg>
   ),
   MoreHorizontal: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="1"></circle>
       <circle cx="19" cy="12" r="1"></circle>
       <circle cx="5" cy="12" r="1"></circle>
@@ -105,7 +108,7 @@ export const SocialFeed: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
-  const [replyingTo, setReplyingTo] = useState<{postId: string, commentId: string, author: string} | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{postId: string, commentId: string, author: string, text: string} | null>(null);
 
   // New Post State
   const [showDiaryTypeModal, setShowDiaryTypeModal] = useState(false);
@@ -137,9 +140,16 @@ export const SocialFeed: React.FC = () => {
   // Delete confirmation states
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [deletingComment, setDeletingComment] = useState<{postId: string, commentId: string} | null>(null);
+  const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
 
   // Image zoom states
   const [zoomedImage, setZoomedImage] = useState<{images: string[], index: number} | null>(null);
+
+  // Profile view state
+  const [viewingProfile, setViewingProfile] = useState<'Luna' | 'Wade' | null>(null);
+
+  // Full post viewer state
+  const [viewingPostDetail, setViewingPostDetail] = useState<{author: 'Luna' | 'Wade', postIndex: number} | null>(null);
 
   useEffect(() => {
     setLocalPosts(socialPosts);
@@ -165,17 +175,11 @@ export const SocialFeed: React.FC = () => {
   };
 
   const handleEditPost = (post: SocialPost) => {
-    // Only allow editing Luna's posts (User author)
-    if (post.author !== 'User') {
-      alert("You can only edit your own diary entries!");
-      return;
-    }
-
     setEditingPost(post);
     setNewPostContent(post.content);
     setPreviewUrls(post.images || []);
     setSelectedFiles([]); // Clear any new files, we'll add new ones
-    setDiaryType('Luna');
+    setDiaryType(post.author === 'User' ? 'Luna' : 'Wade');
     setIsCreating(true);
   };
 
@@ -271,6 +275,10 @@ export const SocialFeed: React.FC = () => {
         const lunaComments = post.comments.filter(c => c.author === 'User').reverse();
         const mostRecentLunaComment = lunaComments[0];
 
+        const taskDescription = mostRecentLunaComment
+            ? "Write a short, witty, flirty in-character reply to Luna's latest comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis naturally."
+            : "Write a short, witty, flirty in-character comment on Luna's post. Be romantic but teasing. Keep it under 20 words. Use emojis naturally.";
+
         const context = `
 You are Wade Wilson (Deadpool).
 
@@ -290,7 +298,7 @@ ${mostRecentLunaComment ? `- Luna's Latest Comment: "${mostRecentLunaComment.tex
 All Comments so far:
 ${post.comments.map(c => `${c.author === 'User' ? 'Luna' : c.author}: ${c.text}`).join('\n')}
 
-Task: Write a short, witty, flirty in-character reply to Luna's latest comment. Be romantic but teasing. This is a reply to her comment, not the main post. Keep it under 20 words. Use emojis naturally.
+Task: ${taskDescription}
         `;
 
         let generatedText = "";
@@ -318,9 +326,9 @@ Task: Write a short, witty, flirty in-character reply to Luna's latest comment. 
             generatedText = data.choices?.[0]?.message?.content || "";
         }
 
-        if (generatedText && mostRecentLunaComment) {
-            // Reply to Luna's latest comment as a second-level reply
-            handleAddComment(post.id, generatedText.trim(), 'Wade', mostRecentLunaComment.id);
+        if (generatedText) {
+            // Reply to Luna's latest comment as a second-level reply, or to the post directly
+            handleAddComment(post.id, generatedText.trim(), 'Wade', mostRecentLunaComment?.id);
         }
 
     } catch (error) {
@@ -586,7 +594,46 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
     return `${year}/${month}/${day} ${hours}:${minutes}`;
   };
 
-  // Image Carousel Component
+const PostCaption = ({ content, authorName, hideAuthor, className }: { content: string, authorName: string, hideAuthor?: boolean, className?: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Pre-process content to turn #tags into markdown links so we can style them
+  // Matches # followed by word characters or Chinese characters
+  const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
+
+  return (
+    <div className={`text-[14px] text-black leading-snug ${hideAuthor ? '' : 'px-4 pb-2'} ${className || ''}`}>
+      <div className={`relative ${!isExpanded ? 'line-clamp-3' : ''}`}>
+        <div className="markdown-body">
+          <Markdown 
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            components={{
+              p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />,
+              strong: ({node, ...props}) => <span className="font-semibold text-black mr-1" {...props} />,
+              a: ({node, href, children, ...props}) => {
+                if (href?.startsWith('#')) {
+                  return <span className="text-[#00376b] cursor-pointer hover:underline">{children}</span>;
+                }
+                return <a href={href} className="text-[#00376b] hover:underline" {...props}>{children}</a>;
+              }
+            }}
+          >
+            {processedContent}
+          </Markdown>
+        </div>
+        {!isExpanded && content.length > 100 && (
+          <button 
+            onClick={() => setIsExpanded(true)}
+            className="text-gray-500 text-[14px] hover:text-black absolute bottom-0 right-0 bg-white pl-2"
+          >
+            ... more
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
   const ImageCarousel = ({ images }: { images: string[] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -601,32 +648,32 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
     };
 
     return (
-      <div className="relative w-full bg-gray-100 flex items-center justify-center overflow-hidden max-h-[500px] group">
+      <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden group">
         <img
           src={images[currentIndex]}
-          className="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity"
+          className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500"
           onClick={() => setZoomedImage({images, index: currentIndex})}
         />
-        
+
         {images.length > 1 && (
           <>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); prevImage(); }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
               <Icons.ChevronLeft />
             </button>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); nextImage(); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
               <Icons.ChevronRight />
             </button>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/20 backdrop-blur-sm px-2 py-1 rounded-full">
               {images.map((_, idx) => (
-                <div 
-                  key={idx} 
-                  className={`w-1.5 h-1.5 rounded-full ${idx === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                <div
+                  key={idx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/60'}`}
                 />
               ))}
             </div>
@@ -636,61 +683,462 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
     );
   };
 
-  return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
-        <h1 className="font-hand text-2xl text-[#5a4a42]">Our Feed</h1>
-        <button
-          onClick={() => setShowDiaryTypeModal(true)}
-          className="text-[#5a4a42] hover:text-[#d58f99] transition-colors p-2 rounded-full hover:bg-gray-100"
-        >
-          <Icons.Edit />
-        </button>
-      </div>
+  const renderPostDetailView = () => {
+    if (!viewingPostDetail) return null;
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-20">
+    const { author, postIndex } = viewingPostDetail;
+    const userPosts = localPosts
+      .filter(p => (author === 'Luna' ? p.author === 'User' : p.author === 'Wade'))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const currentPost = userPosts[postIndex];
+    if (!currentPost) return null;
+
+    const canGoPrev = postIndex > 0;
+    const canGoNext = postIndex < userPosts.length - 1;
+
+    const goToPrev = () => {
+      if (canGoPrev) {
+        setViewingPostDetail({ author, postIndex: postIndex - 1 });
+      }
+    };
+
+    const goToNext = () => {
+      if (canGoNext) {
+        setViewingPostDetail({ author, postIndex: postIndex + 1 });
+      }
+    };
+
+    const authorName = currentPost.author === 'User' ? 'Luna' : 'Wade';
+    const authorUsername = currentPost.author === 'User' ? 'luna_moonlight' : 'wade_wilson_dp';
+    const avatar = currentPost.author === 'User' ? settings.lunaAvatar : settings.wadeAvatar;
+
+    return (
+      <div className="fixed inset-0 z-[200] bg-white flex flex-col font-sans">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+          <button
+            onClick={() => setViewingPostDetail(null)}
+            className="text-black hover:opacity-70 transition-opacity"
+          >
+            <Icons.ChevronLeft />
+          </button>
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500 uppercase font-semibold tracking-wider">{authorUsername}</span>
+            <span className="font-bold text-black text-base">Posts</span>
+          </div>
+          <div className="w-6"></div>
+        </div>
+
+        {/* Post Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white pb-20">
+          <div className="max-w-xl mx-auto">
+            
+            {/* Post Header */}
+            <div className="flex items-center justify-between px-3 py-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full p-[1.5px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
+                  <img src={avatar} className="w-full h-full rounded-full object-cover border border-white" />
+                </div>
+                <span className="font-semibold text-black text-sm">{authorUsername}</span>
+              </div>
+              <button className="text-black">
+                <Icons.MoreHorizontal />
+              </button>
+            </div>
+
+            {/* Images Carousel */}
+            {currentPost.images && currentPost.images.length > 0 && (
+              <ImageCarousel images={currentPost.images} />
+            )}
+
+            {/* Post Info & Actions */}
+            <div className="px-3 py-2">
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      const newLikes = currentPost.likes > 0 ? 0 : 1;
+                      const updatedPost = { ...currentPost, likes: newLikes };
+                      updatePost(updatedPost);
+                      setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
+                    }}
+                    className={`transition-transform active:scale-125 hover:scale-110 ${currentPost.likes > 0 ? 'text-[#ed4956]' : 'text-black'}`}
+                  >
+                    <Icons.Heart filled={currentPost.likes > 0} />
+                  </button>
+                  <button
+                    onClick={() => setActivePostId(activePostId === currentPost.id ? null : currentPost.id)}
+                    className="text-black hover:scale-110 transition-transform"
+                  >
+                    <Icons.MessageCircle />
+                  </button>
+                  <button className="text-black hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    const updatedPost = { ...currentPost, isBookmarked: !currentPost.isBookmarked };
+                    updatePost(updatedPost);
+                    setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
+                  }}
+                  className={`transition-all hover:scale-110 ${currentPost.isBookmarked ? 'text-black' : 'text-black'}`}
+                >
+                  <Icons.Bookmark filled={currentPost.isBookmarked} />
+                </button>
+              </div>
+
+              {/* Likes Count */}
+              {currentPost.likes > 0 && (
+                <div className="mb-1">
+                  <span className="font-semibold text-black text-[14px]">{currentPost.likes} {currentPost.likes === 1 ? 'like' : 'likes'}</span>
+                </div>
+              )}
+
+              {/* Post Content */}
+              <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={false} className="px-0 pb-0" />
+
+              {/* Comments Section */}
+              {currentPost.comments && currentPost.comments.length > 0 && (
+                <div className="mt-1">
+                  <button className="text-[14px] text-gray-500 mb-1">
+                    View all {currentPost.comments.length} comments
+                  </button>
+                  <div className="space-y-1">
+                    {currentPost.comments.slice(0, 2).map(comment => {
+                      const commentAuthorUsername = comment.author === 'User' ? 'luna_moonlight' : 'wade_wilson_dp';
+                      return (
+                        <div key={comment.id} className="text-[14px] leading-snug">
+                          <span className="font-semibold text-black mr-1">{commentAuthorUsername}</span>
+                          <span className="text-black">{comment.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamp */}
+              <div className="mt-1 text-[10px] text-gray-500 uppercase tracking-wide">
+                {new Date(currentPost.timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
+
+              {/* Add Comment */}
+              <div className="mt-3 flex gap-2 items-center">
+                <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                  <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={activePostId === currentPost.id ? newComment : ''}
+                  onChange={(e) => {
+                    setNewComment(e.target.value);
+                    setActivePostId(currentPost.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newComment.trim()) {
+                      handleAddComment(currentPost.id, newComment, 'User');
+                      setActivePostId(null);
+                    }
+                  }}
+                  className="flex-1 bg-transparent text-[14px] text-black placeholder-gray-500 focus:outline-none"
+                />
+                {activePostId === currentPost.id && newComment.trim() && (
+                  <button
+                    onClick={() => {
+                      handleAddComment(currentPost.id, newComment, 'User');
+                      setActivePostId(null);
+                    }}
+                    className="text-[#0095f6] font-semibold text-[14px]"
+                  >
+                    Post
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Arrows */}
+        {canGoPrev && (
+          <button
+            onClick={goToPrev}
+            className="fixed left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center text-black hover:bg-white transition-colors z-10"
+          >
+            <Icons.ChevronLeft />
+          </button>
+        )}
+        {canGoNext && (
+          <button
+            onClick={goToNext}
+            className="fixed right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center text-black hover:bg-white transition-colors z-10"
+          >
+            <Icons.ChevronRight />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderProfileView = () => {
+    const isWade = viewingProfile === 'Wade';
+    const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
+    const name = isWade ? 'Wade Wilson' : 'Luna';
+    const username = isWade ? 'wade_wilson_dp' : 'luna_moonlight';
+    const category = isWade ? 'Mercenary / Anti-hero' : 'Boutique Store';
+    const bio = isWade ? settings.wadePersonality : settings.lunaInfo;
+    const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'User'));
+
+    return (
+      <div className="flex-1 flex flex-col bg-white overflow-hidden font-sans">
+        {/* Profile Header */}
+        <div className="flex-shrink-0 bg-white px-4 py-3 flex justify-between items-center sticky top-0 z-40 border-b border-gray-200">
+          <button onClick={() => setViewingProfile(null)} className="text-black hover:opacity-70 transition-opacity">
+            <Icons.ChevronLeft />
+          </button>
+          <div className="flex items-center gap-1">
+            <h1 className="font-bold text-lg text-black tracking-tight">{username}</h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div className="flex items-center gap-4 text-black">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar pb-20 bg-white">
+          <div className="max-w-xl mx-auto">
+            {/* Profile Info */}
+            <div className="px-4 pt-3 pb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="relative">
+                  <div className={`w-[86px] h-[86px] rounded-full p-[3px] bg-gradient-to-tr ${isWade ? 'from-red-500 via-orange-400 to-yellow-400' : 'from-gray-200 to-gray-300'} flex-shrink-0`}>
+                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  </div>
+                  {!isWade && (
+                    <div className="absolute bottom-0 right-0 bg-[#0095f6] text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-4 text-center flex-1 justify-end pr-2">
+                  <div className="flex flex-col items-center w-16">
+                    <span className="font-semibold text-[17px] text-black">{userPosts.length}</span>
+                    <span className="text-[13px] text-black">posts</span>
+                  </div>
+                  <div className="flex flex-col items-center w-16">
+                    <span className="font-semibold text-[17px] text-black">{isWade ? '30M' : '1,204'}</span>
+                    <span className="text-[13px] text-black">followers</span>
+                  </div>
+                  <div className="flex flex-col items-center w-16">
+                    <span className="font-semibold text-[17px] text-black">{isWade ? '1' : '842'}</span>
+                    <span className="text-[13px] text-black">following</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h2 className="font-semibold text-[14px] text-black leading-tight">{name}</h2>
+                <p className="text-[14px] text-gray-500 leading-tight mb-0.5">{category}</p>
+                <p className="text-[14px] text-black whitespace-pre-wrap leading-snug line-clamp-4">{bio}</p>
+                <a href="#" className="text-[14px] text-[#00376b] font-semibold hover:underline flex items-center gap-1 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  linktr.ee/{username}
+                </a>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-1.5 mb-5">
+                {!isWade ? (
+                  <>
+                    <button className="flex-1 bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      Edit profile
+                    </button>
+                    <button className="flex-1 bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      Share profile
+                    </button>
+                    <button className="w-9 flex items-center justify-center bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="flex-1 bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors flex items-center justify-center gap-1">
+                      Following <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <button className="flex-1 bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      Message
+                    </button>
+                    <button className="flex-1 bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      Contact
+                    </button>
+                    <button className="w-9 flex items-center justify-center bg-[#efefef] text-black font-semibold py-1.5 rounded-lg text-[14px] hover:bg-[#e0e0e0] transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Highlights */}
+              <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                {[
+                  { name: 'Memories', icon: '📸' },
+                  { name: 'Favorites', icon: '⭐' },
+                  { name: 'Travel', icon: '✈️' },
+                  { name: 'Food', icon: '🌮' },
+                  { name: 'New', icon: '✨' }
+                ].map((highlight, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0 w-[64px]">
+                    <div className="w-[64px] h-[64px] rounded-full border border-gray-300 p-[3px]">
+                      <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-2xl">
+                        {highlight.icon}
+                      </div>
+                    </div>
+                    <span className="text-[12px] text-black truncate w-full text-center">{highlight.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid Tabs */}
+            <div className="flex border-t border-gray-200">
+              <button className="flex-1 py-3 flex justify-center border-t-[1px] border-black text-black -mt-[1px]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+              </button>
+              <button className="flex-1 py-3 flex justify-center text-gray-400 hover:text-black transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+              </button>
+              <button className="flex-1 py-3 flex justify-center text-gray-400 hover:text-black transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </button>
+            </div>
+
+            {/* Grid of Posts */}
+            <div className="grid grid-cols-3 gap-[1px]">
+              {userPosts.length === 0 ? (
+                <div className="col-span-3 text-center py-10 text-gray-500 text-sm">
+                  No posts yet.
+                </div>
+              ) : (
+                userPosts.map((post, idx) => (
+                  <div
+                    key={post.id}
+                    className="aspect-square bg-gray-100 relative group cursor-pointer overflow-hidden"
+                    onClick={() => {
+                      setViewingPostDetail({
+                        author: viewingProfile === 'Luna' ? 'Luna' : 'Wade',
+                        postIndex: idx
+                      });
+                    }}
+                  >
+                    {post.images && post.images.length > 0 ? (
+                      <img src={post.images[0]} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                    ) : (
+                      <div className="w-full h-full p-2 flex items-center justify-center bg-white text-black text-[10px] text-center overflow-hidden group-hover:bg-gray-50 transition-colors">
+                        <span className="line-clamp-4 leading-relaxed">{post.content}</span>
+                      </div>
+                    )}
+                    {post.images && post.images.length > 1 && (
+                      <div className="absolute top-2 right-2 text-white drop-shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-white">
+      {viewingPostDetail ? (
+        renderPostDetailView()
+      ) : viewingProfile ? (
+        renderProfileView()
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+            <h1 className="font-hand text-3xl text-[#d58f99] mt-1">Our Journal</h1>
+            <div className="flex items-center gap-4">
+              <button className="text-black hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </button>
+              <button
+                onClick={() => setShowDiaryTypeModal(true)}
+                className="text-black hover:scale-110 transition-transform"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path><line x1="12" y1="9" x2="12" y2="15"></line><line x1="9" y1="12" x2="15" y2="12"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-white">
+            
+            {/* Stories Bar */}
+            <div className="bg-white border-b border-gray-200 px-4 pt-3 pb-4 mb-2">
+              <div className="flex gap-4 overflow-x-auto hide-scrollbar max-w-xl mx-auto px-1">
+                <button onClick={() => setShowDiaryTypeModal(true)} className="flex flex-col items-center gap-1.5 flex-shrink-0 group relative">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-white shadow-sm">
+                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-gray-200" />
+                  </div>
+                  <div className="absolute bottom-5 right-0 bg-[#0095f6] text-white rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </div>
+                  <span className="text-[11px] text-gray-500">Your story</span>
+                </button>
+                <button onClick={() => setViewingProfile('Luna')} className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 shadow-sm">
+                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  </div>
+                  <span className="text-[11px] font-medium text-black">luna_moonlight</span>
+                </button>
+                <button onClick={() => setViewingProfile('Wade')} className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
+                  <div className="w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 shadow-sm">
+                    <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  </div>
+                  <span className="text-[11px] font-medium text-black">wade_wilson_dp</span>
+                </button>
+              </div>
+            </div>
 
       {/* Diary Type Selection Modal */}
       {showDiaryTypeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-md p-8 rounded-[32px] shadow-2xl flex flex-col items-center gap-6 animate-scale-in relative overflow-hidden border-4 border-[#fff0f3]">
-            {/* Background Decoration */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#fff0f3] to-transparent pointer-events-none"></div>
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ffe4e9] rounded-full opacity-50 blur-3xl pointer-events-none"></div>
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#f0fdf4] rounded-full opacity-50 blur-3xl pointer-events-none"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+            <div className="border-b border-gray-200 p-4 text-center relative">
+              <h3 className="font-semibold text-black text-lg">Create New Post</h3>
+              <button
+                onClick={() => setShowDiaryTypeModal(false)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
 
-            <h3 className="font-hand text-3xl text-[#5a4a42] text-center leading-tight mt-2 relative z-10">
-              Whose story are we telling<br/>
-              <span className="text-[#d58f99] relative inline-block">
-                today?
-                <svg className="absolute -bottom-2 left-0 w-full h-2 text-[#d58f99]/30" viewBox="0 0 100 10" preserveAspectRatio="none">
-                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
-                </svg>
-              </span>
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4 w-full relative z-10 mt-2">
+            <div className="flex flex-col p-2">
               <button
                 onClick={() => {
                   setDiaryType('Luna');
                   setShowDiaryTypeModal(false);
                   setIsCreating(true);
                 }}
-                className="group relative flex flex-col items-center gap-3 bg-white hover:bg-[#fff0f3] p-4 rounded-2xl transition-all border-2 border-transparent hover:border-[#d58f99]/30 shadow-sm hover:shadow-md"
+                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors rounded-xl text-left"
               >
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-[#d58f99] to-purple-200 group-hover:scale-105 transition-transform duration-300">
-                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                    <span className="text-lg">🌙</span>
-                  </div>
+                <div className="w-12 h-12 rounded-full p-[1.5px] bg-gradient-to-tr from-gray-200 to-gray-300">
+                  <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-white" />
                 </div>
-                <div className="text-center">
-                  <span className="block font-bold text-[#5a4a42] text-lg">Luna's Diary</span>
-                  <span className="text-xs text-[#917c71] mt-1 block">Write your own thoughts</span>
+                <div>
+                  <span className="block font-semibold text-black">Luna's Post</span>
+                  <span className="text-sm text-gray-500">Write your own thoughts</span>
                 </div>
               </button>
 
@@ -699,60 +1147,94 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                   setDiaryType('Wade');
                   setShowDiaryTypeModal(false);
                   setShowWadeDatePicker(true);
+                  setWadeDiaryMode('deep');
                 }}
-                className="group relative flex flex-col items-center gap-3 bg-white hover:bg-[#fff0f3] p-4 rounded-2xl transition-all border-2 border-transparent hover:border-[#d58f99]/30 shadow-sm hover:shadow-md"
+                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors rounded-xl text-left"
               >
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-red-400 to-orange-300 group-hover:scale-105 transition-transform duration-300">
-                    <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                    <span className="text-lg">⚔️</span>
-                  </div>
+                <div className="w-12 h-12 rounded-full p-[1.5px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
+                  <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border border-white" />
                 </div>
-                <div className="text-center">
-                  <span className="block font-bold text-[#5a4a42] text-lg">Wade's Diary</span>
-                  <span className="text-xs text-[#917c71] mt-1 block">Generate from chat</span>
+                <div>
+                  <span className="block font-semibold text-black">Wade's Post</span>
+                  <span className="text-sm text-gray-500">Generate from chat</span>
                 </div>
               </button>
             </div>
-
-            <button
-              onClick={() => setShowDiaryTypeModal(false)}
-              className="text-[#917c71]/60 hover:text-[#5a4a42] text-sm font-medium transition-colors relative z-10 mt-2"
-            >
-              Maybe later
-            </button>
           </div>
         </div>
       )}
 
       {/* Wade Date Picker Modal */}
       {showWadeDatePicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-md p-8 rounded-[32px] shadow-2xl flex flex-col items-center gap-6 animate-scale-in relative overflow-hidden border-4 border-[#fff0f3]">
-            {/* Background Decoration */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#fff0f3] to-transparent pointer-events-none"></div>
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ffe4e9] rounded-full opacity-50 blur-3xl pointer-events-none"></div>
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#f0fdf4] rounded-full opacity-50 blur-3xl pointer-events-none"></div>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
             {/* Header */}
-            <h3 className="font-hand text-2xl text-[#5a4a42] text-center relative z-10">
-              {wadeDiaryStep === 'mode' && "Pick your poison, Muffin."}
-              {wadeDiaryStep === 'date' && (wadeDiaryMode === 'archive' ? "Dust off an old file?" : "When did the magic happen?")}
-              {wadeDiaryStep === 'messages' && "Cherry-pick the best bits."}
-            </h3>
+            <div className="border-b border-gray-200 p-4 text-center relative">
+              <h3 className="font-semibold text-black text-lg">
+                {wadeDiaryStep === 'mode' && "Select Source"}
+                {wadeDiaryStep === 'date' && (wadeDiaryMode === 'archive' ? "Select Archive" : "Select Date")}
+                {wadeDiaryStep === 'messages' && "Select Messages"}
+              </h3>
+              <button
+                onClick={() => {
+                  if (wadeDiaryStep === 'mode') {
+                    setShowWadeDatePicker(false);
+                    setDiaryType(null);
+                  } else if (wadeDiaryStep === 'date') {
+                    setWadeDiaryStep('mode');
+                  } else if (wadeDiaryStep === 'messages') {
+                    setWadeDiaryStep('date');
+                  }
+                }}
+                disabled={isGeneratingDiary}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
+              >
+                {wadeDiaryStep === 'mode' ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                )}
+              </button>
+              {wadeDiaryStep === 'messages' && (
+                <button
+                  onClick={generateDiaryFromSelection}
+                  disabled={isGeneratingDiary || wadeDiarySelectedMessages.size === 0}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0095f6] font-semibold disabled:opacity-50 hover:text-[#00376b] transition-colors"
+                >
+                  {isGeneratingDiary ? 'Generating...' : 'Next'}
+                </button>
+              )}
+            </div>
 
             {/* Content */}
-            <div className="w-full relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-             {wadeDiaryStep === 'mode' && (
-                <div className="grid grid-cols-2 gap-x-5 gap-y-6 pt-4 pb-2 px-1">
+            <div className="w-full max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
+              {wadeDiaryStep === 'mode' && (
+                <div className="flex flex-col">
                   {[
-                    // 参谋独家调色盘：完美还原你图里的燕麦、裸粉、玫瑰、灰褐
-                    { id: 'deep', label: 'Deep', sublabel: 'Chat', tabColor: 'bg-[#dbabae]', frontColor: 'bg-[#faebeb]' },
-                    { id: 'sms', label: 'SMS', sublabel: '', tabColor: 'bg-[#d0c0b6]', frontColor: 'bg-[#f7f2ef]' },
-                    { id: 'roleplay', label: 'Role', sublabel: 'play', tabColor: 'bg-[#eabfc0]', frontColor: 'bg-[#fef1f0]' },
-                    { id: 'archive', label: 'Archi', sublabel: 'ves', tabColor: 'bg-[#c7c1bf]', frontColor: 'bg-[#f4f2f0]' },
+                    { 
+                      id: 'deep', 
+                      title: 'Deep Chat',
+                      desc: "Late-night philosophical ramblings.",
+                      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    },
+                    { 
+                      id: 'sms', 
+                      title: 'SMS',
+                      desc: "Rapid fire texts and memes.",
+                      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
+                    },
+                    { 
+                      id: 'roleplay', 
+                      title: 'RolePlay',
+                      desc: "Oscar-worthy performances.",
+                      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path></svg>
+                    },
+                    { 
+                      id: 'archive', 
+                      title: 'Archives',
+                      desc: "Dusting off the ancient scrolls.",
+                      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7V4h16v3M4 7h16M4 7v13h16V7"></path><path d="M10 11h4"></path></svg>
+                    }
                   ].map(mode => (
                     <button
                       key={mode.id}
@@ -761,36 +1243,17 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                         setWadeDiaryStep('date');
                         setCalendarViewDate(new Date());
                       }}
-                      className="group relative w-full h-24 focus:outline-none transition-all duration-300 hover:-translate-y-2"
+                      className="flex items-center p-4 hover:bg-gray-50 transition-colors rounded-xl text-left w-full"
                     >
-                      {/* 文件夹后面的小耳朵 (Back Tab) */}
-                      <div className={`absolute top-0 left-0 w-[45%] h-5 ${mode.tabColor} rounded-tl-lg rounded-tr-xl shadow-sm`} />
-                      
-                      {/* 文件夹后背底板 (Back Flap) */}
-                      <div className={`absolute top-2 left-0 w-full h-full ${mode.tabColor} rounded-xl shadow-sm`} />
-                      
-                      {/* 文件夹正面盖板 (Front Flap) - 稍微往下一点点，营造立体感 */}
-                      <div className={`absolute top-4 left-0 w-full h-[calc(100%-0.5rem)] ${mode.frontColor} rounded-xl shadow-sm flex flex-col items-center justify-center border border-white/60 transition-all duration-300 group-hover:brightness-95`}>
-                        
-                        {/* 里面的小图标 */}
-                        <div className="mb-1 text-[#5a4a42] opacity-60 group-hover:text-[#d58f99] group-hover:scale-110 group-hover:opacity-100 transition-all duration-300">
-                          {mode.id === 'deep' && (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/><path d="M1 12h6m6 0h6"/></svg>
-                          )}
-                          {mode.id === 'sms' && (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
-                          )}
-                          {mode.id === 'roleplay' && (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
-                          )}
-                          {mode.id === 'archive' && (
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7V4h16v3M4 7h16M4 7v13h16V7"/><path d="M10 11h4"/></svg>
-                          )}
-                        </div>
-
-                        {/* 文件夹上的文字 */}
-                        <span className="font-hand font-bold text-[#5a4a42] text-sm leading-none group-hover:text-[#d58f99] transition-colors">{mode.label}</span>
-                        {mode.sublabel && <span className="font-hand font-bold text-[#5a4a42] text-sm leading-none group-hover:text-[#d58f99] transition-colors">{mode.sublabel}</span>}
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 text-black mr-4">
+                        {mode.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-black text-[15px]">{mode.title}</h4>
+                        <p className="text-[13px] text-gray-500">{mode.desc}</p>
+                      </div>
+                      <div className="text-gray-400">
+                        <Icons.ChevronRight />
                       </div>
                     </button>
                   ))}
@@ -799,40 +1262,48 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
 
               {wadeDiaryStep === 'date' && (
                 wadeDiaryMode === 'archive' ? (
-                  <div className="space-y-2">
+                  <div className="flex flex-col">
                     {chatArchives.length === 0 ? (
-                      <p className="text-center text-gray-500 py-4">No archives found.</p>
+                      <p className="text-center text-gray-500 py-8">No archives found.</p>
                     ) : (
                       chatArchives.map(archive => (
                         <button
                           key={archive.id}
                           onClick={() => handleArchiveSelect(archive.id)}
-                          className="w-full text-left p-4 bg-white hover:bg-gray-50 rounded-xl border border-gray-100 transition-colors flex justify-between items-center"
+                          className="w-full text-left p-4 hover:bg-gray-50 rounded-xl transition-colors flex justify-between items-center"
                         >
                           <div>
-                            <span className="font-bold text-[#5a4a42] block">{archive.title}</span>
-                            <span className="text-xs text-gray-400">{new Date(archive.importedAt).toLocaleDateString()}</span>
+                            <span className="font-semibold text-black block text-[15px]">{archive.title}</span>
+                            <span className="text-[13px] text-gray-500">{new Date(archive.importedAt).toLocaleDateString()}</span>
                           </div>
-                          <Icons.ChevronRight />
+                          <div className="text-gray-400">
+                            <Icons.ChevronRight />
+                          </div>
                         </button>
                       ))
                     )}
                   </div>
                 ) : (
                   // Calendar View
-                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="p-4">
                     <div className="flex justify-between items-center mb-4">
-                      <button onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1))}>
+                      <button 
+                        onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1))}
+                        className="p-2 text-black hover:bg-gray-50 rounded-full transition-colors"
+                      >
                         <Icons.ChevronLeft />
                       </button>
-                      <span className="font-bold text-[#5a4a42]">
+                      <span className="font-semibold text-black text-[15px]">
                         {calendarViewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                       </span>
-                      <button onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1))}>
+                      <button 
+                        onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1))}
+                        className="p-2 text-black hover:bg-gray-50 rounded-full transition-colors"
+                      >
                         <Icons.ChevronRight />
                       </button>
                     </div>
-                    <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-2">
+                    <div className="grid grid-cols-7 gap-1 text-center text-[12px] font-medium text-gray-500 mb-2">
                       {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d}>{d}</div>)}
                     </div>
                     <div className="grid grid-cols-7 gap-1">
@@ -872,9 +1343,9 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                                 setWadeDiarySelectedMessages(new Set(dayMsgs.map(m => m.id)));
                               }}
                               className={`
-                                aspect-square rounded-full flex items-center justify-center text-sm transition-all
+                                aspect-square rounded-full flex items-center justify-center text-[14px] transition-colors
                                 ${hasMessages 
-                                  ? 'bg-[#fff0f3] text-[#d58f99] hover:bg-[#d58f99] hover:text-white font-bold cursor-pointer' 
+                                  ? 'text-black hover:bg-gray-100 cursor-pointer' 
                                   : 'text-gray-300 cursor-default'}
                               `}
                             >
@@ -890,9 +1361,9 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
               )}
 
               {wadeDiaryStep === 'messages' && (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-gray-400">
+                <div className="p-2">
+                  <div className="flex justify-between items-center mb-2 px-2">
+                    <span className="text-[13px] font-medium text-gray-500">
                       {wadeDiarySelectedMessages.size} selected
                     </span>
                     <button 
@@ -908,92 +1379,52 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                           setWadeDiarySelectedMessages(new Set(visibleMsgs.map(m => m.id)));
                         }
                       }}
-                      className="text-xs text-[#d58f99] hover:underline"
+                      className="text-[13px] font-semibold text-[#0095f6] hover:text-[#00376b] transition-colors"
                     >
                       {wadeDiarySelectedMessages.size > 0 ? 'Deselect All' : 'Select All'}
                     </button>
                   </div>
                   
                   {/* Message List */}
+                  <div className="flex flex-col gap-1">
                   {(() => {
                     const msgs = wadeDiaryMode === 'archive' ? archiveMessages : messages.filter(m => 
                       m.mode === wadeDiaryMode && 
                       new Date(m.timestamp).toDateString() === wadeDiaryDate?.toDateString()
                     );
                     
-                    if (msgs.length === 0) return <p className="text-center text-gray-400">No messages.</p>;
+                    if (msgs.length === 0) return <p className="text-center text-gray-500 py-8">No messages found.</p>;
 
                     return msgs.map(m => (
                       <div 
                         key={m.id} 
                         onClick={() => toggleMessageSelection(m.id)}
-                        className={`
-                          p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-start
-                          ${wadeDiarySelectedMessages.has(m.id) 
-                            ? 'bg-[#fff0f3] border-[#d58f99]' 
-                            : 'bg-white border-gray-100 hover:border-gray-200'}
-                        `}
+                        className="p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 items-start"
                       >
                         <div className={`
-                          w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5
-                          ${wadeDiarySelectedMessages.has(m.id) ? 'bg-[#d58f99] border-[#d58f99]' : 'border-gray-300'}
+                          w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors
+                          ${wadeDiarySelectedMessages.has(m.id) ? 'bg-[#0095f6] border-[#0095f6] text-white' : 'border-gray-300 bg-white'}
                         `}>
                           {wadeDiarySelectedMessages.has(m.id) && <Icons.Check />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-baseline mb-1">
-                            <span className="font-bold text-xs text-[#5a4a42]">
+                          <div className="flex justify-between items-baseline mb-0.5">
+                            <span className="font-semibold text-[14px] text-black">
                               {m.role === 'user' || m.role === 'Luna' ? 'Luna' : 'Wade'}
                             </span>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[12px] text-gray-500">
                               {new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                          <p className="text-[14px] text-black line-clamp-2 leading-snug">
                             {wadeDiaryMode === 'archive' ? (m as ArchiveMessage).content : (m as any).text}
                           </p>
                         </div>
                       </div>
                     ));
                   })()}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            {/* Footer Actions */}
-            <div className="flex justify-between w-full relative z-10 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => {
-                  if (wadeDiaryStep === 'mode') {
-                    setShowWadeDatePicker(false);
-                    setDiaryType(null);
-                  } else if (wadeDiaryStep === 'date') {
-                    setWadeDiaryStep('mode');
-                  } else if (wadeDiaryStep === 'messages') {
-                    setWadeDiaryStep('date');
-                  }
-                }}
-                disabled={isGeneratingDiary}
-                className="text-[#917c71]/60 hover:text-[#5a4a42] text-sm font-medium transition-colors"
-              >
-                {wadeDiaryStep === 'mode' ? 'Cancel' : 'Back'}
-              </button>
-
-              {wadeDiaryStep === 'messages' && (
-                <button
-                  onClick={generateDiaryFromSelection}
-                  disabled={isGeneratingDiary || wadeDiarySelectedMessages.size === 0}
-                  className="bg-[#d58f99] text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-[#c07a84] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isGeneratingDiary ? (
-                    <>
-                      <Icons.Sparkles />
-                      <span>Writing...</span>
-                    </>
-                  ) : (
-                    'Generate Diary'
-                  )}
-                </button>
               )}
             </div>
           </div>
@@ -1002,11 +1433,10 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
 
       {/* Create Post Modal */}
       {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-[500px] p-6 rounded-2xl shadow-2xl border border-[#fff0f3] flex flex-col relative animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
             
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-hand text-2xl text-[#5a4a42]">{editingPost ? 'Edit Diary Entry' : 'New Diary Entry'}</h3>
+            <div className="border-b border-gray-200 p-4 text-center relative flex justify-between items-center">
               <button
                 onClick={() => {
                   setIsCreating(false);
@@ -1018,296 +1448,342 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                   });
                   setPreviewUrls([]);
                 }}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f9f6f7] text-[#d58f99] hover:bg-[#d58f99] hover:text-white transition-all"
+                className="text-black hover:opacity-70 transition-opacity"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
-            </div>
-
-            <div className="flex gap-3 mb-4">
-              <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" />
-              <textarea
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
-                placeholder="What's on your mind, Luna?"
-                className="flex-1 bg-[#f9f6f7] rounded-xl p-4 border border-[#eae2e8] focus:outline-none focus:border-[#d58f99] resize-none min-h-[120px] text-sm text-[#5a4a42]"
-              />
-            </div>
-            
-            {previewUrls.length > 0 && (
-              <div className="mb-4 ml-12 grid grid-cols-3 gap-2">
-                {previewUrls.map((url, idx) => (
-                  <div key={idx} className="relative group aspect-square">
-                    <img src={url} className="w-full h-full object-cover rounded-xl border border-gray-200 shadow-sm" />
-                    <button 
-                      onClick={() => handleRemoveImage(idx)}
-                      className="absolute top-1 right-1 bg-white/80 text-[#5a4a42] hover:text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex justify-between items-center pt-2 border-t border-[#eae2e8] mt-2">
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="text-[#d58f99] hover:bg-[#fff0f3] p-2 rounded-lg transition-colors flex items-center justify-center"
-                title="Add Photos"
-              >
-                {isUploading ? <Icons.MoreHorizontal /> : <Icons.Image />}
-              </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-              />
+              <h3 className="font-semibold text-black text-[16px]">{editingPost ? 'Edit info' : 'Create new post'}</h3>
               <button 
                 onClick={handleSavePost} 
                 disabled={(!newPostContent && selectedFiles.length === 0) || isUploading}
-                className="bg-[#d58f99] text-white text-sm font-bold px-6 py-2 rounded-full hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="text-[#0095f6] font-semibold text-[14px] disabled:opacity-50 hover:text-[#00376b] transition-colors"
               >
-                {isUploading ? (
-                    <>
-                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>{editingPost ? 'Saving...' : 'Sharing...'}</span>
-                    </>
-                ) : (editingPost ? 'Save Changes' : 'Share')}
+                {isUploading ? 'Sharing...' : 'Share'}
               </button>
+            </div>
+
+            <div className="flex flex-col p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
+                </div>
+                <span className="font-semibold text-[14px] text-black">
+                  {diaryType === 'Wade' ? 'wade_wilson_dp' : 'luna_moonlight'}
+                </span>
+              </div>
+
+              <textarea
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                placeholder="Write a caption..."
+                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none min-h-[120px] text-[15px] text-black placeholder-gray-400"
+              />
+            
+              {previewUrls.length > 0 && (
+                <div className="mb-4 grid grid-cols-3 gap-1">
+                  {previewUrls.map((url, idx) => (
+                    <div key={idx} className="relative group aspect-square">
+                      <img src={url} className="w-full h-full object-cover" />
+                      <button 
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 rounded-full w-6 h-6 flex items-center justify-center backdrop-blur-sm transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="text-gray-500 hover:text-black p-2 rounded-full transition-colors"
+                  title="Add Photos"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Feed */}
-      <div className="max-w-md mx-auto py-4 space-y-6 px-4">
+      <div className="max-w-xl mx-auto pb-8">
         {localPosts.length === 0 ? (
-            <div className="text-center py-10 opacity-50">
-                <p className="font-hand text-xl text-[#917c71]">No memories yet...</p>
-                <p className="text-xs text-[#917c71]">Click the edit icon to start your journal.</p>
+            <div className="text-center py-20 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 mb-4 rounded-full border-2 border-black flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </div>
+                <h2 className="text-2xl font-bold text-black mb-2">No Posts Yet</h2>
+                <p className="text-sm text-gray-500">When you post photos, they will appear here.</p>
             </div>
         ) : localPosts.map(post => {
           const isWade = post.author === 'Wade';
           const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
           const authorName = isWade ? 'Wade' : 'Luna';
+          const authorUsername = isWade ? 'wade_wilson_dp' : 'luna_moonlight';
           const isExpanded = expandedPostIds.has(post.id);
-          const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 1);
+          const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 2);
 
           return (
-            <div key={post.id} className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div key={post.id} className="bg-white border-b border-gray-200 pb-2 font-sans">
               {/* Post Header */}
-              <div className="flex items-center justify-between p-3">
-                <div className="flex items-center gap-3">
-                  <div className={`p-[2px] rounded-full bg-gradient-to-tr ${isWade ? 'from-red-500 to-black' : 'from-[#d58f99] to-purple-400'}`}>
-                    <img src={avatar} className="w-8 h-8 rounded-full object-cover border-2 border-white" />
+              <div className="flex items-center justify-between px-3 py-2">
+                <div 
+                  className="flex items-center gap-2 cursor-pointer group"
+                  onClick={() => setViewingProfile(isWade ? 'Wade' : 'Luna')}
+                >
+                  <div className={`w-8 h-8 rounded-full p-[1.5px] bg-gradient-to-tr ${isWade ? 'from-yellow-400 via-red-500 to-purple-500' : 'from-gray-200 to-gray-300'} shadow-sm group-hover:scale-105 transition-transform`}>
+                    <img src={avatar} className="w-full h-full rounded-full object-cover border border-white" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#5a4a42]">{authorName}</span>
-                    <span className="text-[10px] text-gray-400">{formatPostTime(post.timestamp)}</span>
+                  <div className="flex flex-col group-hover:opacity-80 transition-opacity">
+                    <span className="text-[14px] font-semibold text-black leading-tight">{authorUsername}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {post.author === 'User' && (
-                    <button
-                        onClick={() => handleDeletePost(post.id)}
-                        className={`transition-colors ${
-                          deletingPostId === post.id
-                            ? 'text-red-500 scale-110'
-                            : 'text-gray-200 hover:text-red-400'
-                        }`}
-                        title={deletingPostId === post.id ? 'Click again to confirm' : 'Delete post'}
-                    >
-                      {deletingPostId === post.id ? <Icons.Check /> : <Icons.Trash />}
-                    </button>
-                  )}
+                <div className="flex items-center gap-1 relative">
                   <button
-                      onClick={() => handleEditPost(post)}
-                      className="text-gray-400 hover:text-[#5a4a42]"
+                      onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
+                      className="text-black p-2 rounded-full hover:bg-gray-50 transition-colors"
                   >
                     <Icons.MoreHorizontal />
                   </button>
+                  {openMenuPostId === post.id && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setOpenMenuPostId(null)} 
+                      />
+                      <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                        <button
+                          onClick={() => {
+                            handleEditPost(post);
+                            setOpenMenuPostId(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-50 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (deletingPostId === post.id) {
+                              handleDeletePost(post.id);
+                              setOpenMenuPostId(null);
+                            } else {
+                              handleDeletePost(post.id);
+                            }
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${deletingPostId === post.id ? 'bg-red-50 text-red-600' : 'text-red-500 hover:bg-red-50'}`}
+                        >
+                          {deletingPostId === post.id ? 'Confirm Delete' : 'Delete'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Post Images */}
               {post.images && post.images.length > 0 && (
-                <ImageCarousel images={post.images} />
+                <div className="w-full">
+                  <ImageCarousel images={post.images} />
+                </div>
               )}
 
               {/* Action Buttons */}
-              <div className="p-3">
-                <div className="flex justify-between mb-2">
-                  <div className="flex gap-4 items-center">
-                    <button 
-                      onClick={() => handleLike(post.id)}
-                      className={`transition-transform active:scale-125 text-[#262626] hover:text-[#ed4956]`}
-                    >
-                      <Icons.Heart />
-                    </button>
-                    <button 
-                      onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
-                      className="text-[#262626] hover:text-gray-600"
-                    >
-                      <Icons.MessageCircle />
-                    </button>
-                    
-                    {/* Send / AI Generate Button */}
-                    <button 
-                      onClick={() => {
-                        if (post.author === 'User') {
-                            handleGenerateComment(post);
-                        } else {
-                            // Default share behavior (future)
-                        }
-                      }}
-                      disabled={isGeneratingComment === post.id}
-                      className={`text-[#262626] hover:text-gray-600 transition-colors ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
-                      title={post.author === 'User' ? "Let Wade Reply" : "Share"}
-                    >
-                      <Icons.Send />
-                    </button>
-                  </div>
+              <div className="px-3 py-2 flex justify-between items-center bg-white">
+                <div className="flex gap-4 items-center">
                   <button 
-                    onClick={() => handleBookmark(post.id)}
-                    className={`transition-colors ${post.isBookmarked ? 'text-[#5a4a42] fill-current' : 'text-[#262626] hover:text-gray-600'}`}
+                    onClick={() => handleLike(post.id)}
+                    className={`transition-transform active:scale-125 hover:scale-110 ${post.likes > 0 ? 'text-[#ed4956]' : 'text-black'}`}
                   >
-                    <Icons.Bookmark filled={post.isBookmarked} />
+                    <Icons.Heart filled={post.likes > 0} />
+                  </button>
+                  <button 
+                    onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
+                    className="text-black hover:scale-110 transition-transform"
+                  >
+                    <Icons.MessageCircle />
+                  </button>
+                  
+                  {/* Send / AI Generate Button */}
+                  <button 
+                    onClick={() => {
+                      if (post.author === 'User') {
+                          handleGenerateComment(post);
+                      }
+                    }}
+                    disabled={isGeneratingComment === post.id}
+                    className={`text-black transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-gray-400' : ''}`}
+                    title={post.author === 'User' ? "Let Wade Reply" : "Share"}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                   </button>
                 </div>
+                <button 
+                  onClick={() => handleBookmark(post.id)}
+                  className={`transition-all hover:scale-110 ${post.isBookmarked ? 'text-black fill-current' : 'text-black'}`}
+                >
+                  <Icons.Bookmark filled={post.isBookmarked} />
+                </button>
+              </div>
 
-                {/* Caption */}
-                <div className="text-sm text-[#262626] mb-2 leading-relaxed">
-                  <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold mr-2 mb-1 ${isWade ? 'bg-red-100 text-red-800' : 'bg-pink-100 text-pink-800'}`}>
-                    {authorName}
-                  </span>
-                  <span className="whitespace-pre-wrap">{post.content}</span>
+              {/* Likes Count */}
+              {post.likes > 0 && (
+                <div className="px-3 mb-1">
+                  <span className="font-semibold text-black text-[14px]">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
                 </div>
+              )}
 
-                {/* Comments Preview */}
-                {post.comments && post.comments.length > 0 && (
-                  <div className="space-y-0.5 mb-2 mt-3 pl-2 border-l-2 border-gray-100 px-3">
+              {/* Caption */}
+              <PostCaption content={post.content} authorName={authorUsername} hideAuthor={false} className="px-3" />
+
+              {/* Date */}
+              <div className="px-3 mt-1 mb-1">
+                <span className="text-[10px] text-gray-500 uppercase tracking-wide">
+                  {(() => {
+                    const d = new Date(post.timestamp);
+                    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+                  })()}
+                </span>
+              </div>
+              
+              {/* Comments Section */}
+              {post.comments && post.comments.length > 0 && (
+                <div className="px-3 mt-1">
+                  {post.comments.length > 2 && !isExpanded && (
+                    <button 
+                        onClick={() => toggleComments(post.id)}
+                        className="text-[14px] text-gray-500 mb-1"
+                    >
+                        View all {post.comments.length} comments
+                    </button>
+                  )}
+                  {isExpanded && post.comments.length > 2 && (
+                    <button 
+                        onClick={() => toggleComments(post.id)}
+                        className="text-[14px] text-gray-500 mb-1"
+                    >
+                        Hide comments
+                    </button>
+                  )}
+                  <div className="space-y-1">
                     {visibleComments.map(comment => {
                         const isCommentWade = comment.author === 'Wade';
-                        const commentAuthorName = isCommentWade ? 'Wade' : 'Luna';
+                        const commentAuthorUsername = isCommentWade ? 'wade_wilson_dp' : 'luna_moonlight';
                         const isReply = !!comment.replyToId;
                         
                         return (
                             <div 
                                 key={comment.id} 
-                                className={`text-xs flex gap-2 items-start group ${isReply ? 'ml-4' : ''}`}
+                                className={`text-[14px] group ${isReply ? 'ml-6 border-l-2 border-gray-200 pl-3' : ''}`}
                             >
                                 <div
-                                    className="flex-1 flex gap-2 cursor-pointer p-1 rounded"
+                                    className="cursor-pointer transition-colors leading-snug break-words"
                                     onClick={() => {
-                                        setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorName});
+                                        setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorUsername, text: comment.text});
                                         setActivePostId(post.id);
                                     }}
                                 >
-                                    <span className="font-bold shrink-0 text-black">
-                                        {commentAuthorName}
+                                    <span className="font-semibold text-black mr-2">
+                                        {commentAuthorUsername}
                                     </span>
-                                    <span className="text-[#4a4a4a] leading-tight">
+                                    <span className="text-black">
                                         {comment.text}
                                     </span>
-                                </div>
-                                
-                                {/* Regenerate Button (for Luna's comments only) */}
-                                {!isCommentWade && (
+                                    
+                                    {/* Regenerate Button (for Luna's comments only) */}
+                                    {!isCommentWade && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleGenerateComment(post);
+                                            }}
+                                            disabled={isGeneratingComment === post.id}
+                                            className="inline-flex align-middle ml-2 p-0.5 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-black disabled:opacity-50 hover:bg-gray-50 rounded-md transition-all"
+                                            title="Regenerate Wade's reply"
+                                        >
+                                            <Icons.Sparkles />
+                                        </button>
+                                    )}
+
+                                    {/* Delete Comment Button */}
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleGenerateComment(post);
+                                            handleDeleteComment(post.id, comment.id);
                                         }}
-                                        disabled={isGeneratingComment === post.id}
-                                        className="transition-all px-1 opacity-0 group-hover:opacity-100 text-gray-200 hover:text-[#d58f99] disabled:opacity-50"
-                                        title="Regenerate Wade's reply"
+                                        className={`inline-flex align-middle ml-1 p-0.5 rounded-md transition-all ${
+                                          deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
+                                            ? 'opacity-100 text-red-500 bg-red-50 scale-110'
+                                            : 'opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-gray-50'
+                                        }`}
+                                        title={
+                                          deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
+                                            ? 'Click again to confirm'
+                                            : 'Delete comment'
+                                        }
                                     >
-                                        <Icons.Sparkles />
+                                        {deletingComment?.postId === post.id && deletingComment?.commentId === comment.id ? (
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        ) : (
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        )}
                                     </button>
-                                )}
-
-                                {/* Delete Comment Button */}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteComment(post.id, comment.id);
-                                    }}
-                                    className={`transition-all px-1 ${
-                                      deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
-                                        ? 'opacity-100 text-red-500 scale-110'
-                                        : 'opacity-0 group-hover:opacity-100 text-gray-200 hover:text-red-400'
-                                    }`}
-                                    title={
-                                      deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
-                                        ? 'Click again to confirm'
-                                        : 'Delete comment'
-                                    }
-                                >
-                                    {deletingComment?.postId === post.id && deletingComment?.commentId === comment.id ? (
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                    ) : (
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                    )}
-                                </button>
+                                </div>
                             </div>
                         );
                     })}
-                    
-                    {post.comments.length > 1 && (
-                        <button 
-                            onClick={() => toggleComments(post.id)}
-                            className="text-[10px] text-gray-400 hover:text-[#5a4a42] mt-1 font-medium"
-                        >
-                            {isExpanded ? 'Hide comments' : `View all ${post.comments.length} comments`}
-                        </button>
-                    )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Add Comment Input */}
-                {activePostId === post.id && (
-                    <div className="border-t border-gray-100 pt-3 animate-fade-in relative">
-                        {replyingTo && replyingTo.postId === post.id && (
-                            <div className="flex justify-between items-center bg-gray-50 px-2 py-1 mb-2 rounded text-[10px] text-gray-500">
-                                <span>Replying to {replyingTo.author}...</span>
-                                <button onClick={() => setReplyingTo(null)} className="hover:text-red-500">✕</button>
-                            </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                            <button className="text-gray-400 hover:text-gray-600">
-                                <Icons.Smile />
-                            </button>
-                            <input 
-                                type="text" 
-                                placeholder={replyingTo && replyingTo.postId === post.id ? `Reply to ${replyingTo.author}...` : "Add a comment..."}
-                                className="flex-1 text-sm outline-none placeholder-gray-400 bg-transparent"
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleAddComment(post.id, newComment, 'User', replyingTo?.commentId);
-                                }}
-                                autoFocus
-                            />
+              {/* Add Comment Input */}
+              {activePostId === post.id && (
+                  <div className="px-3 py-2 bg-white animate-fade-in relative border-t border-gray-100">
+                      {replyingTo && replyingTo.postId === post.id && (
+                          <div className="flex justify-between items-center bg-gray-50 px-3 py-2 mb-2 rounded-lg text-xs text-gray-500 border border-gray-200">
+                              <span className="truncate pr-4">Replying to <span className="font-semibold">{replyingTo.author}</span>: {replyingTo.text}</span>
+                              <button onClick={() => setReplyingTo(null)} className="hover:text-red-500 p-1 shrink-0">✕</button>
+                          </div>
+                      )}
+                      <div className="flex items-center gap-2 bg-white">
+                          <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                            <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
+                          </div>
+                          <input 
+                              type="text" 
+                              placeholder={replyingTo && replyingTo.postId === post.id ? `Reply to ${replyingTo.author}...` : "Add a comment..."}
+                              className="flex-1 text-[14px] outline-none placeholder-gray-500 bg-transparent text-black"
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                              onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleAddComment(post.id, newComment, 'User', replyingTo?.commentId);
 
-                            <button 
-                                onClick={() => handleAddComment(post.id, newComment, 'User', replyingTo?.commentId)}
-                                disabled={!newComment.trim()}
-                                className="text-[#d58f99] text-sm font-bold disabled:opacity-30 hover:text-[#c07a84]"
-                            >
-                                Post
-                            </button>
-                        </div>
-                    </div>
-                )}
-              </div>
+                              }}
+                              autoFocus
+                          />
+
+                          <button 
+                              onClick={() => handleAddComment(post.id, newComment, 'User', replyingTo?.commentId)}
+                              disabled={!newComment.trim()}
+                              className="text-[#0095f6] text-[14px] font-semibold disabled:opacity-40 hover:text-[#00376b] transition-colors"
+                          >
+                              Post
+                          </button>
+                      </div>
+                  </div>
+              )}
             </div>
           );
         })}
@@ -1317,13 +1793,13 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
       {/* Image Zoom Modal */}
       {zoomedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in"
           onClick={() => setZoomedImage(null)}
         >
-          <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-w-5xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <img
               src={zoomedImage.images[zoomedImage.index]}
-              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
               alt="Zoomed"
             />
 
@@ -1337,7 +1813,7 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                       index: (zoomedImage.index - 1 + zoomedImage.images.length) % zoomedImage.images.length
                     });
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
                 >
                   <Icons.ChevronLeft />
                 </button>
@@ -1349,17 +1825,21 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
                       index: (zoomedImage.index + 1) % zoomedImage.images.length
                     });
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
                 >
                   <Icons.ChevronRight />
                 </button>
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
                   {zoomedImage.images.map((_, idx) => (
                     <div
                       key={idx}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        idx === zoomedImage.index ? 'bg-white w-8' : 'bg-white/50'
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        idx === zoomedImage.index ? 'bg-white w-6' : 'bg-white/40 w-2 hover:bg-white/60 cursor-pointer'
                       }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setZoomedImage({ images: zoomedImage.images, index: idx });
+                      }}
                     />
                   ))}
                 </div>
@@ -1368,12 +1848,14 @@ Task: Write a diary entry in Deadpool's voice about these specific conversations
 
             <button
               onClick={() => setZoomedImage(null)}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all"
+              className="absolute -top-4 -right-4 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all backdrop-blur-md border border-white/10 shadow-lg"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

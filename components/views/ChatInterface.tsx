@@ -9,44 +9,55 @@ import remarkGfm from 'remark-gfm';
 
 // Simple Icons
 const Icons = {
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-  Back: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
-  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-  Volume: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
-  VolumeLarge: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
-  Heart: ({ filled }: { filled: boolean }) => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>,
-  Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
-  Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
-  Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
-  Copy: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
-  ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
-  ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
-  More: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
-  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
-  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>,
-  Down: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
-  Up: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
-  Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>,
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  Back: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+  Volume: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
+  VolumeLarge: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
+  Heart: ({ filled }: { filled: boolean }) => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>,
+  Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
+  Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
+  Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
+  Copy: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
+  ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+  ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
+  More: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>,
+  Down: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+  Up: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
+  Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>,
   Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>,
-  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
-  Map: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
-  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
-  Pin: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0-7-9-7-9-7s-9 0-9 7c0 1.5 2 5 9 13 7-8 9-11.5 9-13z"></path></svg>,
-  Infinity: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"/></svg>,
-  Smartphone: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
-  Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
-  Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>,
+  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+  Map: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+  Pin: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0-7-9-7-9-7s-9 0-9 7c0 1.5 2 5 9 13 7-8 9-11.5 9-13z"></path></svg>,
+  Infinity: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"/></svg>,
+  Smartphone: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
+  Feather: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>,
+  Wave: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="17" y1="5" x2="17" y2="19"></line><line x1="7" y1="5" x2="7" y2="19"></line><line x1="22" y1="8" x2="22" y2="16"></line><line x1="2" y1="8" x2="2" y2="16"></line></svg>,
   Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
+  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
+  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  File: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
+  RotateThin: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>,
+  TextSelect: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>,
+  PlusThin: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  ArrowUpThin: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>,
+  Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+  Bug: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="14" x="8" y="6" rx="4"/><path d="m19 7-3 3"/><path d="m5 7 3 3"/><path d="m19 19-3-3"/><path d="m5 19 3-3"/><path d="M2 12h6"/><path d="M16 12h6"/></svg>,
 };
 
 // --- Long Press Hook ---
 const useLongPress = (callback: () => void, ms = 500) => {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const isMoved = useRef(false);
+  const startPos = useRef<{ x: number, y: number } | null>(null);
 
-  const start = () => {
-    isMoved.current = false;
+  const start = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e) {
+      startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
     timerRef.current = setTimeout(() => {
       // Vibrate if supported for feedback
       if (navigator.vibrate) navigator.vibrate(50);
@@ -56,11 +67,19 @@ const useLongPress = (callback: () => void, ms = 500) => {
 
   const stop = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    startPos.current = null;
   };
 
-  const move = () => {
-    isMoved.current = true;
-    stop();
+  const move = (e: React.TouchEvent) => {
+    if (startPos.current) {
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const diffX = Math.abs(x - startPos.current.x);
+      const diffY = Math.abs(y - startPos.current.y);
+      if (diffX > 10 || diffY > 10) {
+        stop();
+      }
+    }
   };
 
   return {
@@ -73,8 +92,210 @@ const useLongPress = (callback: () => void, ms = 500) => {
     onContextMenu: (e: React.MouseEvent) => {
       e.preventDefault(); // Prevent native right-click menu
       callback();
+      stop();
     }
   };
+};
+
+// Session Item Component with Editable Title
+const SessionItem = ({
+  session,
+  onOpen,
+  onLongPress,
+  isRenaming,
+  onRenameSubmit,
+  onRenameCancel
+}: {
+  session: any;
+  onOpen: (id: string) => void;
+  onLongPress: (id: string) => void;
+  isRenaming: boolean;
+  onRenameSubmit: (id: string, title: string) => void;
+  onRenameCancel: () => void;
+}) => {
+  const [editedTitle, setEditedTitle] = useState(session.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLongPressTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    } else {
+      setEditedTitle(session.title);
+    }
+  }, [isRenaming, session.title]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== session.title) {
+      onRenameSubmit(session.id, editedTitle.trim());
+    } else {
+      onRenameCancel();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(session.title);
+      onRenameCancel();
+    }
+  };
+
+  const { onContextMenu, ...longPressHandlers } = useLongPress(() => {
+    isLongPressTriggered.current = true;
+    onLongPress(session.id);
+  });
+
+  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isRenaming) return;
+    
+    // If long press was triggered, don't open the session
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false;
+      return;
+    }
+    onOpen(session.id);
+  };
+
+  return (
+    <div
+      {...longPressHandlers}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-[#d58f99] ring-1 ring-[#d58f99]/20' : 'active:scale-[0.98]'}`}
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        // Treat right click as long press for desktop
+        isLongPressTriggered.current = true;
+        onLongPress(session.id);
+      }}
+    >
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        {session.isPinned && (
+          <div className="text-[#d58f99] flex-shrink-0">
+            <Icons.Pin />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          {isRenaming ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+            />
+          ) : (
+            <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+          )}
+          <p className="text-[10px] text-[#917c71] mt-1">
+            {new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Archive Item Component
+const ArchiveItem = ({
+  archive,
+  dateString,
+  onOpen,
+  onLongPress,
+  isRenaming,
+  onRenameSubmit,
+  onRenameCancel
+}: {
+  archive: any;
+  dateString: string;
+  onOpen: (id: string) => void;
+  onLongPress: (id: string) => void;
+  isRenaming: boolean;
+  onRenameSubmit: (id: string, title: string) => void;
+  onRenameCancel: () => void;
+}) => {
+  const [editedTitle, setEditedTitle] = useState(archive.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLongPressTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    } else {
+      setEditedTitle(archive.title);
+    }
+  }, [isRenaming, archive.title]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== archive.title) {
+      onRenameSubmit(archive.id, editedTitle.trim());
+    } else {
+      onRenameCancel();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(archive.title);
+      onRenameCancel();
+    }
+  };
+
+  const { onContextMenu, ...longPressHandlers } = useLongPress(() => {
+    isLongPressTriggered.current = true;
+    onLongPress(archive.id);
+  });
+
+  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isRenaming) return;
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false;
+      return;
+    }
+    onOpen(archive.id);
+  };
+
+  return (
+    <div
+      {...longPressHandlers}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center transition-all cursor-pointer select-none group hover:border-[#d58f99] ${isRenaming ? 'border-[#d58f99] ring-1 ring-[#d58f99]/20' : 'active:scale-[0.98]'}`}
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        isLongPressTriggered.current = true;
+        onLongPress(archive.id);
+      }}
+    >
+      <div className="flex-1 min-w-0">
+        {isRenaming ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleSave}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+          />
+        ) : (
+          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{archive.title}</h3>
+        )}
+        <p className="text-[10px] text-[#917c71] mt-1">{dateString || 'Loading...'}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
+      </div>
+    </div>
+  );
 };
 
 const MessageBubble = ({
@@ -96,8 +317,31 @@ const MessageBubble = ({
   const idx = msg.selectedIndex || 0;
   const thinkingContent = msg.variantsThinking?.[idx];
 
+  // Check if the message is a base64 image
+  const isBase64Image = msg.text.startsWith('data:image/');
+
   // FIX FOR "|||": Replace separators with visual spacing before rendering
   const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
+
+  const renderAttachments = () => {
+    const attachments = msg.attachments || [];
+    if (attachments.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 mb-2">
+        {attachments.map((att, i) => (
+          att.type === 'image' ? (
+             <img key={i} src={`data:${att.mimeType};base64,${att.content}`} className="max-w-full rounded-lg max-h-[200px] object-cover" />
+          ) : (
+             <div key={i} className="flex items-center gap-2 p-2 bg-white/90 rounded-lg border border-gray-200 shadow-sm">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+               <span className="text-xs truncate max-w-[150px] text-gray-700">{att.name}</span>
+             </div>
+          )
+        ))}
+      </div>
+    );
+  };
 
   // Custom markdown renderer with search highlighting
   const MarkdownWithHighlight = ({ content, query }: { content: string, query?: string }) => {
@@ -206,9 +450,19 @@ const MessageBubble = ({
               </div>
             )}
 
-            <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
-              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-            </div>
+            {renderAttachments()}
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+                <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+              </div>
+            )}
           </div>
           <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
             {formatTime(msg.timestamp)}
@@ -258,10 +512,10 @@ const MessageBubble = ({
                 {msg.audioCache && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                    className="w-4 h-4 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
                     title="Regenerate voice"
                   >
-                    <Icons.Refresh />
+                    <Icons.RotateThin size={14} />
                   </button>
                 )}
               </div>
@@ -296,7 +550,17 @@ const MessageBubble = ({
 
           {/* MAIN TEXT */}
           <div className="px-4 py-2 text-[14px] leading-relaxed tracking-wide markdown-content">
-            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            {renderAttachments()}
+            {isBase64Image ? (
+              <img
+                src={msg.text}
+                alt="Generated image"
+                className="max-w-full rounded-lg"
+                style={{ maxHeight: '400px', width: 'auto' }}
+              />
+            ) : (
+              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+            )}
           </div>
         </div>
       </div>
@@ -327,9 +591,19 @@ const MessageBubble = ({
         style={{ WebkitTouchCallout: 'none' }}
         className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
-        <div className="text-[14px] leading-relaxed markdown-content">
-          <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-        </div>
+        {renderAttachments()}
+        {isBase64Image ? (
+          <img
+            src={msg.text}
+            alt="User uploaded image"
+            className="max-w-full rounded-lg"
+            style={{ maxHeight: '400px', width: 'auto' }}
+          />
+        ) : (
+          <div className="text-[14px] leading-relaxed markdown-content">
+            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -341,7 +615,8 @@ export const ChatInterface: React.FC = () => {
     sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
     coreMemories, llmPresets, ttsPresets,
-    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage
+    chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage,
+    importArchive, deleteArchive, updateArchiveTitle
   } = useStore();
 
   const [viewState, setViewState] = useState<'menu' | 'list' | 'chat'>('menu');
@@ -370,7 +645,18 @@ export const ChatInterface: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
+  const [textSelectionMsg, setTextSelectionMsg] = useState<Message | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Session Actions State
+  const [actionSessionId, setActionSessionId] = useState<string | null>(null);
+  const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
+  const [sessionDeleteConfirm, setSessionDeleteConfirm] = useState(false);
+
+  // Archive Actions State
+  const [actionArchiveId, setActionArchiveId] = useState<string | null>(null);
+  const [renamingArchiveId, setRenamingArchiveId] = useState<string | null>(null);
+  const [archiveDeleteConfirm, setArchiveDeleteConfirm] = useState(false);
 
   // Search & Map State
   const [showSearch, setShowSearch] = useState(false);
@@ -379,6 +665,7 @@ export const ChatInterface: React.FC = () => {
   const [showMap, setShowMap] = useState(false);
   const [showLlmSelector, setShowLlmSelector] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const [customPromptText, setCustomPromptText] = useState('');
   
   // Pagination State
@@ -395,8 +682,15 @@ export const ChatInterface: React.FC = () => {
   // Audio playback state management
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const [attachments, setAttachments] = useState<{ type: 'image' | 'file', content: string, mimeType: string, name: string }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const archiveInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [deletingArchiveId, setDeletingArchiveId] = useState<string | null>(null);
 
   const messagesRef = useRef(messages);
   useEffect(() => {
@@ -599,6 +893,13 @@ export const ChatInterface: React.FC = () => {
   };
   const selectedMsg = displayMessages.find(m => m.id === selectedMsgId);
 
+  const handleTextSelection = () => {
+    if (selectedMsg) {
+      setTextSelectionMsg(selectedMsg);
+      closeActions();
+    }
+  };
+
   const handleCopy = () => {
     if (selectedMsg) {
       let textToCopy = selectedMsg.text;
@@ -720,7 +1021,7 @@ export const ChatInterface: React.FC = () => {
 
       // Check for cached audio
       const message = messages.find(m => m.id === messageId);
-      let base64Audio: string;
+      let base64Audio: string | undefined;
 
       if (!forceRegenerate && message?.audioCache) {
         // 抽屉里有，直接白嫖！
@@ -756,6 +1057,10 @@ export const ChatInterface: React.FC = () => {
         if (base64Audio) {
           updateMessageAudioCache(messageId, base64Audio);
         }
+      }
+
+      if (!base64Audio) {
+        throw new Error("Failed to generate audio");
       }
 
       const binaryString = atob(base64Audio);
@@ -876,7 +1181,31 @@ export const ChatInterface: React.FC = () => {
           const thought = m.variantsThinking?.[idx];
           if (thought) content = `<think>${thought}</think>\n${content}`;
         }
-        return { role: m.role, parts: [{ text: content }] };
+        
+        const parts: any[] = [];
+        if (content) parts.push({ text: content });
+
+        if (m.attachments && m.attachments.length > 0) {
+           m.attachments.forEach(att => {
+               parts.push({
+                   inlineData: {
+                       mimeType: att.mimeType,
+                       data: att.content
+                   }
+               });
+           });
+        } else if (m.image) {
+            parts.push({
+                inlineData: {
+                    mimeType: 'image/png',
+                    data: m.image
+                }
+            });
+        }
+        
+        if (parts.length === 0) parts.push({ text: "..." });
+
+        return { role: m.role, parts: parts };
       }).slice(-15);
 
       let modePrompt = settings.wadePersonality;
@@ -896,7 +1225,7 @@ export const ChatInterface: React.FC = () => {
 
       const currentSession = sessions.find(s => s.id === activeSessionId);
       const response = await generateTextResponse(
-        activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview',
+        activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
         modePrompt,
@@ -913,7 +1242,9 @@ export const ChatInterface: React.FC = () => {
           frequencyPenalty: activeLlm.frequencyPenalty,
           presencePenalty: activeLlm.presencePenalty
         } : undefined,
-        currentSession?.customPrompt
+        currentSession?.customPrompt,
+        activeLlm?.baseUrl,
+        activeLlm?.isImageGen
       );
 
       const responseText = response.text;
@@ -996,6 +1327,67 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check model support
+    const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+    // Default to true if no preset (using default Gemini)
+    const isVision = activeLlm ? activeLlm.isVision : true; 
+
+    if (!isVision) {
+      alert(`The current model (${activeLlm?.name || 'Unknown'}) does not support images. Please switch to a vision-capable model.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'image',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
+      setShowUploadMenu(false);
+    };
+    reader.readAsDataURL(file);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check model support (PDFs usually require vision/multimodal models too)
+    const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+    const isVision = activeLlm ? activeLlm.isVision : true;
+
+    if (file.type === 'application/pdf' && !isVision) {
+       alert(`The current model (${activeLlm?.name || 'Unknown'}) might not support PDF files. Please switch to a multimodal model.`);
+       return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'file',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
+      setShowUploadMenu(false);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCancel = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -1028,7 +1420,7 @@ export const ChatInterface: React.FC = () => {
   };
 
   const handleSend = async () => {
-    if (!inputText.trim() || activeMode === 'archive') return;
+    if ((!inputText.trim() && attachments.length === 0) || activeMode === 'archive') return;
     let targetSessionId = activeSessionId;
     if (!targetSessionId) {
       targetSessionId = await createSession(activeMode);
@@ -1042,12 +1434,20 @@ export const ChatInterface: React.FC = () => {
       role: 'Luna',
       text: inputText,
       timestamp: Date.now(),
-      mode: activeMode
+      mode: activeMode,
+      attachments: attachments.map(a => ({
+          type: a.type,
+          content: a.content.split(',')[1],
+          mimeType: a.mimeType,
+          name: a.name
+      })),
+      image: attachments.find(a => a.type === 'image')?.content.split(',')[1]
     };
     addMessage(newMessage);
     setLastSentMessageId(newMessage.id);
     setLastInputText(currentInput);
     setInputText('');
+    setAttachments([]);
     if (textareaRef.current) textareaRef.current.style.height = '48px';
     if (isFirstMessage) {
       const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
@@ -1128,6 +1528,36 @@ export const ChatInterface: React.FC = () => {
     setCurrentSearchIndex(0);
   };
 
+  const handleArchiveUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const text = await file.text();
+      const title = file.name.replace('.txt', '');
+      const count = await importArchive(title, text);
+      alert(`Success! Imported ${count} messages into archive "${title}".`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to import archive. Please check the console for errors.");
+    } finally {
+      setIsUploading(false);
+      if (archiveInputRef.current) archiveInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteArchive = (archiveId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (deletingArchiveId === archiveId) {
+      deleteArchive(archiveId);
+      setDeletingArchiveId(null);
+    } else {
+      setDeletingArchiveId(archiveId);
+      setTimeout(() => setDeletingArchiveId(null), 3000);
+    }
+  };
+
   // --- RENDER ---
 
   if (viewState === 'menu') {
@@ -1177,39 +1607,62 @@ export const ChatInterface: React.FC = () => {
 
   if (viewState === 'list') {
     return (
-      <div className="h-full bg-[#f9f6f7] p-6 flex flex-col items-center animate-fade-in">
-        <div className="w-full max-w-md flex justify-between items-center mb-6 px-1">
+      <div className="h-full bg-[#f9f6f7] flex flex-col overflow-hidden animate-fade-in">
+        <div className="w-full max-w-md mx-auto flex justify-between items-center px-6 pt-6 pb-4 shrink-0">
           <button onClick={handleBack} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"><Icons.Back /></button>
           <h2 className="font-hand text-2xl text-[#d58f99] capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
-          {activeMode !== 'archive' && <button onClick={handleStartDraftSession} className="w-8 h-8 rounded-full bg-[#d58f99] text-white shadow-md flex items-center justify-center hover:bg-[#c07a84] transition-colors"><Icons.Plus /></button>}
+          
+          {activeMode === 'archive' ? (
+             <button 
+               onClick={() => !isUploading && archiveInputRef.current?.click()} 
+               className="w-8 h-8 rounded-full bg-[#d58f99] text-white shadow-md flex items-center justify-center hover:bg-[#c07a84] transition-colors"
+               title="Import Archive"
+             >
+               {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
+             </button>
+          ) : (
+             <button onClick={handleStartDraftSession} className="w-8 h-8 rounded-full bg-[#d58f99] text-white shadow-md flex items-center justify-center hover:bg-[#c07a84] transition-colors"><Icons.Plus /></button>
+          )}
+          
+          {/* Hidden Input for Archive Upload */}
+          <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
         </div>
-        <div className="w-full max-w-md space-y-3 overflow-y-auto pb-20">
+        
+        <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto px-6 pb-24 custom-scrollbar space-y-3">
 
           {/* ARCHIVE LIST LOGIC */}
           {activeMode === 'archive' ? (
             isLoadingArchiveList ? (
               <div className="text-center text-[#d58f99] py-10 animate-pulse">Loading archives...</div>
-            ) : chatArchives.length === 0 ? (
-              <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import them in the Memory Bank.</div>
             ) : (
               <>
-                {[...chatArchives].sort((a, b) => {
-                  const timeA = archiveTimestamps[a.id] || 0;
-                  const timeB = archiveTimestamps[b.id] || 0;
-                  return timeB - timeA;
-                })
-                .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
-                .map(arch => (
-                  <div key={arch.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenArchive(arch.id)}>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#5a4a42] text-sm truncate">{arch.title}</h3>
-                      <p className="text-[10px] text-[#917c71] mt-1">{archiveDates[arch.id] || 'Loading...'}</p>
-                    </div>
-                    <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
-                  </div>
-                ))}
+                {chatArchives.length === 0 ? (
+                  <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import one above!</div>
+                ) : (
+                  <>
+                    {[...chatArchives].sort((a, b) => {
+                      const timeA = archiveTimestamps[a.id] || 0;
+                      const timeB = archiveTimestamps[b.id] || 0;
+                      return timeB - timeA;
+                    })
+                    .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+                    .map(arch => (
+                      <ArchiveItem
+                        key={arch.id}
+                        archive={arch}
+                        dateString={archiveDates[arch.id]}
+                        onOpen={handleOpenArchive}
+                        onLongPress={(id) => setActionArchiveId(id)}
+                        isRenaming={renamingArchiveId === arch.id}
+                        onRenameSubmit={(id, title) => {
+                          updateArchiveTitle(id, title);
+                          setRenamingArchiveId(null);
+                        }}
+                        onRenameCancel={() => setRenamingArchiveId(null)}
+                      />
+                    ))}
 
-                {/* Archive Pagination Controls */}
+                    {/* Archive Pagination Controls */}
                 {chatArchives.length > SESSIONS_PER_PAGE && (
                   <div className="flex justify-center items-center gap-4 mt-6 pt-2">
                     <button 
@@ -1232,8 +1685,10 @@ export const ChatInterface: React.FC = () => {
                   </div>
                 )}
               </>
-            )
-          ) : (
+            )}
+          </>
+        )
+      ) : (
             modeSessions.length === 0 ? (
               <div className="opacity-60 grayscale select-none pointer-events-none">
                 <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center">
@@ -1251,20 +1706,18 @@ export const ChatInterface: React.FC = () => {
                   })
                   .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
                   .map(session => (
-                    <div key={session.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-all cursor-pointer" onClick={() => handleOpenSession(session.id)}>
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
-                        {session.isPinned && (
-                          <div className="text-[#d58f99] flex-shrink-0">
-                            <Icons.Pin />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
-                          <p className="text-[10px] text-[#917c71] mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
-                      </div>
-                      <button onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }} className="p-2 text-gray-300 hover:text-red-400 transition-colors"><Icons.Trash /></button>
-                    </div>
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      onOpen={handleOpenSession}
+                      onLongPress={(id) => setActionSessionId(id)}
+                      isRenaming={renamingSessionId === session.id}
+                      onRenameSubmit={(id, title) => {
+                        updateSessionTitle(id, title);
+                        setRenamingSessionId(null);
+                      }}
+                      onRenameCancel={() => setRenamingSessionId(null)}
+                    />
                   ))}
                 
                 {/* Pagination Controls */}
@@ -1287,6 +1740,100 @@ export const ChatInterface: React.FC = () => {
                     >
                       <Icons.ChevronRight />
                     </button>
+                  </div>
+                )}
+
+                {/* Session & Archive Action Sheet (Grid Layout) */}
+                {(actionSessionId || actionArchiveId) && (
+                  <div className="fixed inset-0 z-50 flex items-end justify-center">
+                    <div 
+                      className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-fade-in"
+                      onClick={() => {
+                        setActionSessionId(null);
+                        setActionArchiveId(null);
+                        setSessionDeleteConfirm(false);
+                        setArchiveDeleteConfirm(false);
+                      }}
+                    />
+                    <div className="relative w-full max-w-4xl mx-auto bg-white rounded-t-[32px] shadow-2xl border-t border-[#d58f99]/20 p-6 animate-slide-up">
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[#eae2e8] rounded-full opacity-50" />
+                      
+                      <div className="grid grid-cols-4 gap-4 justify-items-center">
+                        {/* Edit Title */}
+                        <button
+                          onClick={() => {
+                            if (actionSessionId) setRenamingSessionId(actionSessionId);
+                            if (actionArchiveId) setRenamingArchiveId(actionArchiveId);
+                            setActionSessionId(null);
+                            setActionArchiveId(null);
+                          }}
+                          className="flex flex-col items-center gap-2 group"
+                        >
+                          <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
+                            <Icons.Edit />
+                          </div>
+                          <span className="text-[10px] text-[#917c71]">Edit Title</span>
+                        </button>
+
+                        {/* Pin (Session Only) */}
+                        {actionSessionId && (
+                          <button
+                            onClick={() => {
+                              toggleSessionPin(actionSessionId);
+                              setActionSessionId(null);
+                            }}
+                            className="flex flex-col items-center gap-2 group"
+                          >
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                              sessions.find(s => s.id === actionSessionId)?.isPinned 
+                                ? 'bg-[#d58f99] text-white' 
+                                : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                            }`}>
+                              <Icons.Pin />
+                            </div>
+                            <span className="text-[10px] text-[#917c71]">
+                              {sessions.find(s => s.id === actionSessionId)?.isPinned ? 'Unpin' : 'Pin'}
+                            </span>
+                          </button>
+                        )}
+
+                        {/* Delete */}
+                        <button
+                          onClick={() => {
+                            if (actionSessionId) {
+                              if (sessionDeleteConfirm) {
+                                deleteSession(actionSessionId);
+                                setActionSessionId(null);
+                                setSessionDeleteConfirm(false);
+                              } else {
+                                setSessionDeleteConfirm(true);
+                              }
+                            }
+                            if (actionArchiveId) {
+                               if (archiveDeleteConfirm) {
+                                  deleteArchive(actionArchiveId);
+                                  setActionArchiveId(null);
+                                  setArchiveDeleteConfirm(false);
+                               } else {
+                                  setArchiveDeleteConfirm(true);
+                               }
+                            }
+                          }}
+                          className="flex flex-col items-center gap-2 group"
+                        >
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                            (sessionDeleteConfirm || archiveDeleteConfirm)
+                              ? 'bg-red-500 text-white animate-pulse' 
+                              : 'bg-[#f9f6f7] text-red-400 group-hover:bg-red-400 group-hover:text-white'
+                          }`}>
+                            {(sessionDeleteConfirm || archiveDeleteConfirm) ? <Icons.Check /> : <Icons.Trash />}
+                          </div>
+                          <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-[#917c71]'}`}>
+                            {(sessionDeleteConfirm || archiveDeleteConfirm) ? 'Confirm?' : 'Delete'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
@@ -1410,6 +1957,16 @@ export const ChatInterface: React.FC = () => {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
               <span>Add Spice Words</span>
+            </button>
+            <button
+              onClick={() => {
+                setShowDebug(true);
+                setShowMenu(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+            >
+              <Icons.Bug />
+              <span>Debug Context</span>
             </button>
           </div>
         </>
@@ -1626,11 +2183,11 @@ export const ChatInterface: React.FC = () => {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full bg-[#f9f6f7] rounded-xl p-3 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] min-h-[100px] mb-3"
+                    className="w-full bg-[#f9f6f7] rounded-xl p-3 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-sm min-h-[300px] mb-3 resize-none"
                   />
                   <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => setIsEditing(false)} className="flex-1">Cancel</Button>
-                    <Button onClick={handleSaveEdit} className="flex-1">Save</Button>
+                    <Button variant="ghost" onClick={() => setIsEditing(false)} className="flex-1 text-sm">Cancel</Button>
+                    <Button onClick={handleSaveEdit} className="flex-1 text-sm">Save</Button>
                   </div>
                 </div>
               ) : (
@@ -1646,6 +2203,11 @@ export const ChatInterface: React.FC = () => {
                     <button onClick={(e) => { e.stopPropagation(); handleCopy(); }} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Copy /></div>
                       <span className="text-[10px] text-[#917c71]">Copy</span>
+                    </button>
+
+                    <button onClick={(e) => { e.stopPropagation(); handleTextSelection(); }} className="flex flex-col items-center gap-2 group">
+                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.TextSelect /></div>
+                      <span className="text-[10px] text-[#917c71]">Select</span>
                     </button>
 
                     {activeMode !== 'archive' && canRegenerate && (
@@ -1694,9 +2256,9 @@ export const ChatInterface: React.FC = () => {
                         {selectedMsg.audioCache && (
                           <button onClick={(e) => { e.stopPropagation(); regenerateTTS(); }} className="flex flex-col items-center gap-2 group">
                             <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
-                              <Icons.Refresh />
+                              <Icons.RotateThin />
                             </div>
-                            <span className="text-[10px] text-[#917c71]">Regen</span>
+                            <span className="text-[10px] text-[#917c71]">Re-Speak</span>
                           </button>
                         )}
                       </>
@@ -1718,6 +2280,29 @@ export const ChatInterface: React.FC = () => {
           </>
         )
       }
+
+      {/* Text Selection Modal */}
+      {textSelectionMsg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setTextSelectionMsg(null)}>
+          <div className="bg-white w-[90%] max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-[#eae2e8] flex justify-between items-center bg-[#f9f6f7]">
+              <h3 className="font-bold text-[#5a4a42] flex items-center gap-2">
+                <Icons.TextSelect />
+                Select Text
+              </h3>
+              <button onClick={() => setTextSelectionMsg(null)} className="p-2 hover:bg-[#eae2e8] rounded-full transition-colors text-[#917c71]"><Icons.Close /></button>
+            </div>
+            <div className="p-6 overflow-y-auto select-text cursor-text text-[#5a4a42] text-sm leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {textSelectionMsg.text}
+              </ReactMarkdown>
+            </div>
+            <div className="p-4 border-t border-[#eae2e8] bg-[#f9f6f7] text-center">
+              <p className="text-xs text-[#917c71]">Long press or drag to select text to copy</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Conversation Map Modal */}
       {
@@ -1803,8 +2388,91 @@ export const ChatInterface: React.FC = () => {
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-[#eae2e8] z-30">
+          <div className="absolute bottom-0 left-0 right-0 p-3 pb-6 md:pb-3 bg-white border-t border-[#eae2e8] z-30">
+            {/* Attachment Preview */}
+            {attachments.length > 0 && (
+              <div className="flex gap-2 mb-2 overflow-x-auto px-2 pb-2">
+                {attachments.map((att, index) => (
+                  <div key={index} className="relative group flex-shrink-0">
+                    {att.type === 'image' ? (
+                      <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-[#eae2e8]" />
+                    ) : (
+                      <div className="h-16 w-16 bg-[#f9f6f7] rounded-lg border border-[#eae2e8] flex flex-col items-center justify-center p-1">
+                        <Icons.File />
+                        <span className="text-[8px] truncate w-full text-center mt-1 text-[#5a4a42]">{att.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => removeAttachment(index)}
+                      className="absolute -top-2 -right-2 bg-[#d58f99] text-white rounded-full p-0.5 shadow-md hover:bg-[#c07a84] transition-colors w-5 h-5 flex items-center justify-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2 max-w-4xl mx-auto items-end">
+              {/* File Upload Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUploadMenu(!showUploadMenu)}
+                  className="w-9 h-9 rounded-full bg-[#f9f6f7] border border-[#eae2e8] flex items-center justify-center hover:bg-[#eae2e8] transition-colors text-[#917c71] hover:text-[#5a4a42] shadow-sm"
+                >
+                  <Icons.PlusThin />
+                </button>
+
+                {/* Hidden Inputs */}
+                <input
+                  type="file"
+                  ref={imageInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.txt,.md,.json"
+                  onChange={handleFileSelect}
+                />
+
+                {/* Upload Menu Popup */}
+                {showUploadMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowUploadMenu(false)}
+                    />
+
+                    {/* Menu */}
+                    <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-xl shadow-lg z-50 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          imageInputRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
+                      >
+                        <Icons.Image />
+                        <span className="text-xs font-medium">Image</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
+                      >
+                        <Icons.File />
+                        <span className="text-xs font-medium">File</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <textarea
                 ref={textareaRef}
                 value={inputText}
@@ -1812,18 +2480,165 @@ export const ChatInterface: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeMode === 'sms' ? "Text message..." : "Type a message..."}
                 rows={1}
-                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-5 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto min-h-[48px] max-h-[120px]"
+                className="flex-1 bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-2 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] placeholder-[#917c71]/50 shadow-inner resize-none overflow-y-auto h-9 text-sm"
               />
               <Button
                 onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
-                className="w-12 h-12 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
+                className="w-9 h-9 !px-0 rounded-full flex items-center justify-center shadow-md mb-0 transition-all"
               >
-                {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.Send />}
+                {(isTyping && activeMode !== 'sms') ? <Icons.Stop /> : <Icons.ArrowUpThin />}
               </Button>
             </div>
           </div>
         )
       }
+      {/* Debug Modal */}
+      {showDebug && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowDebug(false)}>
+          <div className="bg-white w-[95%] max-w-4xl h-[85vh] rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-[#eae2e8] flex justify-between items-center bg-[#f9f6f7]">
+              <h3 className="font-bold text-[#5a4a42] flex items-center gap-2">
+                <Icons.Bug />
+                Context Inspector
+              </h3>
+              <button onClick={() => setShowDebug(false)} className="p-2 hover:bg-[#eae2e8] rounded-full transition-colors text-[#917c71]"><Icons.Close /></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#fafafa]">
+              {(() => {
+                const freshMessages = activeSessionId ? messages.filter(m => m.sessionId === activeSessionId).sort((a, b) => a.timestamp - b.timestamp) : [];
+                const historyMsgs = freshMessages.slice(-15);
+                
+                const history = historyMsgs.map(m => {
+                  let content = m.text;
+                  if (m.role === 'Wade') {
+                    const idx = m.selectedIndex || 0;
+                    const thought = m.variantsThinking?.[idx];
+                    if (thought) content = `<think>${thought}</think>\n${content}`;
+                  }
+                  return { role: m.role, content };
+                });
+
+                let modePrompt = settings.wadePersonality;
+                if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES]\n- Write SHORT text messages (1-2 sentences each)\n- Use emojis naturally\n- You can split your reply into MULTIPLE separate text bubbles by using ||| as separator\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Each part separated by ||| will appear as a separate text message with a small delay\n- This makes the conversation feel more natural and realistic";
+                else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
+
+                const currentSession = sessions.find(s => s.id === activeSessionId);
+                const customPrompt = currentSession?.customPrompt;
+                
+                const systemTokens = (modePrompt.length + (settings.lunaInfo?.length || 0) + (settings.exampleDialogue?.length || 0)) / 4;
+                const memoryTokens = JSON.stringify(coreMemories).length / 4;
+                const historyTokens = JSON.stringify(history).length / 4;
+                const totalTokens = systemTokens + memoryTokens + historyTokens;
+
+                return (
+                  <div className="space-y-6">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-xs text-[#917c71] uppercase font-bold tracking-wider mb-1">Total Tokens</div>
+                        <div className="text-2xl font-bold text-[#d58f99]">~{Math.round(totalTokens)}</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-xs text-[#917c71] uppercase font-bold tracking-wider mb-1">System</div>
+                        <div className="text-xl font-bold text-[#5a4a42]">~{Math.round(systemTokens)}</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-xs text-[#917c71] uppercase font-bold tracking-wider mb-1">Memories</div>
+                        <div className="text-xl font-bold text-[#5a4a42]">~{Math.round(memoryTokens)}</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-xs text-[#917c71] uppercase font-bold tracking-wider mb-1">History</div>
+                        <div className="text-xl font-bold text-[#5a4a42]">~{Math.round(historyTokens)}</div>
+                      </div>
+                    </div>
+
+                    {/* System Prompt */}
+                    <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                      <div className="bg-[#f9f6f7] px-4 py-3 border-b border-[#eae2e8] flex justify-between items-center">
+                        <h4 className="font-bold text-[#5a4a42] text-sm">System Prompt</h4>
+                        <span className="text-xs text-[#917c71] font-mono">{modePrompt.length} chars</span>
+                      </div>
+                      <div className="p-4 text-xs font-mono text-[#5a4a42] whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                        {modePrompt}
+                      </div>
+                    </div>
+
+                    {/* User Info & Example */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                        <div className="bg-[#f9f6f7] px-4 py-3 border-b border-[#eae2e8]">
+                          <h4 className="font-bold text-[#5a4a42] text-sm">Luna Info</h4>
+                        </div>
+                        <div className="p-4 text-xs font-mono text-[#5a4a42] whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+                          {settings.lunaInfo || <span className="text-[#917c71] italic">Not set</span>}
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                        <div className="bg-[#f9f6f7] px-4 py-3 border-b border-[#eae2e8]">
+                          <h4 className="font-bold text-[#5a4a42] text-sm">Example Dialogue</h4>
+                        </div>
+                        <div className="p-4 text-xs font-mono text-[#5a4a42] whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+                          {settings.exampleDialogue || <span className="text-[#917c71] italic">Not set</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Custom Prompt */}
+                    {customPrompt && (
+                      <div className="bg-white rounded-2xl border border-[#d58f99]/30 shadow-sm overflow-hidden">
+                        <div className="bg-[#fff0f3] px-4 py-3 border-b border-[#d58f99]/20">
+                          <h4 className="font-bold text-[#d58f99] text-sm">Session Spice (Custom Prompt)</h4>
+                        </div>
+                        <div className="p-4 text-xs font-mono text-[#5a4a42] whitespace-pre-wrap">
+                          {customPrompt}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Core Memories */}
+                    <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                      <div className="bg-[#f9f6f7] px-4 py-3 border-b border-[#eae2e8] flex justify-between items-center">
+                        <h4 className="font-bold text-[#5a4a42] text-sm">Active Core Memories</h4>
+                        <span className="text-xs text-[#917c71] font-mono">{coreMemories.length} items</span>
+                      </div>
+                      <div className="p-4 space-y-2 max-h-[200px] overflow-y-auto">
+                        {coreMemories.length > 0 ? (
+                          coreMemories.map((mem, i) => (
+                            <div key={i} className="text-xs text-[#5a4a42] bg-[#f9f6f7] p-2 rounded border border-[#eae2e8]">
+                              {mem}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-[#917c71] italic">No core memories yet.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Message History */}
+                    <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                      <div className="bg-[#f9f6f7] px-4 py-3 border-b border-[#eae2e8] flex justify-between items-center">
+                        <h4 className="font-bold text-[#5a4a42] text-sm">Message History (Last 15)</h4>
+                        <span className="text-xs text-[#917c71] font-mono">{history.length} msgs</span>
+                      </div>
+                      <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+                        {history.map((msg, i) => (
+                          <div key={i} className={`flex flex-col gap-1 ${msg.role === 'Luna' ? 'items-end' : 'items-start'}`}>
+                            <span className="text-[10px] font-bold text-[#917c71] uppercase">{msg.role}</span>
+                            <div className={`text-xs p-2 rounded-lg max-w-[90%] font-mono whitespace-pre-wrap ${msg.role === 'Luna' ? 'bg-[#d58f99]/10 text-[#5a4a42]' : 'bg-[#f9f6f7] text-[#5a4a42]'}`}>
+                              {msg.content}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };
