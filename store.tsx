@@ -665,7 +665,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (updates.activeMemoryIds !== undefined) dbUpdates.active_memory_ids = updates.activeMemoryIds;
     if (Object.keys(dbUpdates).length > 0) {
       dbUpdates.updated_at = new Date().toISOString();
-      await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
+      const { error } = await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
+      if (error) {
+        console.error("Failed to update session:", error);
+      }
     }
   };
 
