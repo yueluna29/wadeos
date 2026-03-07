@@ -582,7 +582,7 @@ const MessageBubble = ({
                 style={{ maxHeight: '400px', width: 'auto' }}
               />
             ) : (
-              <div className={`text-[14px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+              <div className={`text-xs leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
                 <MarkdownWithHighlight content={displayContent} query={searchQuery} />
               </div>
             )}
@@ -672,7 +672,7 @@ const MessageBubble = ({
           )}
 
           {/* MAIN TEXT */}
-          <div className="px-4 py-2 text-[14px] leading-relaxed tracking-wide markdown-content">
+          <div className="px-4 py-2 text-xs leading-relaxed tracking-wide markdown-content">
             {renderAttachments()}
             {isBase64Image ? (
               <img
@@ -723,7 +723,7 @@ const MessageBubble = ({
             style={{ maxHeight: '400px', width: 'auto' }}
           />
         ) : (
-          <div className="text-[14px] leading-relaxed markdown-content">
+          <div className="text-xs leading-relaxed markdown-content">
             <MarkdownWithHighlight content={displayContent} query={searchQuery} />
           </div>
         )}
@@ -2633,7 +2633,7 @@ export const ChatInterface: React.FC = () => {
             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity animate-fade-in" onClick={closeActions} />
             {isEditing ? (
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" onClick={() => setIsEditing(false)}>
-                <div className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
+                <div className="bg-[#fdfbfb] w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
                   {/* Header */}
                   <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex items-center gap-3">
@@ -2654,11 +2654,11 @@ export const ChatInterface: React.FC = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb]">
+                  <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] flex-1">
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full bg-white rounded-2xl p-4 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-sm min-h-[300px] resize-none shadow-sm font-mono leading-relaxed"
+                      className="w-full h-full bg-white rounded-2xl p-4 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-xs resize-none shadow-sm font-mono leading-relaxed"
                       placeholder="Type your new reality here..."
                     />
                   </div>
@@ -2783,7 +2783,7 @@ export const ChatInterface: React.FC = () => {
           onClick={() => setTextSelectionMsg(null)}
         >
           <div 
-            className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+            className="bg-[#fdfbfb] w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
@@ -2806,8 +2806,8 @@ export const ChatInterface: React.FC = () => {
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] select-text cursor-text">
-              <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-sm text-[#5a4a42] text-sm leading-relaxed font-mono whitespace-pre-wrap">
+            <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] select-text cursor-text flex-1">
+              <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-sm text-[#5a4a42] text-xs leading-relaxed font-mono whitespace-pre-wrap h-full overflow-y-auto">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {textSelectionMsg.text}
                 </ReactMarkdown>
