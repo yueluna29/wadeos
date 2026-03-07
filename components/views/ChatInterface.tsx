@@ -811,10 +811,17 @@ export const ChatInterface: React.FC = () => {
   }, [isTyping]);
   const [customPromptText, setCustomPromptText] = useState('');
   const [expandedMemoryIds, setExpandedMemoryIds] = useState<string[]>([]);
+  const [expandedHistoryIndices, setExpandedHistoryIndices] = useState<number[]>([]);
 
   const toggleMemoryExpand = (id: string) => {
     setExpandedMemoryIds(prev => 
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
+
+  const toggleHistoryExpand = (index: number) => {
+    setExpandedHistoryIndices(prev => 
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
     );
   };
 
@@ -3371,16 +3378,23 @@ export const ChatInterface: React.FC = () => {
                           <div className="p-8 text-center text-[#917c71] italic text-xs">No history yet. Start talking!</div>
                         ) : (
                           <div className="flex flex-col">
-                            {historyPayload.map((msg, i) => (
-                              <div key={i} className={`px-5 py-3 border-b border-[#eae2e8]/50 last:border-0 flex gap-4 ${msg.role === 'Luna' ? 'bg-[#fff0f3]/30' : 'bg-white'}`}>
-                                <div className={`w-12 text-[9px] font-bold uppercase tracking-wider pt-1 shrink-0 ${msg.role === 'Luna' ? 'text-[#d58f99]' : 'text-[#917c71]'}`}>
-                                  {msg.role}
+                            {historyPayload.map((msg, i) => {
+                              const isExpanded = expandedHistoryIndices.includes(i);
+                              return (
+                                <div 
+                                  key={i} 
+                                  onClick={() => toggleHistoryExpand(i)}
+                                  className={`px-5 py-3 border-b border-[#eae2e8]/50 last:border-0 flex gap-4 cursor-pointer hover:bg-[#fff0f3]/50 transition-colors ${msg.role === 'Luna' ? 'bg-[#fff0f3]/30' : 'bg-white'}`}
+                                >
+                                  <div className={`w-12 text-[9px] font-bold uppercase tracking-wider pt-1 shrink-0 ${msg.role === 'Luna' ? 'text-[#d58f99]' : 'text-[#917c71]'}`}>
+                                    {msg.role}
+                                  </div>
+                                  <div className={`flex-1 text-[11px] font-mono text-[#5a4a42]/80 leading-relaxed whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-1 overflow-hidden text-ellipsis'}`}>
+                                    {msg.content}
+                                  </div>
                                 </div>
-                                <div className="flex-1 text-[11px] font-mono text-[#5a4a42]/80 leading-relaxed whitespace-pre-wrap">
-                                  {msg.content}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -3396,8 +3410,15 @@ export const ChatInterface: React.FC = () => {
                           <span className="text-[10px] uppercase font-bold tracking-widest">Raw Payload</span>
                         </summary>
                         <div className="mt-4 bg-[#2d2d2d] rounded-xl p-4 overflow-hidden shadow-inner">
-                          <pre className="text-[10px] font-mono text-[#a6accd] overflow-x-auto custom-scrollbar leading-tight">
-                            {JSON.stringify({ system: fullSystemPrompt, memories: activeMemories, history: historyPayload }, null, 2)}
+                          <pre className="text-[10px] font-mono text-[#a6accd] overflow-x-auto custom-scrollbar leading-tight whitespace-pre-wrap">
+                            {JSON.stringify({ 
+                              system: fullSystemPrompt, 
+                              // Only content is sent to LLM, category is ignored
+                              memories_sent: activeMemories.map(m => m.content), 
+                              history: historyPayload,
+                              // Spice is injected into the final prompt
+                              current_turn_spice: spiceContent || "(None)"
+                            }, null, 2)}
                           </pre>
                         </div>
                       </details>
