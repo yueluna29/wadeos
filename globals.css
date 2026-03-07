@@ -75,8 +75,8 @@ body {
 
 /* 重新设置段落间距 - 紧凑模式 */
 .markdown-content p {
-  margin-bottom: 0.05em !important; /* 再次显著缩小，接近原来的1/4 */
-  line-height: 1.375 !important; 
+  margin-bottom: 0.1em !important; /* 缩小段落间距 */
+  line-height: 1.4 !important; /* 稍微增加行间距 */
   min-height: 1em;
 }
 
@@ -87,8 +87,10 @@ body {
 
 /* 移除之前的 br 样式，防止干扰 */
 .markdown-content br {
-  display: inline;
-  margin: 0;
+  display: block; /* 改为 block 使得空行占据空间 */
+  content: ""; /* 确保有内容 */
+  margin: -0.2em 0; /* 负 margin 抵消部分高度，实现“缩窄空行”的效果 */
+  height: 0.2em; /* 设定一个较小的高度 */
 }
 
 .markdown-content p:last-child {
