@@ -50,19 +50,15 @@ const generateOpenAICompatibleResponse = async (
     fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
   }
 
+  if (exampleDialogue) {
+    fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
+  }
+
   if (coreMemories && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
     if (activeMemories) {
       fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
     }
-  }
-
-  if (exampleDialogue) {
-    fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
-  }
-
-  if (customPrompt && customPrompt.trim()) {
-    fullSystemPrompt += `\n\n[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]`;
   }
 
   if (isRetry) {
@@ -84,7 +80,7 @@ const generateOpenAICompatibleResponse = async (
   *Gasps dramatically* You wound me, woman!`;
 
   // Transform history
-  const messages = [
+  const messages: any[] = [
     { role: 'system', content: fullSystemPrompt },
     ...history.map(h => {
       const content = h.parts.map(p => {
@@ -113,9 +109,18 @@ const generateOpenAICompatibleResponse = async (
         role: h.role === 'Luna' ? 'user' : 'assistant',
         content: content
       };
-    }),
-    { role: 'user', content: prompt }
+    })
   ];
+
+  // Inject Custom Prompt (Spice Words) AFTER history, before latest input
+  if (customPrompt && customPrompt.trim()) {
+    messages.push({ 
+      role: 'system', 
+      content: `[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]` 
+    });
+  }
+
+  messages.push({ role: 'user', content: prompt });
 
   // Build request body - CRITICAL: Strip unsupported params for image gen models
   const requestBody: any = {
@@ -258,21 +263,16 @@ export const generateTextResponse = async (
     fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
   }
 
+  if (exampleDialogue) {
+    fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
+  }
+
   // NEW: Inject Long Term Memories
   if (coreMemories && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
     if (activeMemories) {
         fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
     }
-  }
-
-  if (exampleDialogue) {
-    fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
-  }
-
-  // Add custom prompt with HIGH priority
-  if (customPrompt && customPrompt.trim()) {
-    fullSystemPrompt += `\n\n[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]`;
   }
 
   // If this is a regeneration attempt, add the "Fourth Wall Complaint" logic
@@ -325,7 +325,13 @@ export const generateTextResponse = async (
     history: formattedHistory
   });
 
-  const result = await chat.sendMessage({ message: prompt });
+  // Inject Custom Prompt (Spice Words) into the user message to ensure it's processed AFTER history
+  let finalPrompt = prompt;
+  if (customPrompt && customPrompt.trim()) {
+    finalPrompt = `[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]\n\n${prompt}`;
+  }
+
+  const result = await chat.sendMessage({ message: finalPrompt });
   const rawText = result.text || "";
 
   // Parse <think> tags

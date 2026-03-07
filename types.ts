@@ -179,6 +179,7 @@ export interface AppSettings {
 
   ttsEnabled: boolean;
   autoReplyInterval: number;
+  contextLimit?: number; // Added for configurable context length
 }
 
 // Global State Context Interface

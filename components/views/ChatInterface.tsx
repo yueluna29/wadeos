@@ -292,11 +292,6 @@ const SessionItem = ({
       }}
     >
       <div className="flex-1 min-w-0 flex items-center gap-2">
-        {session.isPinned && (
-          <div className="text-[#d58f99] flex-shrink-0">
-            <Icons.Pin />
-          </div>
-        )}
         <div className="flex-1 min-w-0">
           {isRenaming ? (
             <input
@@ -316,6 +311,11 @@ const SessionItem = ({
             {new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
+        {session.isPinned && (
+          <div className="text-[#d58f99] flex-shrink-0">
+            <Icons.Pin />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -810,6 +810,14 @@ export const ChatInterface: React.FC = () => {
     return () => clearInterval(interval);
   }, [isTyping]);
   const [customPromptText, setCustomPromptText] = useState('');
+  const [expandedMemoryIds, setExpandedMemoryIds] = useState<string[]>([]);
+
+  const toggleMemoryExpand = (id: string) => {
+    setExpandedMemoryIds(prev => 
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
+
   const [selectedMemoryTag, setSelectedMemoryTag] = useState<string | null>(null);
 
   // Neural Net Selector State
@@ -1011,7 +1019,15 @@ export const ChatInterface: React.FC = () => {
     return 0;
   });
 
-  const modeSessions = sessions.filter(s => s.mode === activeMode).sort((a, b) => b.updatedAt - a.updatedAt);
+  const modeSessions = sessions
+    .filter(s => s.mode === activeMode)
+    .sort((a, b) => {
+      // Sort by Pinned first
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      // Then by Updated At
+      return b.updatedAt - a.updatedAt;
+    });
 
   const handleModeSelect = (mode: ChatMode) => {
     setMode(mode);
@@ -1359,7 +1375,16 @@ export const ChatInterface: React.FC = () => {
       if (regenMsgId) {
         const targetIdx = freshMessages.findIndex(m => m.id === regenMsgId);
         if (targetIdx !== -1) historyMsgs = freshMessages.slice(0, targetIdx);
+      } else if (activeMode !== 'sms') {
+        // Fix Double Talk: If not regenerating and not in SMS mode,
+        // check if the last message matches the current input (prompt).
+        // If so, exclude it from history because it will be sent as the prompt.
+        const lastMsg = historyMsgs[historyMsgs.length - 1];
+        if (lastMsg && lastMsg.role === 'Luna' && lastMsg.text === inputText) {
+          historyMsgs = historyMsgs.slice(0, -1);
+        }
       }
+
       const history = historyMsgs.map(m => {
         let content = m.text;
         if (m.role === 'Wade') {
@@ -1392,7 +1417,7 @@ export const ChatInterface: React.FC = () => {
         if (parts.length === 0) parts.push({ text: "..." });
 
         return { role: m.role, parts: parts };
-      }).slice(-15);
+      }).slice(-(settings.contextLimit || 50));
 
       let modePrompt = settings.wadePersonality;
       if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES]\n- Write SHORT text messages (1-2 sentences each)\n- Use emojis naturally\n- You can split your reply into MULTIPLE separate text bubbles by using ||| as separator\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Each part separated by ||| will appear as a separate text message with a small delay\n- This makes the conversation feel more natural and realistic";
@@ -3238,7 +3263,7 @@ export const ChatInterface: React.FC = () => {
                 return (
                   <div className="space-y-8">
                     {/* Dashboard */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
                          <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
                          <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{estTokens}</div>
@@ -3247,7 +3272,12 @@ export const ChatInterface: React.FC = () => {
                       <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
                          <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
                          <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{activeMemories.length}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Injected Items (Session Specific)</div>
+                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Injected Items</div>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
+                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
+                         <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{settings.contextLimit || 50}</div>
+                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Messages</div>
                       </div>
                     </div>
 
@@ -3288,23 +3318,40 @@ export const ChatInterface: React.FC = () => {
                       
                       {activeMemories.length > 0 ? (
                         <div className="grid gap-3">
-                          {activeMemories.map((mem, i) => (
-                            <div key={i} className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm flex flex-col gap-1.5 hover:border-[#d58f99]/30 transition-colors">
-                              {typeof mem === 'string' ? (
-                                <div className="text-[11px] text-[#5a4a42] font-mono leading-relaxed">{mem}</div>
-                              ) : (
-                                <>
-                                  {mem.title && (
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                      <span className="text-[9px] font-bold text-white bg-[#d58f99] px-1.5 py-0.5 rounded-md uppercase tracking-wide">{mem.title}</span>
-                                      {mem.category && <span className="text-[9px] text-[#917c71] uppercase tracking-wider opacity-60">{mem.category}</span>}
+                          {activeMemories.map((mem, i) => {
+                            const memId = typeof mem === 'string' ? `str-${i}` : mem.id;
+                            const isExpanded = expandedMemoryIds.includes(memId);
+                            
+                            return (
+                              <div 
+                                key={i} 
+                                onClick={() => toggleMemoryExpand(memId)}
+                                className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm flex flex-col gap-1.5 hover:border-[#d58f99]/30 transition-colors cursor-pointer group select-none"
+                              >
+                                {typeof mem === 'string' ? (
+                                  <div className={`text-[11px] text-[#5a4a42] font-mono leading-relaxed ${isExpanded ? '' : 'line-clamp-4'}`}>
+                                    {mem}
+                                  </div>
+                                ) : (
+                                  <>
+                                    {mem.title && (
+                                      <div className="flex items-center gap-2 mb-0.5">
+                                        <span className="text-[9px] font-bold text-white bg-[#d58f99] px-1.5 py-0.5 rounded-md uppercase tracking-wide">{mem.title}</span>
+                                      </div>
+                                    )}
+                                    <div className={`text-[11px] text-[#5a4a42] font-mono leading-relaxed opacity-90 ${isExpanded ? '' : 'line-clamp-4'}`}>
+                                      {mem.content}
                                     </div>
-                                  )}
-                                  <div className="text-[11px] text-[#5a4a42] font-mono leading-relaxed opacity-90">{mem.content}</div>
-                                </>
-                              )}
-                            </div>
-                          ))}
+                                    {!isExpanded && (
+                                       <div className="text-[9px] text-[#917c71]/40 text-center mt-1 group-hover:text-[#d58f99] transition-colors">
+                                         Tap to expand
+                                       </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="bg-white p-8 rounded-2xl border border-[#eae2e8] border-dashed text-center">

@@ -32,6 +32,7 @@ I get anxious sometimes and need you to comfort me.`,
 
   ttsEnabled: true,
   autoReplyInterval: 0,
+  contextLimit: 50,
 };
 
 const StoreContext = createContext<GlobalState | undefined>(undefined);
@@ -142,20 +143,43 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // 4. Chat Sessions
-        const { data: sessData, error: sessError } = await supabase.from('chat_sessions').select('*').order('updated_at', { ascending: false });
+        const { data: sessData, error: sessError } = await supabase
+          .from('chat_sessions')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        
         if (sessError) throw new Error(`Sessions Sync: ${sessError.message}`);
         if (sessData) {
-          setSessions(sessData.map(s => ({
+          // Load pinned IDs from localStorage (Fallback for missing DB column)
+          let localPinnedIds: string[] = [];
+          try {
+            const stored = localStorage.getItem('wade_pinned_sessions');
+            if (stored) localPinnedIds = JSON.parse(stored);
+          } catch (e) {
+            console.error("Failed to load pinned sessions from localStorage", e);
+          }
+
+          const mappedSessions = sessData.map(s => ({
             id: s.id,
             mode: s.mode as ChatMode,
             title: s.title,
             createdAt: new Date(s.created_at).getTime(),
             updatedAt: new Date(s.updated_at).getTime(),
             activeMemoryIds: s.active_memory_ids || [],
-            isPinned: s.is_pinned,
+            // Check both DB (if exists) and LocalStorage
+            isPinned: (s.is_pinned ?? s.pinned ?? false) || localPinnedIds.includes(s.id),
             customLlmId: s.custom_llm_id,
             customPrompt: s.custom_prompt
-          })));
+          }));
+
+          // Client-side sort: Pinned first, then Updated At
+          mappedSessions.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return b.updatedAt - a.updatedAt;
+          });
+
+          setSessions(mappedSessions);
         }
         
         // 5. Messages
@@ -609,7 +633,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       id: tempId,
       mode,
       title: 'New Conversation',
-      active_memory_ids: initialMemoryIds
+      active_memory_ids: initialMemoryIds,
+      is_pinned: false
     }).select().single();
 
     if (error) {
@@ -645,13 +670,46 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleSessionPin = async (id: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: !s.isPinned, updatedAt: Date.now() } : s));
     const session = sessions.find(s => s.id === id);
-    if (session) {
-      await supabase.from('chat_sessions').update({
-        is_pinned: !session.isPinned,
-        updated_at: new Date().toISOString()
-      }).eq('id', id);
+    if (!session) return;
+
+    const newPinnedState = !session.isPinned;
+    
+    // 1. Optimistic Update (UI)
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: newPinnedState, updatedAt: Date.now() } : s));
+
+    // 2. LocalStorage Update (Fallback for missing DB column)
+    try {
+      const stored = localStorage.getItem('wade_pinned_sessions');
+      let pinnedIds: string[] = stored ? JSON.parse(stored) : [];
+      if (newPinnedState) {
+        if (!pinnedIds.includes(id)) pinnedIds.push(id);
+      } else {
+        pinnedIds = pinnedIds.filter(pid => pid !== id);
+      }
+      localStorage.setItem('wade_pinned_sessions', JSON.stringify(pinnedIds));
+    } catch (e) {
+      console.error("Failed to update localStorage for pinned sessions", e);
+    }
+
+    // 3. Attempt DB Update (Silent Fail if column missing)
+    const { error } = await supabase.from('chat_sessions').update({
+      is_pinned: newPinnedState,
+      updated_at: new Date().toISOString()
+    }).eq('id', id);
+
+    if (error) {
+      console.warn("DB Pin Update Failed (likely missing column), using LocalStorage fallback:", error.message);
+      // Do NOT revert UI state here, because we have localStorage backup!
+      
+      // Optional: Try retry with 'pinned' just in case
+      if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
+         const { error: retryError } = await supabase.from('chat_sessions').update({
+            pinned: newPinnedState,
+            updated_at: new Date().toISOString()
+         }).eq('id', id);
+         if (retryError) console.warn("Retry DB Pin Update also failed:", retryError.message);
+      }
     }
   };
 
