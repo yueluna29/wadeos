@@ -582,7 +582,7 @@ const MessageBubble = ({
                 style={{ maxHeight: '400px', width: 'auto' }}
               />
             ) : (
-              <div className={`text-xs leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+              <div className={`text-[13px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
                 <MarkdownWithHighlight content={displayContent} query={searchQuery} />
               </div>
             )}
@@ -672,7 +672,7 @@ const MessageBubble = ({
           )}
 
           {/* MAIN TEXT */}
-          <div className="px-4 py-2 text-xs leading-relaxed tracking-wide markdown-content">
+          <div className="px-4 py-2 text-[13px] leading-relaxed tracking-wide markdown-content">
             {renderAttachments()}
             {isBase64Image ? (
               <img
@@ -723,7 +723,7 @@ const MessageBubble = ({
             style={{ maxHeight: '400px', width: 'auto' }}
           />
         ) : (
-          <div className="text-xs leading-relaxed markdown-content">
+          <div className="text-[13px] leading-relaxed markdown-content">
             <MarkdownWithHighlight content={displayContent} query={searchQuery} />
           </div>
         )}
