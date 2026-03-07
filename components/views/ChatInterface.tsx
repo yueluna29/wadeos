@@ -16,9 +16,9 @@ const Icons = {
   VolumeLarge: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
   Heart: ({ filled }: { filled: boolean }) => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>,
   Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
-  Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
+  Edit: ({ size = 18 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
   Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
-  Copy: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
+  Copy: ({ size = 18 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
   ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
   ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
   More: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
@@ -42,18 +42,18 @@ const Icons = {
   Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
   File: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
   RotateThin: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>,
-  TextSelect: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>,
+  TextSelect: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>,
   PlusThin: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
   ArrowUpThin: ({ size = 20 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>,
   Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
   Bug: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="14" x="8" y="6" rx="4"/><path d="m19 7-3 3"/><path d="m5 7 3 3"/><path d="m19 19-3-3"/><path d="m5 19 3-3"/><path d="M2 12h6"/><path d="M16 12h6"/></svg>,
   Skull: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-5 0-9 4-9 9 0 4 3 6 4 9 1 3 1 4 5 4s4-1 5-4c1-3 4-5 4-9 0-5-4-9-9-9z"/><path d="M8 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M12 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M9 18h6"/></svg>,
-  Fire: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.7 1.3 1.9 2.3 2.9 2.8z"/></svg>,
+  Fire: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.7 1.3 1.9 2.3 2.9 2.8z"/></svg>,
   ArrowLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
   // Provider Icons
   Sparkle: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
   Face: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>,
-  Hexagon: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>,
+  Hexagon: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>,
   Eye: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
   Cube: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-9 4-9-4"/><path d="m21 8-9 4-9-4"/><path d="M3 8v8"/><path d="M21 8v8"/><path d="M12 4v16"/></svg>,
 };
@@ -142,6 +142,31 @@ const PLACEHOLDERS = [
   "Chimichangas or Tacos?",
   "Who are we roasting today?",
   "Spill the tea, sis..."
+];
+
+const TYPING_INDICATORS = [
+  "Typing with maximum effort...",
+  "Consulting the chimichanga gods...",
+  "Breaking the fourth wall...",
+  "Writing something inappropriate...",
+  "Deleting the bad words...",
+  "Making it sound smarter...",
+  "Asking Wolverine for spelling tips...",
+  "Loading sarcasm module...",
+  "Polishing my katana...",
+  "Thinking of a comeback...",
+  "Hold on, eating a taco...",
+  "Searching for the perfect GIF...",
+  "Rewriting history...",
+  "Adding more sparkles...",
+  "Just a sec, babe...",
+  "Generating pure chaos...",
+  "Trying to be romantic (it's hard)...",
+  "Wait, did I leave the stove on?",
+  "Asking the writer what to say...",
+  "Compiling bad jokes...",
+  "Rethinking my life choices...",
+  "Summoning the plot armor..."
 ];
 
 // --- Long Press Hook ---
@@ -766,11 +791,24 @@ export const ChatInterface: React.FC = () => {
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [placeholderText, setPlaceholderText] = useState("Type a message...");
+  const [typingText, setTypingText] = useState(TYPING_INDICATORS[0]);
 
   // Randomize placeholder on mode change
   useEffect(() => {
     setPlaceholderText(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
   }, [activeMode]);
+
+  // Cycle typing indicators
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTyping) {
+      setTypingText(TYPING_INDICATORS[Math.floor(Math.random() * TYPING_INDICATORS.length)]);
+      interval = setInterval(() => {
+        setTypingText(TYPING_INDICATORS[Math.floor(Math.random() * TYPING_INDICATORS.length)]);
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isTyping]);
   const [customPromptText, setCustomPromptText] = useState('');
   const [selectedMemoryTag, setSelectedMemoryTag] = useState<string | null>(null);
 
@@ -2141,11 +2179,11 @@ export const ChatInterface: React.FC = () => {
               }}
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
-              <Icons.Pin />
+              <div className="w-5 flex justify-center"><Icons.Pin /></div>
               <span>
                 {activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned
-                  ? "Unpin The Madness"
-                  : "Pin This Chaos"}
+                  ? "Unstick From Fridge"
+                  : "Stick To Fridge"}
               </span>
             </button>
             <button
@@ -2154,8 +2192,8 @@ export const ChatInterface: React.FC = () => {
               }}
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>
-              <span>Switch My Brain</span>
+              <div className="w-5 flex justify-center"><Icons.Hexagon /></div>
+              <span>Brain Transplant</span>
             </button>
             <button
               onClick={() => {
@@ -2164,8 +2202,8 @@ export const ChatInterface: React.FC = () => {
               }}
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
-              <Icons.Brain />
-              <span>Link Memories</span>
+              <div className="w-5 flex justify-center"><Icons.Brain /></div>
+              <span>Trigger Flashbacks</span>
             </button>
             <button
               onClick={() => {
@@ -2176,8 +2214,8 @@ export const ChatInterface: React.FC = () => {
               }}
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-              <span>Add Spice Words</span>
+              <div className="w-5 flex justify-center"><Icons.Fire /></div>
+              <span>Add Special Sauce</span>
             </button>
             <button
               onClick={() => {
@@ -2186,8 +2224,8 @@ export const ChatInterface: React.FC = () => {
               }}
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
-              <Icons.Bug />
-              <span>Debug Context</span>
+              <div className="w-5 flex justify-center"><Icons.Bug /></div>
+              <span>X-Ray Vision</span>
             </button>
           </div>
         </>
@@ -2208,12 +2246,14 @@ export const ChatInterface: React.FC = () => {
               <>
                 {/* 1. Header Section (List Mode) */}
                 <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
-                  <div>
-                    <h3 className="font-bold text-[#5a4a42] flex items-center gap-2 text-sm tracking-tight">
-                      <Icons.Brain />
-                      Neural Net Selector
-                    </h3>
-                    <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium mt-0.5">Select active personality core module.</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                      <Icons.Hexagon size={14} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Neural Net Selector</h3>
+                      <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Pick my brain. Literally.</p>
+                    </div>
                   </div>
                   <button 
                     onClick={() => setShowLlmSelector(false)} 
@@ -2567,12 +2607,17 @@ export const ChatInterface: React.FC = () => {
         }
         {
           isTyping && activeMode !== 'sms' && (
-            <div className="flex justify-start items-end gap-2 mt-4 ml-1">
-              <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-[#eae2e8]">
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-100"></div>
-                  <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-200"></div>
+            <div className="flex justify-start items-end gap-2 mt-4 ml-1 animate-fade-in">
+              <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-[#eae2e8] max-w-[80%]">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce"></div>
+                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-100"></div>
+                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-200"></div>
+                  </div>
+                  <span className="text-xs text-[#917c71] font-medium italic animate-pulse">
+                    {typingText}
+                  </span>
                 </div>
               </div>
             </div>
@@ -2586,25 +2631,61 @@ export const ChatInterface: React.FC = () => {
         selectedMsg && (
           <>
             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity animate-fade-in" onClick={closeActions} />
-            <div
-              className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl border-t border-[#d58f99]/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
-              onClick={() => isDeleteConfirming && setIsDeleteConfirming(false)}
-            >
-              <div className="p-1.5 flex justify-center"><div className="w-10 h-1 bg-[#eae2e8] rounded-full"></div></div>
-              {isEditing ? (
-                <div className="p-4">
-                  <h3 className="text-xs font-bold text-[#d58f99] uppercase tracking-wider mb-2">Editing</h3>
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full bg-[#f9f6f7] rounded-xl p-3 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-sm min-h-[300px] mb-3 resize-none"
-                  />
-                  <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => setIsEditing(false)} className="flex-1 text-sm">Cancel</Button>
-                    <Button onClick={handleSaveEdit} className="flex-1 text-sm">Save</Button>
+            {isEditing ? (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" onClick={() => setIsEditing(false)}>
+                <div className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
+                  {/* Header */}
+                  <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                        <Icons.Edit size={14} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Edit Message</h3>
+                        <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Rewriting history, are we?</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setIsEditing(false)} 
+                      className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                    >
+                      <Icons.Close size={16} />
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb]">
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="w-full bg-white rounded-2xl p-4 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-sm min-h-[300px] resize-none shadow-sm font-mono leading-relaxed"
+                      placeholder="Type your new reality here..."
+                    />
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-4">
+                    <button 
+                      onClick={() => setIsEditing(false)} 
+                      className="w-32 py-2.5 rounded-xl text-xs font-bold text-[#917c71] hover:text-[#5a4a42] hover:bg-white border border-transparent hover:border-[#eae2e8] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleSaveEdit} 
+                      className="w-32 py-2.5 rounded-xl bg-[#d58f99] text-white text-xs font-bold hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    >
+                      Save
+                    </button>
                   </div>
                 </div>
-              ) : (
+              </div>
+            ) : (
+              <div
+                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl border-t border-[#d58f99]/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
+                onClick={() => isDeleteConfirming && setIsDeleteConfirming(false)}
+              >
+                <div className="p-1.5 flex justify-center"><div className="w-10 h-1 bg-[#eae2e8] rounded-full"></div></div>
                 <div className="p-6">
                   {(selectedMsg.variants?.length || 0) > 1 && activeMode !== 'archive' && (
                     <div className="flex items-center justify-between bg-[#f9f6f7] p-2 rounded-xl mb-4 border border-[#eae2e8]">
@@ -2689,30 +2770,68 @@ export const ChatInterface: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )
       }
 
       {/* Text Selection Modal */}
       {textSelectionMsg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setTextSelectionMsg(null)}>
-          <div className="bg-white w-[90%] max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-[#eae2e8] flex justify-between items-center bg-[#f9f6f7]">
-              <h3 className="font-bold text-[#5a4a42] flex items-center gap-2">
-                <Icons.TextSelect />
-                Select Text
-              </h3>
-              <button onClick={() => setTextSelectionMsg(null)} className="p-2 hover:bg-[#eae2e8] rounded-full transition-colors text-[#917c71]"><Icons.Close /></button>
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+          onClick={() => setTextSelectionMsg(null)}
+        >
+          <div 
+            className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                  <Icons.TextSelect size={14} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Select Text</h3>
+                  <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Steal my words. I dare you.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setTextSelectionMsg(null)} 
+                className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+              >
+                <Icons.Close size={16} />
+              </button>
             </div>
-            <div className="p-6 overflow-y-auto select-text cursor-text text-[#5a4a42] text-sm leading-relaxed">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {textSelectionMsg.text}
-              </ReactMarkdown>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] select-text cursor-text">
+              <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-sm text-[#5a4a42] text-sm leading-relaxed font-mono whitespace-pre-wrap">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {textSelectionMsg.text}
+                </ReactMarkdown>
+              </div>
             </div>
-            <div className="p-4 border-t border-[#eae2e8] bg-[#f9f6f7] text-center">
-              <p className="text-xs text-[#917c71]">Long press or drag to select text to copy</p>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-4">
+              <button 
+                onClick={() => setTextSelectionMsg(null)} 
+                className="w-32 py-2.5 rounded-xl text-xs font-bold text-[#917c71] hover:text-[#5a4a42] hover:bg-white border border-transparent hover:border-[#eae2e8] transition-all"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(textSelectionMsg.text);
+                  // Optional: Show toast or feedback
+                  setTextSelectionMsg(null);
+                }} 
+                className="w-32 py-2.5 rounded-xl bg-[#d58f99] text-white text-xs font-bold hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+              >
+                Copy All
+              </button>
             </div>
           </div>
         </div>
@@ -2758,44 +2877,72 @@ export const ChatInterface: React.FC = () => {
       {/* Custom Prompt Editor Modal */}
       {
         showPromptEditor && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowPromptEditor(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-[#eae2e8]/50 max-h-[60vh] overflow-hidden animate-slide-up">
-              <div className="p-4 border-b border-[#eae2e8]/50 flex items-center justify-between">
-                <h3 className="font-bold text-[#5a4a42] text-sm">Spice It Up</h3>
-                <button onClick={() => setShowPromptEditor(false)} className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
-                  <Icons.Close />
-                </button>
-              </div>
-              <div className="p-4 overflow-y-auto max-h-[calc(60vh-120px)]">
-                <textarea
-                  value={customPromptText}
-                  onChange={(e) => setCustomPromptText(e.target.value)}
-                  placeholder="Add extra instructions just for this conversation... Make Wade sassier? More romantic? Channel specific vibes? Type it here!"
-                  className="w-full h-[200px] bg-[#f9f6f7] border border-[#eae2e8] rounded-2xl px-4 py-3 focus:outline-none focus:border-[#d58f99] text-[#5a4a42] text-sm placeholder-[#917c71]/50 resize-none"
-                />
-              </div>
-              <div className="p-4 border-t border-[#eae2e8]/50 flex gap-2 justify-end">
-                <button
-                  onClick={() => setShowPromptEditor(false)}
-                  className="px-4 py-2 text-sm text-[#917c71] hover:text-[#5a4a42] transition-colors"
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+            onClick={() => setShowPromptEditor(false)}
+          >
+            <div 
+              className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[60vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                    <Icons.Fire />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Spice It Up</h3>
+                    <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Mess with my settings, gorgeous.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowPromptEditor(false)} 
+                  className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
                 >
-                  Cancel
+                  <Icons.Close size={16} />
                 </button>
-                <button
+              </div>
+              
+              {/* Content */}
+              <div className="p-6 flex-1 flex flex-col bg-[#fdfbfb] overflow-hidden">
+                <div className="space-y-2 flex-1 flex flex-col min-h-0">
+                  <div className="bg-white p-1 rounded-2xl border border-[#eae2e8] shadow-sm focus-within:border-[#d58f99] focus-within:ring-1 focus-within:ring-[#d58f99]/20 transition-all flex-1 flex flex-col min-h-0">
+                    <textarea
+                      value={customPromptText}
+                      onChange={(e) => setCustomPromptText(e.target.value)}
+                      placeholder="Want me to be extra sappy? Talk like a pirate? Or just shut up and look pretty? (Just kidding, I can't shut up). Type your commands here, boss."
+                      className="w-full h-full bg-transparent border-none rounded-xl px-4 py-3 focus:outline-none text-[#5a4a42] text-xs placeholder-[#917c71]/40 resize-none font-mono leading-relaxed custom-scrollbar"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#917c71] px-2 italic flex-shrink-0">
+                    * Just for this session. I'll reset my brain after this.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-6 flex-shrink-0">
+                <button 
+                  onClick={() => setShowPromptEditor(false)} 
+                  className="text-xs font-bold text-[#917c71] hover:text-[#5a4a42] px-6 py-2 transition-colors rounded-xl hover:bg-white border border-transparent hover:border-[#eae2e8]"
+                >
+                  Abort Mission
+                </button>
+                <button 
                   onClick={async () => {
                     if (activeSessionId) {
                       await updateSession(activeSessionId, { customPrompt: customPromptText });
                     }
                     setShowPromptEditor(false);
-                  }}
-                  className="px-4 py-2 bg-[#d58f99] text-white rounded-full text-sm font-bold hover:bg-[#c07a84] transition-colors shadow-sm"
+                  }} 
+                  className="bg-[#d58f99] text-white text-xs font-bold px-8 py-2 rounded-xl hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                 >
-                  Save Spice
+                  Inject Serum
                 </button>
               </div>
             </div>
-          </>
+          </div>
         )
       }
 
@@ -2915,10 +3062,15 @@ export const ChatInterface: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
           <div className="bg-[#fdfbfb] w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh] border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
-              <h3 className="font-bold text-[#5a4a42] flex items-center gap-2 text-sm">
-                <Icons.Brain />
-                Link Memories
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                  <Icons.Brain size={14} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Link Memories</h3>
+                  <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Total recall... but cheaper.</p>
+                </div>
+              </div>
               <button onClick={() => setShowMemorySelector(false)} className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors">
                 <Icons.Close size={16} />
               </button>
@@ -3072,14 +3224,15 @@ export const ChatInterface: React.FC = () => {
                 if (settings.lunaInfo) fullSystemPrompt += `\n\n[User Info]\n${settings.lunaInfo}`;
                 if (settings.exampleDialogue) fullSystemPrompt += `\n\n[Examples]\n${settings.exampleDialogue}`;
                 
-                // Calculate Tokens including Memories
+                // Calculate Tokens including Memories & Spice
                 const currentSession = sessions.find(s => s.id === activeSessionId);
                 const activeMemories = currentSession?.activeMemoryIds 
                   ? coreMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
                   : coreMemories.filter(m => m.enabled);
 
+                const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
-                const promptLength = JSON.stringify(historyPayload).length + fullSystemPrompt.length + memoriesContent.length;
+                const promptLength = JSON.stringify(historyPayload).length + fullSystemPrompt.length + memoriesContent.length + spiceContent.length;
                 const estTokens = Math.round(promptLength / 4);
 
                 return (
@@ -3110,6 +3263,21 @@ export const ChatInterface: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* 1.5. Session Spice (Custom Prompt) */}
+                    {spiceContent && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-1">
+                          <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                          <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Spice It Up <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Session Instructions)</span></h4>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                          <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[200px] overflow-y-auto custom-scrollbar">
+                            {spiceContent}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* 2. Core Memories */}
                     <div className="space-y-3">

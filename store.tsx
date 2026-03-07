@@ -151,7 +151,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             title: s.title,
             createdAt: new Date(s.created_at).getTime(),
             updatedAt: new Date(s.updated_at).getTime(),
-            activeMemoryIds: s.active_memory_ids || []
+            activeMemoryIds: s.active_memory_ids || [],
+            isPinned: s.is_pinned,
+            customLlmId: s.custom_llm_id,
+            customPrompt: s.custom_prompt
           })));
         }
         

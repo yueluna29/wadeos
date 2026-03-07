@@ -239,13 +239,20 @@ export const MemoryBank: React.FC = () => {
               </div>
             ) : (
               filteredMemories.map(mem => (
-                <div key={mem.id} className="relative overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-[#fff0f3] group transition-all hover:shadow-md hover:-translate-y-0.5">
+                <div 
+                  key={mem.id} 
+                  onClick={() => toggleExpanded(mem.id)}
+                  className={`relative overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-[#fff0f3] group transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${expandedMemories.has(mem.id) ? 'ring-1 ring-[#d58f99]/30' : ''}`}
+                >
                   <div className="relative p-4 flex h-full">
                     {/* Left Column: Icon + Actions */}
                     <div className="flex flex-col items-center gap-2 mr-3 shrink-0">
                       {/* Icon Box - Click to Toggle */}
                       <button 
-                        onClick={() => toggleCoreMemoryEnabled(mem.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCoreMemoryEnabled(mem.id);
+                        }}
                         className={`
                           w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer
                           ${mem.enabled 
@@ -261,7 +268,10 @@ export const MemoryBank: React.FC = () => {
                       {/* Actions (Hidden by default, appear below icon) */}
                       <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                          <button
-                            onClick={() => startEditing(mem)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(mem);
+                            }}
                             className="text-[#d58f99]/60 hover:text-[#d58f99] transition-colors p-0.5"
                             title="Edit"
                          >
@@ -311,20 +321,12 @@ export const MemoryBank: React.FC = () => {
                       
                       <div className="relative">
                         <p className={`text-xs text-[#917c71] leading-relaxed whitespace-pre-wrap ${
-                          shouldTruncate(mem.content) && !expandedMemories.has(mem.id)
+                          !expandedMemories.has(mem.id)
                             ? 'line-clamp-3'
                             : ''
                         }`}>
                           {mem.content}
                         </p>
-                        {shouldTruncate(mem.content) && (
-                          <button
-                            onClick={() => toggleExpanded(mem.id)}
-                            className="text-[10px] text-[#d58f99] hover:underline mt-0.5 font-bold uppercase tracking-wide"
-                          >
-                            {expandedMemories.has(mem.id) ? 'Show less' : 'Read more'}
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
