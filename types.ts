@@ -18,6 +18,7 @@ export interface ChatSession {
   isPinned?: boolean;
   customLlmId?: string;
   customPrompt?: string;
+  activeMemoryIds?: string[]; // IDs of core memories linked to this session
 }
 
 export interface Message {
@@ -101,6 +102,7 @@ export interface CoreMemory {
   title?: string; // NEW: Title for the memory
   content: string;
   category: 'fact' | 'promise' | 'preference' | 'general';
+  tags?: string[]; // NEW: Tags for classification
   isActive: boolean;
   enabled: boolean; // Whether AI can read this memory
   createdAt: number;
@@ -244,8 +246,8 @@ export interface GlobalState {
   
   // --- NEW MEMORY ACTIONS ---
   coreMemories: CoreMemory[];
-  addCoreMemory: (title: string, content: string, category?: CoreMemory['category']) => Promise<void>;
-  updateCoreMemory: (id: string, title: string, content: string) => Promise<void>;
+  addCoreMemory: (title: string, content: string, category?: CoreMemory['category'], tags?: string[]) => Promise<void>;
+  updateCoreMemory: (id: string, title: string, content: string, tags?: string[]) => Promise<void>;
   deleteCoreMemory: (id: string) => Promise<void>;
   toggleCoreMemoryEnabled: (id: string) => Promise<void>;
   chatArchives: ChatArchive[];

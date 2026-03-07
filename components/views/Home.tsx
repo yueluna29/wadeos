@@ -14,7 +14,7 @@ export const Home: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const randomPicks = useMemo(() => {
-    return recommendations.slice().sort(() => 0.5 - Math.random()).slice(0, 2);
+    return recommendations.slice().sort(() => 0.5 - Math.random()).slice(0, 4);
   }, [recommendations]);
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export const Home: React.FC = () => {
       <section className="mb-4">
          <div className="flex justify-between items-end mb-4 px-1">
             <div className="flex items-center gap-2">
-                <h3 className="font-bold text-[#5a4a42] text-lg">Time Capsules</h3>
+                <h3 className="font-bold text-[#917c71] text-lg">Time Capsules</h3>
                 <span className="bg-[#fff0f3] text-[#d58f99] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#d58f99]/20">
                     {capsules.filter(c => new Date(c.unlockDate) <= new Date()).length} UNLOCKED
                 </span>
@@ -207,8 +207,13 @@ export const Home: React.FC = () => {
                  // Tablet: Show 3 (Index 0, 1, 2)
                  // Desktop: Show 4 (Index 0, 1, 2, 3)
                  let visibilityClass = '';
-                 if (index === 2) visibilityClass = 'hidden md:block';
-                 if (index === 3) visibilityClass = 'hidden lg:block';
+                 if (cap.type === 'empty') {
+                   if (index === 2) visibilityClass = 'hidden md:flex';
+                   if (index === 3) visibilityClass = 'hidden lg:flex';
+                 } else {
+                   if (index === 2) visibilityClass = 'hidden md:block';
+                   if (index === 3) visibilityClass = 'hidden lg:block';
+                 }
 
                  if (cap.type === 'empty') {
                    return (
@@ -294,8 +299,12 @@ export const Home: React.FC = () => {
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {randomPicks.map(rec => (
-              <div key={rec.id} onClick={() => setTab('wade-picks')} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group">
+            {randomPicks.map((rec, index) => (
+              <div 
+                key={rec.id} 
+                onClick={() => setTab('wade-picks')} 
+                className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group ${index >= 2 ? 'hidden lg:flex' : ''}`}
+              >
                 {rec.coverUrl ? (
                   <img src={rec.coverUrl} className="w-16 h-24 object-cover rounded-lg bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow shrink-0" alt={rec.title} referrerPolicy="no-referrer" />
                 ) : (

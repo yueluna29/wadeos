@@ -150,7 +150,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             mode: s.mode as ChatMode,
             title: s.title,
             createdAt: new Date(s.created_at).getTime(),
-            updatedAt: new Date(s.updated_at).getTime()
+            updatedAt: new Date(s.updated_at).getTime(),
+            activeMemoryIds: s.active_memory_ids || []
           })));
         }
         
@@ -246,7 +247,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                      title: m.title || '',
                      content: m.content,
                      category: m.category || 'general',
+                     tags: m.tags || [], // Try to read tags
                      isActive: m.is_active,
+                     enabled: true, // Default to true if not in DB
                      createdAt: new Date(m.created_at).getTime()
                  })));
              }
@@ -584,12 +587,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   // Session Actions
   const createSession = async (mode: ChatMode): Promise<string> => {
     const tempId = crypto.randomUUID();
+    // Default to all enabled memories
+    const initialMemoryIds = coreMemories.filter(m => m.enabled).map(m => m.id);
+    
     const newSession: ChatSession = {
       id: tempId,
       mode,
       title: 'New Conversation',
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      activeMemoryIds: initialMemoryIds
     };
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(tempId);
@@ -598,7 +605,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase.from('chat_sessions').insert({
       id: tempId,
       mode,
-      title: 'New Conversation'
+      title: 'New Conversation',
+      active_memory_ids: initialMemoryIds
     }).select().single();
 
     if (error) {
@@ -626,6 +634,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (updates.customPrompt !== undefined) dbUpdates.custom_prompt = updates.customPrompt;
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.isPinned !== undefined) dbUpdates.is_pinned = updates.isPinned;
+    if (updates.activeMemoryIds !== undefined) dbUpdates.active_memory_ids = updates.activeMemoryIds;
     if (Object.keys(dbUpdates).length > 0) {
       dbUpdates.updated_at = new Date().toISOString();
       await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
@@ -947,13 +956,14 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // --- NEW MEMORY ACTIONS ---
 
-  const addCoreMemory = async (title: string, content: string, category: CoreMemory['category'] = 'general') => {
+  const addCoreMemory = async (title: string, content: string, category: CoreMemory['category'] = 'general', tags: string[] = []) => {
     const tempId = crypto.randomUUID();
     const newMemory: CoreMemory = {
       id: tempId,
       title,
       content,
       category,
+      tags,
       isActive: true,
       enabled: true,
       createdAt: Date.now()
@@ -964,15 +974,40 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const memKey = `wade_core_memories`;
     const current = JSON.parse(localStorage.getItem(memKey) || '[]');
     localStorage.setItem(memKey, JSON.stringify([newMemory, ...current]));
+
+    // Sync to Supabase
+    try {
+      await supabase.from('memories_core').insert({
+        id: tempId,
+        title,
+        content,
+        category,
+        tags,
+        is_active: true,
+        created_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Failed to add core memory to Supabase", e);
+    }
   };
 
-  const updateCoreMemory = async (id: string, title: string, content: string) => {
-    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content } : m));
+  const updateCoreMemory = async (id: string, title: string, content: string, tags?: string[]) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m));
 
     const memKey = `wade_core_memories`;
     const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
-    const updated = current.map(m => m.id === id ? { ...m, title, content } : m);
+    const updated = current.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m);
     localStorage.setItem(memKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      const payload: any = { title, content };
+      if (tags) payload.tags = tags;
+      
+      await supabase.from('memories_core').update(payload).eq('id', id);
+    } catch (e) {
+      console.error("Failed to update core memory in Supabase", e);
+    }
   };
 
   const toggleCoreMemoryEnabled = async (id: string) => {
@@ -982,6 +1017,18 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
     const updated = current.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
     localStorage.setItem(memKey, JSON.stringify(updated));
+    
+    // Note: 'enabled' is local-only for now unless we add a column for it. 
+    // If 'is_active' maps to enabled, we should update it.
+    // Assuming 'is_active' is the DB equivalent:
+    try {
+       const mem = coreMemories.find(m => m.id === id);
+       if (mem) {
+         await supabase.from('memories_core').update({ is_active: !mem.enabled }).eq('id', id);
+       }
+    } catch (e) {
+       console.error("Failed to toggle memory in Supabase", e);
+    }
   };
 
   const deleteCoreMemory = async (id: string) => {
@@ -991,6 +1038,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
     const filtered = current.filter(m => m.id !== id);
     localStorage.setItem(memKey, JSON.stringify(filtered));
+
+    // Sync to Supabase
+    try {
+      await supabase.from('memories_core').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete core memory from Supabase", e);
+    }
   };
 
   const importArchive = async (title: string, fileContent: string) => {

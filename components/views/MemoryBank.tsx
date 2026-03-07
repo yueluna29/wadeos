@@ -23,12 +23,18 @@ export const MemoryBank: React.FC = () => {
   // Core Memory State
   const [newMemoryTitle, setNewMemoryTitle] = useState('');
   const [newMemoryContent, setNewMemoryContent] = useState('');
+  const [newMemoryTags, setNewMemoryTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Editing State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
+
+  // Filter State
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // Expanded memory state
   const [expandedMemories, setExpandedMemories] = useState<Set<string>>(new Set());
@@ -36,11 +42,19 @@ export const MemoryBank: React.FC = () => {
   // Delete confirmation state
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Derived State
+  const availableTags = Array.from(new Set(coreMemories.flatMap(m => m.tags || []))).sort();
+  const filteredMemories = selectedTag 
+    ? coreMemories.filter(m => m.tags?.includes(selectedTag))
+    : coreMemories;
+
   const handleAddMemory = async () => {
     if (!newMemoryContent.trim()) return;
-    await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact');
+    await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact', newMemoryTags);
     setNewMemoryTitle('');
     setNewMemoryContent('');
+    setNewMemoryTags([]);
+    setTagInput('');
     setIsModalOpen(false);
   };
 
@@ -48,16 +62,51 @@ export const MemoryBank: React.FC = () => {
     setEditingId(mem.id);
     setEditTitle(mem.title || '');
     setEditContent(mem.content);
+    setEditTags(mem.tags || []);
+    setTagInput('');
     setIsModalOpen(true); // Re-use the modal for editing
   };
 
   const saveEdit = async () => {
     if (editingId && editContent.trim()) {
-      await updateCoreMemory(editingId, editTitle, editContent);
+      await updateCoreMemory(editingId, editTitle, editContent, editTags);
       setEditingId(null);
       setEditTitle('');
       setEditContent('');
+      setEditTags([]);
+      setTagInput('');
       setIsModalOpen(false);
+    }
+  };
+
+  const addTag = (tag: string, isEditing: boolean) => {
+    const trimmed = tag.trim();
+    if (!trimmed) return;
+    
+    if (isEditing) {
+      if (!editTags.includes(trimmed)) {
+        setEditTags([...editTags, trimmed]);
+      }
+    } else {
+      if (!newMemoryTags.includes(trimmed)) {
+        setNewMemoryTags([...newMemoryTags, trimmed]);
+      }
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string, isEditing: boolean) => {
+    if (isEditing) {
+      setEditTags(editTags.filter(t => t !== tag));
+    } else {
+      setNewMemoryTags(newMemoryTags.filter(t => t !== tag));
+    }
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent, isEditing: boolean) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(tagInput, isEditing);
     }
   };
 
@@ -104,15 +153,15 @@ export const MemoryBank: React.FC = () => {
 
   return (
     <div className="h-full bg-[#f9f6f7] flex flex-col overflow-hidden relative">
-      <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-4 pt-6 pb-4">
+      <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-4 pt-4 pb-4 min-h-0">
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-6 flex-shrink-0">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center text-[#d58f99] shadow-sm">
               <Icons.Brain />
             </div>
             <div>
-              <h1 className="font-hand text-2xl text-[#5a4a42] tracking-tight">Memory Bank</h1>
+              <h1 className="font-hand text-2xl text-[#d58f99] tracking-tight">Memory Bank</h1>
               <p className="text-xs text-[#917c71] font-medium tracking-wide uppercase opacity-80">
                 {coreMemories.length} Memories Stored
               </p>
@@ -123,22 +172,57 @@ export const MemoryBank: React.FC = () => {
               setEditingId(null);
               setNewMemoryTitle('');
               setNewMemoryContent('');
+              setNewMemoryTags([]);
+              setTagInput('');
               setIsModalOpen(true);
             }}
-            className="w-10 h-10 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#c07a84] hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
           </button>
         </div>
 
+        {/* Tag Filter List */}
+        {availableTags.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar flex-shrink-0">
+            <button
+              onClick={() => setSelectedTag(null)}
+              className={`
+                px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                ${selectedTag === null 
+                  ? 'bg-[#d58f99] text-white shadow-md shadow-[#d58f99]/20' 
+                  : 'bg-white text-[#917c71] border border-[#eae2e8] hover:border-[#d58f99]/50'
+                }
+              `}
+            >
+              All
+            </button>
+            {availableTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                className={`
+                  px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                  ${selectedTag === tag 
+                    ? 'bg-[#d58f99] text-white shadow-md shadow-[#d58f99]/20' 
+                    : 'bg-white text-[#917c71] border border-[#eae2e8] hover:border-[#d58f99]/50'
+                  }
+                `}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto pb-20 custom-scrollbar">
           
           {/* CORE MEMORIES LIST */}
           <div className="space-y-4 animate-fade-in">
-            {coreMemories.length === 0 ? (
+            {filteredMemories.length === 0 ? (
               <div 
                 onClick={() => setIsModalOpen(true)}
                 className="bg-white/60 rounded-[24px] border-2 border-[#eae2e8] border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#d58f99]/40 hover:bg-white transition-all duration-300 h-48"
@@ -146,13 +230,15 @@ export const MemoryBank: React.FC = () => {
                 <div className="w-14 h-14 bg-[#fff0f3] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <Icons.Brain />
                 </div>
-                <h4 className="font-bold text-[#5a4a42] mb-1 text-sm">Add a Memory</h4>
+                <h4 className="font-bold text-[#5a4a42] mb-1 text-sm">
+                  {selectedTag ? `No memories tagged #${selectedTag}` : 'Add a Memory'}
+                </h4>
                 <p className="text-xs text-[#917c71]/70 max-w-[200px]">
-                  The bank is empty. Store important facts or memories about you.
+                  {selectedTag ? 'Try selecting a different tag or add a new memory.' : 'The bank is empty. Store important facts or memories about you.'}
                 </p>
               </div>
             ) : (
-              coreMemories.map(mem => (
+              filteredMemories.map(mem => (
                 <div key={mem.id} className="relative overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-[#fff0f3] group transition-all hover:shadow-md hover:-translate-y-0.5">
                   <div className="relative p-4 flex h-full">
                     {/* Left Column: Icon + Actions */}
@@ -215,8 +301,12 @@ export const MemoryBank: React.FC = () => {
                            {mem.title || "Untitled Memory"}
                          </h4>
                       </div>
-                      <div className="text-[9px] font-bold font-mono text-[#917c71]/60 uppercase tracking-wider mb-1">
-                        {mem.type || 'Fact'}
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {mem.tags && mem.tags.map(tag => (
+                          <span key={tag} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#fff0f3] text-[#d58f99]">
+                            #{tag}
+                          </span>
+                        ))}
                       </div>
                       
                       <div className="relative">
@@ -248,24 +338,29 @@ export const MemoryBank: React.FC = () => {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-[#eae2e8]">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-[#eae2e8] flex flex-col">
               {/* Header */}
-              <div className="bg-gradient-to-br from-[#fff0f3] to-[#fdfbfb] px-6 py-5 border-b border-[#eae2e8]/50">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-sm">
+              <div className="bg-gradient-to-br from-[#fff0f3] to-[#fdfbfb] px-6 py-5 border-b border-[#eae2e8]/50 flex-shrink-0">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0">
                       <div className="text-[#d58f99]">
                         <Icons.Brain />
                       </div>
                     </div>
-                    <h2 className="text-lg font-bold text-[#5a4a42]">{editingId ? 'Edit Memory' : 'New Memory'}</h2>
+                    <div>
+                      <h2 className="text-lg font-bold text-[#5a4a42]">{editingId ? 'Edit Memory' : 'New Memory'}</h2>
+                      <p className="text-xs text-[#917c71] mt-1 leading-tight italic">
+                        "Feed my brain, Muffin! The more I know, the better I can charm you. Or annoy you. 50/50 chance."
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() => {
                       setIsModalOpen(false);
                       setEditingId(null);
                     }}
-                    className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors flex-shrink-0"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -276,7 +371,7 @@ export const MemoryBank: React.FC = () => {
               </div>
 
               {/* Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(85vh-180px)] custom-scrollbar">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Title</label>
@@ -299,21 +394,63 @@ export const MemoryBank: React.FC = () => {
                     />
                   </div>
 
-                  <div className="bg-[#fff0f3]/50 rounded-xl p-4 border border-[#d58f99]/10">
-                    <div className="flex items-start">
-                      <svg className="w-4 h-4 text-[#d58f99] mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-xs text-[#917c71] leading-relaxed">
-                        Core memories help Wade understand you better. They are permanent facts or stories that shape his personality and responses.
-                      </p>
+                  <div>
+                    <label className="block text-xs font-bold text-[#917c71] mb-2 uppercase tracking-wider">Tags</label>
+                    
+                    {/* Existing Tags Quick Add */}
+                    {availableTags.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-[10px] font-bold text-[#917c71]/60 uppercase tracking-wider mb-1.5">Quick Add</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {availableTags.filter(t => !(editingId ? editTags : newMemoryTags).includes(t)).map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => addTag(tag, !!editingId)}
+                              className="px-2 py-1 rounded-md bg-white border border-[#eae2e8] text-[#917c71] text-[10px] hover:border-[#d58f99] hover:text-[#d58f99] transition-colors"
+                            >
+                              #{tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(editingId ? editTags : newMemoryTags).map(tag => (
+                        <span key={tag} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#fff0f3] text-[#d58f99] text-xs font-bold">
+                          #{tag}
+                          <button 
+                            onClick={() => removeTag(tag, !!editingId)}
+                            className="ml-1.5 hover:text-[#b06d77]"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => handleTagKeyDown(e, !!editingId)}
+                        placeholder="Type tag and press Enter..."
+                        className="w-full px-4 py-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] text-[#5a4a42] focus:outline-none focus:border-[#d58f99] text-xs transition-colors pr-10"
+                      />
+                      <button 
+                        onClick={() => addTag(tagInput, !!editingId)}
+                        disabled={!tagInput.trim()}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#d58f99] hover:bg-[#fff0f3] rounded-lg disabled:opacity-50 disabled:hover:bg-transparent"
+                      >
+                        <Icons.Plus />
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 bg-[#fdfbfb] border-t border-[#eae2e8]/50 flex gap-3">
+              <div className="px-6 py-6 bg-[#fdfbfb] border-t border-[#eae2e8]/50 flex gap-3 flex-shrink-0">
                 <button
                   onClick={() => {
                     setIsModalOpen(false);

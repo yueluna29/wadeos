@@ -75,8 +75,14 @@ body {
 
 /* 重新设置段落间距 - 紧凑模式 */
 .markdown-content p {
-  margin-bottom: 0.25em !important; /* 显著缩小段落间距 */
-  line-height: 1.5 !important; 
+  margin-bottom: 0.05em !important; /* 再次显著缩小，接近原来的1/4 */
+  line-height: 1.375 !important; 
+  min-height: 1em;
+}
+
+/* 隐藏完全空的段落，防止双重空行 */
+.markdown-content p:empty {
+  display: none;
 }
 
 /* 移除之前的 br 样式，防止干扰 */

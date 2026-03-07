@@ -281,7 +281,7 @@ export const TimeCapsulesView = () => {
         <div className="absolute top-0 left-0 w-full p-6 z-20 flex justify-between items-start pointer-events-none">
           <button 
             onClick={() => setViewingCapsule(null)}
-            className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] hover:border-[#d58f99] transition-all shadow-sm pointer-events-auto"
+            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors shadow-sm pointer-events-auto"
           >
             <Icons.ChevronLeft />
           </button>
@@ -325,7 +325,7 @@ export const TimeCapsulesView = () => {
              {/* Edit Button */}
              <button
                onClick={handleEditViewedCapsule}
-               className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] text-[#917c71] flex items-center justify-center hover:text-[#d58f99] hover:border-[#d58f99] transition-all shadow-sm"
+               className="w-8 h-8 rounded-full bg-[#f9f6f7] text-[#917c71] flex items-center justify-center hover:bg-[#d58f99] hover:text-white transition-colors shadow-sm"
              >
                <Icons.Edit />
              </button>
@@ -392,11 +392,11 @@ export const TimeCapsulesView = () => {
         {/* Header Section */}
         <div className="flex items-center justify-between mb-6 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => setTab('home')} className="w-10 h-10 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center text-[#917c71] hover:text-[#d58f99] hover:border-[#d58f99] transition-all shadow-sm">
+            <button onClick={() => setTab('home')} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
               <Icons.ChevronLeft />
             </button>
             <div>
-              <h1 className="font-hand text-3xl text-[#5a4a42] tracking-tight">Time Capsules</h1>
+              <h1 className="font-hand text-3xl text-[#d58f99] tracking-tight">Time Capsules</h1>
               <p className="text-xs text-[#917c71] font-medium tracking-wide uppercase opacity-80">
                 {capsules.length} Memories Sealed
               </p>
@@ -413,9 +413,9 @@ export const TimeCapsulesView = () => {
                 unlockTime: '00:00'
               });
             }}
-            className="w-10 h-10 bg-[#d58f99] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#c07a84] hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
