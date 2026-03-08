@@ -3327,41 +3327,48 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 let fullSystemPrompt = settings.systemInstruction || "";
                 
                 // Construct the full prompt visualization
-                const systemInstructions = settings.systemInstruction || "(None)";
+// 👇👇👇【这里是新代码：开始】👇👇👇
+
+                // 1. 基础变量定义 (把所有变量定义收拢到这里，防止重复！)
                 const wadePersona = settings.wadePersonality || "(None)";
                 const lunaInfo = settings.lunaInfo || "(None)";
                 const singleExamples = settings.wadeSingleExamples || "(None)";
                 
-                // Mode-specific logic matching geminiService.ts
-                // 👇👇👇 全新逻辑开始：动态读取你的设置，不再写死废话！ 👇👇👇
-
-                // 1. 处理对话示例
+                // 2. 动态逻辑 (System Instructions & Dialogue)
                 let dialogueExamples = settings.exampleDialogue || "(None)";
-                if (activeMode === 'sms' && settings.smsExampleDialogue) {
-                   dialogueExamples = settings.smsExampleDialogue;
-                }
-
-                // 2. 处理 System Instructions
-                // 🔴 报错就是因为下面这行变量名在后面又出现了一次，必须把后面的删掉！
-                let systemInstructions = settings.systemInstruction || "";
+                let systemInstructions = settings.systemInstruction || ""; // 这是一个基础值
+                let modeSpecificInstructions = "";
 
                 if (activeMode === 'sms') {
-                   systemInstructions += settings.smsInstructions 
-                     ? `\n\n${settings.smsInstructions}` 
-                     : `\n\n[SMS FORMAT: Internal monologue in <think> tags first. Then split texts with |||. Short & casual.]`;
+                   // SMS 模式：覆盖对话示例 + 强制 SMS 格式
+                   if (settings.smsExampleDialogue) {
+                     dialogueExamples = settings.smsExampleDialogue + "\n(SMS Mode Override)";
+                   }
+                   modeSpecificInstructions = settings.smsInstructions 
+                     ? settings.smsInstructions 
+                     : `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags.
+2. After the closing </think> tag, write your SMS response separated by |||.`;
+                   
+                   systemInstructions += `\n\n${modeSpecificInstructions}`;
+
                 } else {
-                   systemInstructions += settings.roleplayInstructions 
-                     ? `\n\n${settings.roleplayInstructions}` 
-                     : `\n\n[OUTPUT FORMAT: Internal monologue in <think> tags first. Then immersive response.]`;
+                   // Roleplay/Deep 模式：强制沉浸格式
+                   modeSpecificInstructions = settings.roleplayInstructions 
+                     ? settings.roleplayInstructions 
+                     : `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags.
+2. After the closing </think> tag, write your immersive response.`;
+
+                   systemInstructions += `\n\n${modeSpecificInstructions}`;
                 }
 
-                // 3. 加上人设
+                // 3. 加上人设文本到 System Prompt
                 if (settings.wadePersonality) {
                     systemInstructions += `\n\n[CHARACTER PERSONA]\n${settings.wadePersonality}`;
                 }
 
-                // 4. 计算 Token 相关的上下文 (Memories & Session)
-                // Calculate Tokens including Memories & Spice
+                // 4. 计算 Session 和 Memories
                 const currentSession = sessions.find(s => s.id === activeSessionId);
                 const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
                 const activeMemories = currentSession?.activeMemoryIds 
@@ -3370,17 +3377,14 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                 const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
-                const lunaInfo = settings.lunaInfo || "(None)";
-                const singleExamples = settings.wadeSingleExamples || "(None)";
-            
-                // 👇👇👇 新增：计算当前到底在用哪个模型 👇👇👇
+
+                // 5. 计算当前模型 (Active Brain X-Ray) - 你的新功能！
                 const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
                 const activeLlm = effectiveLlmId ? llmPresets.find(p => p.id === effectiveLlmId) : null;
                 const currentModelName = activeLlm?.name || (activeMode === 'roleplay' ? 'Gemini 3 Pro (Default)' : 'Gemini 3 Flash (Default)');
                 const currentProvider = activeLlm?.provider || 'Google';
-                // 👆👆👆 新增结束 👆👆👆
 
-                // Rough token estimation
+                // 6. Token 估算 (Rough token estimation)
                 const promptLength = JSON.stringify(historyPayload).length + 
                                    systemInstructions.length + 
                                    wadePersona.length + 
@@ -3389,6 +3393,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                                    dialogueExamples.length + 
                                    memoriesContent.length + 
                                    spiceContent.length;
+
+                // 👆👆👆【这里是新代码：结束】👆👆👆
                 const estTokens = Math.round(promptLength / 4);
 
                 return (
