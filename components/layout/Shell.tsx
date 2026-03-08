@@ -71,8 +71,38 @@ const Icons = {
 export const Shell: React.FC<ShellProps> = ({ children }) => {
   const { currentTab, setTab, isNavHidden } = useStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu = () => {
+    if (!isMenuOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      if (isDesktop) {
+        // Desktop: Right of button, centered vertically
+        setMenuPosition({
+          top: rect.top + rect.height / 2,
+          left: rect.right + 16
+        });
+      } else {
+        // Mobile: Above button, centered horizontally
+        setMenuPosition({
+          top: rect.top - 16,
+          left: rect.left + rect.width / 2
+        });
+      }
+    }
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMenuOpen(false);
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const handleMenuClick = (tabId: string) => {
     setTab(tabId);
@@ -103,7 +133,10 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                    onClick={() => setIsMenuOpen(false)}
                  />
                )}
-               <div className={`fixed bottom-[5.5rem] left-1/2 -translate-x-1/2 md:left-auto md:ml-4 md:bottom-auto md:top-auto md:-translate-y-[120%] z-[100] transition-all duration-300 ${isMenuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}`}>
+               <div 
+                 style={{ top: menuPosition.top, left: menuPosition.left }}
+                 className={`fixed z-[100] transition-all duration-300 ${isMenuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'} ${isDesktop ? 'translate-x-0 -translate-y-1/2' : '-translate-x-1/2 -translate-y-full'}`}
+               >
 
                  <div className="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#d58f99]/20 p-4 md:p-2 rounded-2xl grid grid-cols-4 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[280px] md:min-w-0 justify-items-center">
                    
@@ -133,11 +166,19 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                    </button>
 
                  </div>
-                 {/* Little Triangle Pointer - Only on desktop where alignment matters more */}
-                 <div className="hidden md:block absolute top-full left-4 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white/95"></div>
+                 {/* Mobile Triangle (Pointing Down) */}
+                 {!isDesktop && (
+                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white/95"></div>
+                 )}
+                 
+                 {/* Desktop Triangle (Pointing Left) */}
+                 {isDesktop && (
+                   <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-r-[8px] border-r-white/95"></div>
+                 )}
               </div>
 
               <button 
+                ref={buttonRef}
                 onClick={toggleMenu} 
                 className={`relative z-[55] w-12 h-12 md:w-9 md:h-9 rounded-full bg-[#d58f99] text-white shadow-[0_4px_12px_rgba(213,143,153,0.4)] flex items-center justify-center transition-transform duration-300 ${isMenuOpen ? 'rotate-45 bg-[#c07a84]' : 'rotate-0 hover:scale-105'}`}
               >

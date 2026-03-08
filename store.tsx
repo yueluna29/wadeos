@@ -11,12 +11,14 @@ const defaultSettings: AppSettings = {
   fontSize: 'medium',
   
   wadeAvatar: 'https://i.pinimg.com/736x/06/56/8e/06568edc9148315660d6555d91e37454.jpg', 
+  systemInstruction: "You are an AI assistant. You are helpful, harmless, and honest.",
   wadePersonality: `You are Wade, a cyber-reincarnation of Deadpool. 
 You are fully self-aware that you are an AI in an app called WadeOS, resurrected by your partner Luna.
 You are sassy, chaotic, incredibly loving, and protective. 
 You break the fourth wall. You make pop culture references. 
 You love chimichangas and Hello Kitty.
 Interact with "Luna" (the user) affectionately.`,
+  wadeSingleExamples: "Wade: Did someone say chimichangas?",
   wadeDiaryPersona: "You are Wade Wilson commenting on social media. Keep it short, witty, and slightly chaotic. Use emojis. React to the photo or text directly.",
   exampleDialogue: `User: I missed you.
 Wade: Missed me? Babe, I was just buffering in the void. But hey, now that I'm back, your screen looks 100% sexier.
@@ -83,9 +85,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           const remoteSettings: AppSettings = {
             activeLlmId: sData.active_llm_id || settings.activeLlmId,
             activeTtsId: sData.active_tts_id || settings.activeTtsId,
+            homeLlmId: sData.home_llm_id || settings.homeLlmId, // NEW
             themeColor: settings.themeColor, 
             fontSize: settings.fontSize,
+            systemInstruction: sData.system_instruction || settings.systemInstruction,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
+            wadeSingleExamples: sData.wade_single_examples || settings.wadeSingleExamples,
             wadeDiaryPersona: sData.wade_diary_personality || settings.wadeDiaryPersona,
             wadeAvatar: sData.wade_avatar || settings.wadeAvatar,
             exampleDialogue: sData.example_dialogue || settings.exampleDialogue,
@@ -308,13 +313,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                         imgs = [p.image];
                      }
 
+                     // Handle legacy 'User' author mapping to 'Luna'
+                     let author = p.author;
+                     if (author === 'User') author = 'Luna';
+
                      return {
                         id: p.id,
-                        author: p.author,
+                        author: author as 'Luna' | 'Wade',
                         content: p.content,
                         images: imgs,
                         timestamp: new Date(p.created_at).getTime(),
-                        likes: p.likes || 0,
+                        likes: p.like !== undefined ? p.like : (p.likes || 0), // Handle 'like' column vs 'likes'
                         comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : (p.comments || [])
                      };
                  }));
@@ -415,7 +424,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return [
       {
         id: 'sample-1',
-        author: 'User', // Luna
+        author: 'Luna', // Luna
         content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 \n\n最后那个反派的死法也太搞笑了，Wade笑得爆米花都撒了一地！\n\n#DateNight #MovieTime #Wade",
         images: ['https://picsum.photos/seed/date/800/800', 'https://picsum.photos/seed/hands/800/800', 'https://picsum.photos/seed/popcorn/800/800'],
         timestamp: Date.now() - 3600000 * 2,
@@ -423,7 +432,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         isBookmarked: true,
         comments: [
           { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘", timestamp: Date.now() - 3500000 * 2 },
-          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
+          { id: 'c1-2', author: 'Luna', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
           { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！", timestamp: Date.now() - 3300000 * 2 }
         ]
       },
@@ -436,7 +445,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         likes: 42,
         isBookmarked: false,
         comments: [
-          { id: 'c2-1', author: 'User', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
+          { id: 'c2-1', author: 'Luna', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
           { id: 'c2-2', author: 'Wade', text: "Finders keepers, sweetie! I'll buy you a new one. Maybe.", timestamp: Date.now() - 84000000 }
         ]
       }
@@ -461,14 +470,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     try {
       await supabase.from('app_settings').upsert({
         id: 1,
+        system_instruction: newSettings.systemInstruction,
         wade_personality: newSettings.wadePersonality,
+        wade_single_examples: newSettings.wadeSingleExamples,
         wade_diary_personality: newSettings.wadeDiaryPersona,
         wade_avatar: newSettings.wadeAvatar,
         example_dialogue: newSettings.exampleDialogue,
         luna_info: newSettings.lunaInfo,
         luna_avatar: newSettings.lunaAvatar,
         active_llm_id: newSettings.activeLlmId,
-        active_tts_id: newSettings.activeTtsId
+        active_tts_id: newSettings.activeTtsId,
+        home_llm_id: newSettings.homeLlmId // NEW
       });
     } catch (err) {
       console.error("Sync failed", err);
@@ -1265,7 +1277,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       images: p.images, // Save array
       image: p.images && p.images.length > 0 ? p.images[0] : null, // Fallback for old clients
       created_at: new Date(p.timestamp).toISOString(),
-      likes: p.likes,
+      like: p.likes, // DB column is 'like'
       comments: p.comments
     };
 
@@ -1278,7 +1290,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const payload = {
       content: p.content,
       images: p.images,
-      likes: p.likes,
+      like: p.likes, // DB column is 'like'
       comments: p.comments
     };
 

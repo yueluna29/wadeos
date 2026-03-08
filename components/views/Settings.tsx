@@ -367,6 +367,26 @@ export const Settings: React.FC = () => {
                />
                <p className="text-[9px] text-[#917c71]/60 mt-2 text-right">0s = Instant reply</p>
              </div>
+
+             {/* Home Screen Model Selector */}
+             <div className="bg-white p-4 rounded-xl shadow-sm border border-[#eae2e8]">
+               <h3 className="font-bold text-[#5a4a42] text-xs mb-3">Home Screen Model</h3>
+               <select
+                 className="w-full bg-[#f9f6f7] border border-[#eae2e8] rounded-lg px-3 py-2 text-[11px] text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors appearance-none cursor-pointer"
+                 value={settings.homeLlmId || ''}
+                 onChange={(e) => updateSettings({ homeLlmId: e.target.value || undefined })}
+               >
+                 <option value="">Same as Active Model (Default)</option>
+                 {llmPresets.map(preset => (
+                   <option key={preset.id} value={preset.id}>
+                     {preset.name} ({preset.model})
+                   </option>
+                 ))}
+               </select>
+               <p className="text-[9px] text-[#917c71]/60 mt-2 italic">
+                 Dedicated model for generating "Wade's Daily Sass" on the home screen.
+               </p>
+             </div>
           </div>
         )}
 

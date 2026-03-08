@@ -25,8 +25,11 @@ export const Home: React.FC = () => {
   }, []);
 
   const generateQuote = async () => {
-    if (!settings.activeLlmId) return;
-    const preset = llmPresets.find(p => p.id === settings.activeLlmId);
+    // Determine which model to use: Home-specific or Active
+    const targetLlmId = settings.homeLlmId || settings.activeLlmId;
+    if (!targetLlmId) return;
+    
+    const preset = llmPresets.find(p => p.id === targetLlmId);
     if (!preset) return;
 
     setIsGeneratingQuote(true);
@@ -58,6 +61,7 @@ export const Home: React.FC = () => {
         3. TIME AWARENESS: If the current time is exactly or very close to 21:21, you MUST make the message about this. 21:21 is your special agreed-upon time with Luna. Be extra romantic, sweet, or playfully special about it.
         4. DATE AWARENESS: If today is a known holiday or special anniversary, acknowledge it.
         5. If it's just a normal time, keep it positive, romantic, or just you being a smartass. Keep it very short and punchy.
+        6. LANGUAGE: Output MUST be in English only.
       `;
 
       let generatedText = "";
@@ -100,7 +104,7 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     generateQuote();
-  }, [settings.activeLlmId]);
+  }, [settings.activeLlmId, settings.homeLlmId]);
 
   return (
     <div className="h-full overflow-y-auto bg-[#f9f6f7] px-6 pt-4 pb-24">

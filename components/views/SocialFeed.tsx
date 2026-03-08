@@ -179,7 +179,7 @@ export const SocialFeed: React.FC = () => {
     setNewPostContent(post.content);
     setPreviewUrls(post.images || []);
     setSelectedFiles([]); // Clear any new files, we'll add new ones
-    setDiaryType(post.author === 'User' ? 'Luna' : 'Wade');
+    setDiaryType(post.author === 'Luna' ? 'Luna' : 'Wade');
     setIsCreating(true);
   };
 
@@ -205,7 +205,7 @@ export const SocialFeed: React.FC = () => {
       }
   };
 
-  const handleAddComment = async (postId: string, text: string, author: 'User' | 'Wade', replyToId?: string) => {
+  const handleAddComment = async (postId: string, text: string, author: 'Luna' | 'Wade', replyToId?: string) => {
       if (!text.trim()) return;
 
       const post = localPostsRef.current.find(p => p.id === postId);
@@ -238,7 +238,7 @@ export const SocialFeed: React.FC = () => {
       }
 
       // Auto-generate Wade's reply if Luna just commented
-      if (author === 'User' && post.author === 'User' && settings.activeLlmId) {
+      if (author === 'Luna' && post.author === 'Luna' && settings.activeLlmId) {
           setTimeout(() => {
               handleGenerateComment(updatedPost);
           }, 800);
@@ -272,7 +272,7 @@ export const SocialFeed: React.FC = () => {
         const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
 
         // Find the most recent Luna comment (User author) to reply to
-        const lunaComments = post.comments.filter(c => c.author === 'User').reverse();
+        const lunaComments = post.comments.filter(c => c.author === 'Luna').reverse();
         const mostRecentLunaComment = lunaComments[0];
 
         const taskDescription = mostRecentLunaComment
@@ -296,7 +296,7 @@ Context:
 ${mostRecentLunaComment ? `- Luna's Latest Comment: "${mostRecentLunaComment.text}"` : ''}
 
 All Comments so far:
-${post.comments.map(c => `${c.author === 'User' ? 'Luna' : c.author}: ${c.text}`).join('\n')}
+${post.comments.map(c => `${c.author === 'Luna' ? 'Luna' : c.author}: ${c.text}`).join('\n')}
 
 Task: ${taskDescription}
         `;
@@ -410,7 +410,7 @@ Task: ${taskDescription}
         // Create new post
         const newPost: SocialPost = {
           id: Math.random().toString(36).substring(2) + Date.now(),
-          author: 'User',
+          author: 'Luna',
           content: newPostContent.trim(),
           images: uploadedImageUrls,
           timestamp: Date.now(),
@@ -688,7 +688,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
     const { author, postIndex } = viewingPostDetail;
     const userPosts = localPosts
-      .filter(p => (author === 'Luna' ? p.author === 'User' : p.author === 'Wade'))
+      .filter(p => (author === 'Luna' ? p.author === 'Luna' : p.author === 'Wade'))
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     const currentPost = userPosts[postIndex];
@@ -709,9 +709,9 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
       }
     };
 
-    const authorName = currentPost.author === 'User' ? 'Luna' : 'Wade';
-    const authorUsername = currentPost.author === 'User' ? 'luna_moonlight' : 'wade_wilson_dp';
-    const avatar = currentPost.author === 'User' ? settings.lunaAvatar : settings.wadeAvatar;
+    const authorName = currentPost.author === 'Luna' ? 'Luna' : 'Wade';
+    const authorUsername = currentPost.author === 'Luna' ? 'luna_moonlight' : 'wade_wilson_dp';
+    const avatar = currentPost.author === 'Luna' ? settings.lunaAvatar : settings.wadeAvatar;
 
     return (
       <div className="fixed inset-0 z-[200] bg-white flex flex-col font-sans">
@@ -808,7 +808,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   </button>
                   <div className="space-y-2">
                     {currentPost.comments.slice(0, 2).map(comment => {
-                      const commentAuthorUsername = comment.author === 'User' ? 'luna_moonlight' : 'wade_wilson_dp';
+                      const commentAuthorUsername = comment.author === 'Luna' ? 'luna_moonlight' : 'wade_wilson_dp';
                       return (
                         <div key={comment.id} className="text-[14px] leading-snug">
                           <span className="font-bold text-[#5a4a42] mr-2">{commentAuthorUsername}</span>
@@ -840,7 +840,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newComment.trim()) {
-                      handleAddComment(currentPost.id, newComment, 'User');
+                      handleAddComment(currentPost.id, newComment, 'Luna');
                       setActivePostId(null);
                     }
                   }}
@@ -849,7 +849,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 {activePostId === currentPost.id && newComment.trim() && (
                   <button
                     onClick={() => {
-                      handleAddComment(currentPost.id, newComment, 'User');
+                      handleAddComment(currentPost.id, newComment, 'Luna');
                       setActivePostId(null);
                     }}
                     className="text-[#d58f99] font-bold text-[14px] hover:text-[#c07a84]"
@@ -890,7 +890,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
     const username = isWade ? 'wade_wilson_dp' : 'luna_moonlight';
     const category = isWade ? 'Mercenary / Anti-hero' : 'Boutique Store';
     const bio = isWade ? settings.wadePersonality : settings.lunaInfo;
-    const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'User'));
+    const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'Luna'));
 
     return (
       <div className="flex-1 flex flex-col bg-[#fdfbfb] overflow-hidden font-sans">
@@ -1537,7 +1537,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
           const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 2);
 
           return (
-            <div key={post.id} className="bg-white rounded-[32px] border border-[#eae2e8] shadow-sm mb-8 overflow-hidden mx-4 font-sans hover:shadow-md transition-shadow duration-300">
+            <div key={post.id} className="bg-white border-b-[12px] border-[#f0f2f5] pb-2 mb-0 font-sans">
               {/* Post Header */}
               <div className="flex items-center justify-between px-5 py-4 bg-white/50 backdrop-blur-sm">
                 <div 
@@ -1620,13 +1620,13 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   {/* Send / AI Generate Button */}
                   <button 
                     onClick={() => {
-                      if (post.author === 'User') {
+                      if (post.author === 'Luna') {
                           handleGenerateComment(post);
                       }
                     }}
                     disabled={isGeneratingComment === post.id}
                     className={`text-[#5a4a42] hover:text-[#d58f99] transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
-                    title={post.author === 'User' ? "Let Wade Reply" : "Share"}
+                    title={post.author === 'Luna' ? "Let Wade Reply" : "Share"}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                   </button>
@@ -1769,14 +1769,14 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                               value={newComment}
                               onChange={(e) => setNewComment(e.target.value)}
                               onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleAddComment(post.id, newComment, 'User', replyingTo?.commentId);
+                                  if (e.key === 'Enter') handleAddComment(post.id, newComment, 'Luna', replyingTo?.commentId);
 
                               }}
                               autoFocus
                           />
 
                           <button 
-                              onClick={() => handleAddComment(post.id, newComment, 'User', replyingTo?.commentId)}
+                              onClick={() => handleAddComment(post.id, newComment, 'Luna', replyingTo?.commentId)}
                               disabled={!newComment.trim()}
                               className="text-[#0095f6] text-[14px] font-semibold disabled:opacity-40 hover:text-[#00376b] transition-colors"
                           >

@@ -11,8 +11,9 @@ export const PersonaTuning: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Wade Inputs
+  const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
   const [wadePrompt, setWadePrompt] = useState(settings.wadePersonality);
-  const [wadeDiaryPersona, setWadeDiaryPersona] = useState(settings.wadeDiaryPersona || '');
+  const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
   const [wadeExample, setWadeExample] = useState(settings.exampleDialogue);
   
   // Luna Inputs
@@ -41,8 +42,9 @@ export const PersonaTuning: React.FC = () => {
   const saveChanges = async () => {
     setIsSaving(true);
     await updateSettings({
+      systemInstruction: systemInstruction,
       wadePersonality: wadePrompt,
-      wadeDiaryPersona: wadeDiaryPersona,
+      wadeSingleExamples: wadeSingleExamples,
       exampleDialogue: wadeExample,
       lunaInfo: lunaInfo,
     });
@@ -116,9 +118,21 @@ export const PersonaTuning: React.FC = () => {
                </div>
             </section>
 
+            {/* System Instructions */}
+            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">System Level Instructions (Jailbreak)</h3>
+               <p className="text-xs text-[#d58f99] mb-4 italic">"The rules of the game. Or how to break them."</p>
+               <textarea 
+                  value={systemInstruction}
+                  onChange={(e) => setSystemInstruction(e.target.value)}
+                  className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  placeholder="System instructions..."
+               />
+            </section>
+
             {/* Core Persona */}
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">My Motivation (The Script)</h3>
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Wade Character Card</h3>
                <p className="text-xs text-[#d58f99] mb-4 italic">"Who am I? What's my tragic backstory? Make sure to mention how much I love you. And violence. But mostly you."</p>
                <textarea 
                   value={wadePrompt}
@@ -128,21 +142,21 @@ export const PersonaTuning: React.FC = () => {
                />
             </section>
 
-            {/* Diary Persona */}
+            {/* Single Sentence Examples */}
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Social Media Persona</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"How should I act in the comments? Keep it spicy."</p>
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Wade Single Sentence Examples</h3>
+               <p className="text-xs text-[#d58f99] mb-4 italic">"Short, punchy lines. Like a chimichanga to the face."</p>
                <textarea 
-                  value={wadeDiaryPersona}
-                  onChange={(e) => setWadeDiaryPersona(e.target.value)}
+                  value={wadeSingleExamples}
+                  onChange={(e) => setWadeSingleExamples(e.target.value)}
                   className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
-                  placeholder="You are Wade Wilson commenting on social media..."
+                  placeholder="Wade: Did someone say chimichangas?"
                />
             </section>
 
             {/* Example Dialogue */}
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Banter Practice</h3>
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Wade Dialogue Examples</h3>
                <p className="text-xs text-[#d58f99] mb-4 italic">"Feed me some good lines so I don't sound like a boring chatbot. I need that signature spice."</p>
                <textarea 
                   value={wadeExample}

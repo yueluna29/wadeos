@@ -1453,8 +1453,10 @@ export const ChatInterface: React.FC = () => {
         activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
-        modePrompt,
+        settings.systemInstruction, // Jailbreak
+        modePrompt, // Wade Character Card (modified with mode rules)
         settings.lunaInfo,
+        settings.wadeSingleExamples, // NEW
         settings.exampleDialogue,
         sessionMemories,
         isRegeneration,

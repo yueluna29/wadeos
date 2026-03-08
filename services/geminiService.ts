@@ -21,8 +21,10 @@ const generateOpenAICompatibleResponse = async (
   modelName: string,
   prompt: string,
   history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
-  systemInstruction: string,
+  systemInstruction: string, // This will now be the "System Level Instructions"
+  wadePersonality: string, // NEW: Wade Character Card
   lunaInfo?: string,
+  wadeSingleExamples?: string, // NEW: Single sentence examples
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
@@ -43,16 +45,33 @@ const generateOpenAICompatibleResponse = async (
     throw new Error("API Key is required");
   }
 
-  // Build full system prompt
+  // Build full system prompt in STRICT ORDER
+  // 1. System Level Instructions (Jailbreak)
   let fullSystemPrompt = systemInstruction;
 
+  // 2. Wade Character Card
+  fullSystemPrompt += `\n\n${wadePersonality}`;
+
+  // 3. Luna Info
   if (lunaInfo) {
     fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
   }
 
+  // 4. Wade Single Sentence Examples
+  if (wadeSingleExamples) {
+    fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
+  }
+
+  // 5. Wade Dialogue Examples
   if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
+
+  // 6. History (Handled by messages array below)
+
+  // 7. Spice It Up (Handled by customPrompt below)
+
+  // 8. Luna's Last Input (Handled by prompt below)
 
   if (coreMemories && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
@@ -73,11 +92,14 @@ const generateOpenAICompatibleResponse = async (
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
   3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
-  4. After the closing </think> tag, write your actual response to Luna (the text she will see).
+  4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
+  5. After the closing </think> tag, write your actual response to Luna (the text she will see).
 
   [EXAMPLE FORMAT]
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
   *Gasps dramatically* You wound me, woman!`;
+
+
 
   // Transform history
   const messages: any[] = [
@@ -210,8 +232,10 @@ export const generateTextResponse = async (
   modelName: string,
   prompt: string,
   history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
-  systemInstruction: string,
+  systemInstruction: string, // Jailbreak
+  wadePersonality: string, // NEW: Character Card
   lunaInfo?: string,
+  wadeSingleExamples?: string, // NEW
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
@@ -235,7 +259,9 @@ export const generateTextResponse = async (
       prompt,
       history,
       systemInstruction,
+      wadePersonality,
       lunaInfo,
+      wadeSingleExamples,
       exampleDialogue,
       coreMemories,
       isRetry,
@@ -256,16 +282,33 @@ export const generateTextResponse = async (
     parts: h.parts
   }));
 
-  // Construct a Weighted System Instruction
+  // Construct a Weighted System Instruction in STRICT ORDER
+  // 1. System Level Instructions (Jailbreak)
   let fullSystemPrompt = systemInstruction;
 
+  // 2. Wade Character Card
+  fullSystemPrompt += `\n\n${wadePersonality}`;
+
+  // 3. Luna Info
   if (lunaInfo) {
     fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
   }
 
+  // 4. Wade Single Sentence Examples
+  if (wadeSingleExamples) {
+    fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
+  }
+
+  // 5. Wade Dialogue Examples
   if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
+
+  // 6. History (Handled by history param)
+
+  // 7. Spice It Up (Handled by customPrompt below)
+
+  // 8. Luna's Last Input (Handled by prompt below)
 
   // NEW: Inject Long Term Memories
   if (coreMemories && coreMemories.length > 0) {
@@ -304,7 +347,8 @@ export const generateTextResponse = async (
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
   3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
-  4. After the closing </think> tag, write your actual response to Luna (the text she will see).
+  4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
+  5. After the closing </think> tag, write your actual response to Luna (the text she will see).
   
   [EXAMPLE FORMAT]
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>

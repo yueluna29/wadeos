@@ -48,7 +48,7 @@ export interface Message {
 
 export interface SocialPost {
   id: string;
-  author: 'User' | 'Wade';
+  author: 'Luna' | 'Wade';
   content: string;
   images?: string[]; // Changed from image?: string to support multiple
   timestamp: number;
@@ -59,7 +59,7 @@ export interface SocialPost {
 
 export interface SocialComment {
   id: string;
-  author: 'User' | 'Wade';
+  author: 'Luna' | 'Wade';
   text: string;
   replyToId?: string;
 }
@@ -163,13 +163,16 @@ export interface AppSettings {
   // Active Preset IDs
   activeLlmId?: string;
   activeTtsId?: string;
+  homeLlmId?: string; // NEW: Dedicated model for Home Screen Sass
 
   themeColor: string;
   fontSize: 'small' | 'medium' | 'large';
   
   // Wade's Side
+  systemInstruction: string; // NEW: System level instructions (jailbreak)
   wadePersonality: string; // Core System instruction
-  wadeDiaryPersona: string; // NEW: Persona for non-dialogue modes (diary comments)
+  wadeSingleExamples: string; // NEW: Single sentence examples
+  wadeDiaryPersona: string; // Persona for non-dialogue modes (diary comments)
   wadeAvatar: string;
   exampleDialogue: string; // Few-shot examples
   
