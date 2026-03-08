@@ -1391,7 +1391,6 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       const freshMessages = messagesRef.current.filter(m => m.sessionId === targetSessionId);
       let historyMsgs = freshMessages;
       if (regenMsgId) {
-        // 如果是重新生成，历史记录截断到这条消息之前（不包含这条旧的错误消息）
         const targetIdx = freshMessages.findIndex(m => m.id === regenMsgId);
         if (targetIdx !== -1) historyMsgs = freshMessages.slice(0, targetIdx);
       } else if (activeMode !== 'sms') {
@@ -1435,9 +1434,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         return { role: m.role, parts: parts };
       }).slice(-(settings.contextLimit || 50));
 
-      // 4. 准备 System Prompt
+      // 4. 准备 System Prompt (加强了 SMS 分段的要求)
       let modePrompt = settings.wadePersonality;
-      if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration, NO internal monologue outside of <think> tags.\n- Write ONLY what you would type in a text message.\n- Keep it SHORT (1-2 sentences max per bubble).\n- Use emojis naturally.\n- Split your reply into MULTIPLE separate text bubbles by using ||| as separator.\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Do NOT write paragraphs. Do NOT describe what you are doing. JUST TEXT.";
+      if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration.\n- Write ONLY text messages.\n- Keep it SHORT (1-2 sentences per bubble).\n- Use emojis naturally.\n- IMPORTANT: You MUST split your reply into MULTIPLE separate text bubbles by using ||| as the separator.\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| I'm coming over.\"\n- IF YOU DO NOT USE |||, THE USER CANNOT SEE YOUR MESSAGE.";
       else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
 
       const isRegeneration = !!regenMsgId;
@@ -1455,7 +1454,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
         : safeMemories.filter(m => m.enabled);
 
-      // 5. API 调用 - ✅ 关键修复：参数顺序终于对上了！
+      // 5. API 调用
       const response = await generateTextResponse(
         activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
@@ -1465,9 +1464,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         settings.lunaInfo,
         settings.wadeSingleExamples, 
         settings.smsExampleDialogue, 
-        settings.smsInstructions,     // ✅ 新增参数归位
-        settings.roleplayInstructions, // ✅ 新增参数归位
-        settings.exampleDialogue,     // 原来的参数往后顺延
+        settings.smsInstructions,
+        settings.roleplayInstructions,
+        settings.exampleDialogue,
         sessionMemories,             
         isRegeneration,              
         activeMode as any,           
@@ -1490,14 +1489,28 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
       // 6. 成功处理
       if (regenMsgId) {
-        // ✅ 成功了！用新内容替换掉那个“转圈圈”的旧气泡
         addVariantToMessage(regenMsgId, responseText, thinking, currentModel);
+        setRegenerating(regenMsgId, false); 
+        setWadeStatus('online'); // 确保状态恢复
         return;
       }
       
-      // 新消息处理 (SMS 分割 vs 普通)
-      if (activeMode === 'sms' && responseText.includes('|||')) {
-        const parts = responseText.split('|||').map(s => s.trim()).filter(s => s);
+      // ✅ 修复 SMS 分段和状态卡死问题
+      if (activeMode === 'sms') {
+        // 尝试用 ||| 分割
+        let parts = responseText.split('|||').map(s => s.trim()).filter(s => s);
+        
+        // 🤖 参谋补救措施：如果 AI 忘了写 |||，但写了换行符，我们尝试按换行符强行分割
+        if (parts.length === 1 && responseText.includes('\n')) {
+           const lines = responseText.split('\n').map(s => s.trim()).filter(s => s);
+           if (lines.length > 1) {
+             parts = lines; // 这里的逻辑是：如果是一大段，不如拆成多条短的
+           }
+        }
+
+        // 确保 parts 不为空
+        if (parts.length === 0) parts = ["..."]; 
+
         for (let i = 0; i < parts.length; i++) {
           setTimeout(() => {
             addMessage({
@@ -1510,15 +1523,18 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               mode: activeMode,
               variantsThinking: i === 0 && thinking ? [thinking] : [null]
             });
+            
+            // ✅ 关键修复：确保最后一条消息发完后，一定关闭 typing 状态
             if (i === parts.length - 1) {
               setIsTyping(false);
               setWadeStatus('online');
               setLastSentMessageId(null);
               setLastInputText('');
             }
-          }, i * 1500);
+          }, i * 1500); // 每 1.5 秒发一条
         }
       } else {
+        // 普通模式处理
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           sessionId: targetSessionId,
@@ -1544,15 +1560,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       console.error("Chat Error", error);
       const errorMsg = error?.message || "Failed to generate response.";
       
-      // 🚨 7. 优雅报错处理
       if (regenMsgId) {
-        // 如果是重新生成失败，弹窗告诉 Luna，然后把转圈取消，变回原来的样子
-        // 这样就不会产生新的垃圾气泡了
         alert(`Regeneration Failed: ${errorMsg}`);
         setRegenerating(regenMsgId, false); 
         setWadeStatus('online');
       } else {
-        // 只有是新对话失败时，才发错误气泡
         if (errorMsg.includes("API Key")) {
           addMessage({
             id: Date.now().toString(),
@@ -1573,6 +1585,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           });
         }
       }
+      // 无论出错与否，都要关闭打字状态
       setIsTyping(false);
       setWadeStatus('online');
       setLastSentMessageId(null);
