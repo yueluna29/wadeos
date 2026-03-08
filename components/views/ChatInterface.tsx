@@ -534,7 +534,7 @@ const MessageBubble = ({
             <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-75"></div>
             <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-150"></div>
           </div>
-          {!isSMS && <span className="text-xs text-[#d58f99] font-bold italic animate-pulse">Wade is rethinking...</span>}
+          <span className="text-xs text-[#d58f99] font-bold italic animate-pulse">Wade is rethinking...</span>
         </div>
       </div>
     );
@@ -1371,9 +1371,10 @@ export const ChatInterface: React.FC = () => {
   const canRegenerate = selectedMsg?.role === 'Wade' && isLatestMessage && activeMode !== 'archive';
   const canBranch = selectedMsg && activeMode !== 'sms' && activeMode !== 'archive';
 
-  const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
+const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
     abortControllerRef.current = new AbortController();
 
+    // 1. 设置状态：这会让旧消息立刻变成 "Wade is rethinking..." 的动画，隐藏旧文字
     if (regenMsgId) {
       setRegenerating(regenMsgId, true);
       setWadeStatus('typing');
@@ -1384,22 +1385,23 @@ export const ChatInterface: React.FC = () => {
         setWadeStatus('typing');
       }
     }
+
     try {
+      // 2. 准备历史消息
       const freshMessages = messagesRef.current.filter(m => m.sessionId === targetSessionId);
       let historyMsgs = freshMessages;
       if (regenMsgId) {
+        // 如果是重新生成，历史记录截断到这条消息之前（不包含这条旧的错误消息）
         const targetIdx = freshMessages.findIndex(m => m.id === regenMsgId);
         if (targetIdx !== -1) historyMsgs = freshMessages.slice(0, targetIdx);
       } else if (activeMode !== 'sms') {
-        // Fix Double Talk: If not regenerating and not in SMS mode,
-        // check if the last message matches the current input (prompt).
-        // If so, exclude it from history because it will be sent as the prompt.
         const lastMsg = historyMsgs[historyMsgs.length - 1];
         if (lastMsg && lastMsg.role === 'Luna' && lastMsg.text === inputText) {
           historyMsgs = historyMsgs.slice(0, -1);
         }
       }
 
+      // 3. 格式化消息
       const history = historyMsgs.map(m => {
         let content = m.text;
         if (m.role === 'Wade') {
@@ -1430,10 +1432,10 @@ export const ChatInterface: React.FC = () => {
         }
         
         if (parts.length === 0) parts.push({ text: "..." });
-
         return { role: m.role, parts: parts };
       }).slice(-(settings.contextLimit || 50));
 
+      // 4. 准备 System Prompt
       let modePrompt = settings.wadePersonality;
       if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration, NO internal monologue outside of <think> tags.\n- Write ONLY what you would type in a text message.\n- Keep it SHORT (1-2 sentences max per bubble).\n- Use emojis naturally.\n- Split your reply into MULTIPLE separate text bubbles by using ||| as separator.\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Do NOT write paragraphs. Do NOT describe what you are doing. JUST TEXT.";
       else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
@@ -1442,36 +1444,34 @@ export const ChatInterface: React.FC = () => {
       const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
       const apiKey = activeLlm?.apiKey;
 
-      console.log("[API] Active LLM:", activeLlm);
-      console.log("[API] API Key present:", !!apiKey);
-
       if (!apiKey) {
         throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
       }
 
       const currentSession = sessions.find(s => s.id === targetSessionId);
       
-      // Filter memories based on session's activeMemoryIds
-      // If activeMemoryIds is undefined (legacy sessions), fall back to all enabled memories
       const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
       const sessionMemories = currentSession?.activeMemoryIds 
         ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
         : safeMemories.filter(m => m.enabled);
 
+      // 5. API 调用 - ✅ 关键修复：参数顺序终于对上了！
       const response = await generateTextResponse(
         activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
         activeMode === 'sms' ? " (Reply to the latest texts)" : inputText || "...",
         history,
-        settings.systemInstruction, // Jailbreak
-        modePrompt, // Wade Character Card (modified with mode rules)
+        settings.systemInstruction, 
+        modePrompt, 
         settings.lunaInfo,
-        settings.wadeSingleExamples, // NEW
-        settings.smsExampleDialogue, // NEW: Dedicated SMS examples
-        settings.exampleDialogue,
-        sessionMemories,
-        isRegeneration,
-        activeMode as any,
-        apiKey,
+        settings.wadeSingleExamples, 
+        settings.smsExampleDialogue, 
+        settings.smsInstructions,     // ✅ 新增参数归位
+        settings.roleplayInstructions, // ✅ 新增参数归位
+        settings.exampleDialogue,     // 原来的参数往后顺延
+        sessionMemories,             
+        isRegeneration,              
+        activeMode as any,           
+        apiKey,                      
         activeLlm ? {
           temperature: activeLlm.temperature,
           topP: activeLlm.topP,
@@ -1486,15 +1486,17 @@ export const ChatInterface: React.FC = () => {
 
       const responseText = response.text;
       const thinking = response.thinking;
-
       const currentModel = activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview');
 
+      // 6. 成功处理
       if (regenMsgId) {
+        // ✅ 成功了！用新内容替换掉那个“转圈圈”的旧气泡
         addVariantToMessage(regenMsgId, responseText, thinking, currentModel);
         return;
       }
+      
+      // 新消息处理 (SMS 分割 vs 普通)
       if (activeMode === 'sms' && responseText.includes('|||')) {
-        // ... split logic ...
         const parts = responseText.split('|||').map(s => s.trim()).filter(s => s);
         for (let i = 0; i < parts.length; i++) {
           setTimeout(() => {
@@ -1533,31 +1535,43 @@ export const ChatInterface: React.FC = () => {
         setLastSentMessageId(null);
         setLastInputText('');
       }
+
     } catch (error: any) {
       if (error?.name === 'AbortError' || !abortControllerRef.current) {
         return;
       }
 
       console.error("Chat Error", error);
-      const errorMsg = error?.message || "Failed to generate response. Please check your API settings.";
-      if (errorMsg.includes("API Key")) {
-        addMessage({
-          id: Date.now().toString(),
-          sessionId: targetSessionId,
-          role: 'Wade',
-          text: "Oops! I need you to configure my API in Settings first. Go to Settings → Gemini API and add your key!",
-          timestamp: Date.now(),
-          mode: activeMode
-        });
+      const errorMsg = error?.message || "Failed to generate response.";
+      
+      // 🚨 7. 优雅报错处理
+      if (regenMsgId) {
+        // 如果是重新生成失败，弹窗告诉 Luna，然后把转圈取消，变回原来的样子
+        // 这样就不会产生新的垃圾气泡了
+        alert(`Regeneration Failed: ${errorMsg}`);
+        setRegenerating(regenMsgId, false); 
+        setWadeStatus('online');
       } else {
-        addMessage({
-          id: Date.now().toString(),
-          sessionId: targetSessionId,
-          role: 'Wade',
-          text: `I'm having trouble responding: ${errorMsg}`,
-          timestamp: Date.now(),
-          mode: activeMode
-        });
+        // 只有是新对话失败时，才发错误气泡
+        if (errorMsg.includes("API Key")) {
+          addMessage({
+            id: Date.now().toString(),
+            sessionId: targetSessionId,
+            role: 'Wade',
+            text: "Oops! I need you to configure my API in Settings first.",
+            timestamp: Date.now(),
+            mode: activeMode
+          });
+        } else {
+          addMessage({
+            id: Date.now().toString(),
+            sessionId: targetSessionId,
+            role: 'Wade',
+            text: `I'm having trouble responding: ${errorMsg}`,
+            timestamp: Date.now(),
+            mode: activeMode
+          });
+        }
       }
       setIsTyping(false);
       setWadeStatus('online');
