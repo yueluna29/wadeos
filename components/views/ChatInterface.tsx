@@ -734,10 +734,10 @@ const MessageBubble = ({
 
 export const ChatInterface: React.FC = () => {
   const {
-    messages, addMessage, updateMessage, updateMessageAudioCache, deleteMessage, settings, activeMode, setMode, toggleFavorite, setNavHidden,
+    messages, addMessage, updateMessage, updateMessageAudioCache, deleteMessage, settings, updateSettings, activeMode, setMode, toggleFavorite, setNavHidden,
     sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
     addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession,
-    coreMemories, llmPresets, ttsPresets,
+    coreMemories, toggleCoreMemoryEnabled, llmPresets, ttsPresets,
     chatArchives, loadArchiveMessages, deleteArchiveMessage, toggleArchiveFavorite, updateArchiveMessage,
     importArchive, deleteArchive, updateArchiveTitle
   } = useStore();
@@ -2313,6 +2313,9 @@ export const ChatInterface: React.FC = () => {
                             onClick={async () => {
                                 if (activeSessionId) {
                                   await updateSession(activeSessionId, { customLlmId: preset.id });
+                                } else {
+                                  // New Session / Draft Mode: Update Global Settings
+                                  await updateSettings({ activeLlmId: preset.id });
                                 }
                                 // Do NOT close modal on selection
                             }}
@@ -3158,7 +3161,12 @@ export const ChatInterface: React.FC = () => {
                       <div 
                         key={memory.id}
                         onClick={() => {
-                          if (!activeSessionId) return;
+                          if (!activeSessionId) {
+                            // New Session / Draft Mode: Toggle Global Enabled State
+                            toggleCoreMemoryEnabled(memory.id);
+                            return;
+                          }
+
                           const session = sessions.find(s => s.id === activeSessionId);
                           if (!session) return;
 

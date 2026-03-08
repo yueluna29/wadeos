@@ -153,7 +153,7 @@ export const MemoryBank: React.FC = () => {
 
   return (
     <div className="h-full bg-[#f9f6f7] flex flex-col overflow-hidden relative">
-      <div className="flex-1 flex flex-col max-w-md mx-auto w-full p-4 pt-4 pb-4 min-h-0">
+      <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 pt-4 pb-4 min-h-0">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -221,11 +221,18 @@ export const MemoryBank: React.FC = () => {
         <div className="flex-1 overflow-y-auto pb-20 custom-scrollbar">
           
           {/* CORE MEMORIES LIST */}
-          <div className="space-y-4 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
             {filteredMemories.length === 0 ? (
               <div 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-white/60 rounded-[24px] border-2 border-[#eae2e8] border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#d58f99]/40 hover:bg-white transition-all duration-300 h-48"
+                onClick={() => {
+                  setEditingId(null);
+                  setNewMemoryTitle('');
+                  setNewMemoryContent('');
+                  setNewMemoryTags([]);
+                  setTagInput('');
+                  setIsModalOpen(true);
+                }}
+                className="col-span-full bg-white/60 rounded-[24px] border-2 border-[#eae2e8] border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#d58f99]/40 hover:bg-white transition-all duration-300 h-48"
               >
                 <div className="w-14 h-14 bg-[#fff0f3] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <Icons.Brain />
@@ -247,23 +254,12 @@ export const MemoryBank: React.FC = () => {
                   <div className="relative p-4 flex h-full">
                     {/* Left Column: Icon + Actions */}
                     <div className="flex flex-col items-center gap-2 mr-3 shrink-0">
-                      {/* Icon Box - Click to Toggle */}
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCoreMemoryEnabled(mem.id);
-                        }}
-                        className={`
-                          w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer
-                          ${mem.enabled 
-                            ? 'bg-gradient-to-br from-[#d58f99] to-[#e6aeb6] text-white shadow-md shadow-[#d58f99]/20' 
-                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                          }
-                        `}
-                        title={mem.enabled ? "Disable Memory" : "Enable Memory"}
+                      {/* Icon Box - Static Red */}
+                      <div 
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-sm bg-gradient-to-br from-[#d58f99] to-[#e6aeb6] text-white shadow-[#d58f99]/20"
                       >
                         <Icons.Brain />
-                      </button>
+                      </div>
 
                       {/* Actions (Hidden by default, appear below icon) */}
                       <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
