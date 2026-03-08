@@ -1602,6 +1602,37 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           variantsThinking: [thinking || null]
         };
         addMessage(botMessage);
+        // 👇👇👇 新增：触发自动总结逻辑 (在这里指定模型！) 👇👇👇
+      
+      // 1. 获取当前所有消息 (包括刚发的)
+      const currentMessages = messagesRef.current.filter(m => m.sessionId === targetSessionId);
+      
+      // 2. 检查是否达到阈值 (比如 40 条消息)
+      if (currentMessages.length > 40 && !isRegeneration) {
+        console.log("🚀 Triggering Auto-Summary...");
+        
+        // 3. 拿出前 20 条最老的对话 (要被归档的)
+        const messagesToSummarize = currentMessages.slice(0, 20);
+        
+        // 4. 在后台调用替身
+        const activeApiKey = activeLlm?.apiKey; 
+        
+        if (activeApiKey) {
+           // ⭐ 就在这里！你可以自由修改 'gemini-1.5-flash' 成任何你想用的模型！
+           summarizeConversation(messagesToSummarize, sessionSummary, activeApiKey, 'gemini-flash-lite-latest').then(async (newSummary) => {
+              console.log("✅ Summary Updated:", newSummary);
+              
+              // 5. 更新本地状态
+              setSessionSummary(newSummary);
+              
+              // 6. 存入数据库
+              await supabase
+                .from('session_summaries')
+                .upsert({ session_id: targetSessionId, summary: newSummary });
+           });
+        }
+      }
+      // 👆👆👆 新增结束 👆👆👆
         setIsTyping(false);
         setWadeStatus('online');
         setLastSentMessageId(null);
