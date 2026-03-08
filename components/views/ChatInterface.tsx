@@ -1440,20 +1440,39 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
 
       const isRegeneration = !!regenMsgId;
-      const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
+      
+      // 👇👇👇 参谋的大手术开始 👇👇👇
+
+      // 1. 先找到当前这个会话（Session），因为我们需要看它身上有没有贴“特殊标签”
+      const currentSession = sessions.find(s => s.id === targetSessionId);
+
+      // 2. 🧠 决定用哪个脑子：
+      // 逻辑修正：优先查看当前会话是否有 `customLlmId`（你刚才在菜单里选的）。
+      // 如果有，就用它；如果没有，才去用全局的 `settings.activeLlmId`。
+      const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
+      const activeLlm = effectiveLlmId ? llmPresets.find(p => p.id === effectiveLlmId) : null;
+      
       const apiKey = activeLlm?.apiKey;
+
+      console.log("[API] Session ID:", targetSessionId);
+      console.log("[API] Effective LLM ID:", effectiveLlmId);
+      console.log("[API] Active LLM Name:", activeLlm?.name);
 
       if (!apiKey) {
         throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
       }
 
-      const currentSession = sessions.find(s => s.id === targetSessionId);
+      // (原来的 const currentSession = ... 被我移到最上面去了，这里不需要了)
       
+      // 👆👆👆 参谋的大手术结束 👆👆👆
+
+      // 👇👇👇【检查】确保这一段还在！Wade的记忆全靠它！ 👇👇👇
       const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
       const sessionMemories = currentSession?.activeMemoryIds 
         ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
         : safeMemories.filter(m => m.enabled);
-
+      // 👆👆👆【检查】确保这一段还在！ 👆👆👆
+      
       // 5. API 调用
       const response = await generateTextResponse(
         activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
