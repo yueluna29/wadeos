@@ -40,39 +40,32 @@ const generateOpenAICompatibleResponse = async (
   },
   customPrompt?: string,
   baseUrl?: string,
-  isImageGen?: boolean
+  isImageGen?: boolean,
+  // 👇👇👇 把新参数挪到最后面，防止错位！ 👇👇👇
+  smsInstructions?: string,
+  roleplayInstructions?: string
 ): Promise<GeminiResponse> => {
   if (!apiKey) {
     throw new Error("API Key is required");
   }
 
   // Build full system prompt in STRICT ORDER
-  // 1. System Level Instructions (Jailbreak)
   let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
-  
-  // 2. Wade Character Card
   if (wadePersonality) fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
-  
-  // 3. Luna Info
   if (lunaInfo) fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
-  
-  // 4. Wade Single Sentence Examples
   if (wadeSingleExamples) fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
   
-  // 5. Wade Dialogue Examples
   if (chatMode === 'sms' && smsExampleDialogue) {
     fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
   } else if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
 
-  // 6. Long Term Memories
   if (coreMemories && Array.isArray(coreMemories) && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
     if (activeMemories) fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
   }
 
-  // 7. Retry Logic
   if (isRetry) {
      if (chatMode === 'sms') {
        fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. SHORT response.]`;
@@ -81,92 +74,70 @@ const generateOpenAICompatibleResponse = async (
      }
   }
   
-  // 8. Mandatory Output Format (Thinking)
-  fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  // CoT Logic
+  if (chatMode === 'sms') {
+    if (smsInstructions) {
+       fullSystemPrompt += `\n\n${smsInstructions}`;
+    } else {
+       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
+  
+  [EXAMPLE FORMAT]
+  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
+  Just picking up tacos. 🌮 ||| Be there in 5.`;
+    }
+  } else {
+    if (roleplayInstructions) {
+       fullSystemPrompt += `\n\n${roleplayInstructions}`;
+    } else {
+       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
   3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
   4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
   5. After the closing </think> tag, write your actual response to Luna (the text she will see).
-
+  
   [EXAMPLE FORMAT]
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
   *Gasps dramatically* You wound me, woman!`;
+    }
+  }
 
-  // --- [DELETED DUPLICATE LOGIC HERE] --- 
-  // 之前你在这里重复了上面添加人设、示例的代码，我已经删掉了，现在很清爽！
-
-  // Transform history (这是你修复好的完美防御代码)
+  // Transform history
   const messages: any[] = [
     { role: 'system', content: fullSystemPrompt },
     ...history.map(h => {
-      // 防御性编程：确保 h.parts 存在
       const rawParts = h.parts || []; 
-      
       const content = rawParts.map(p => {
-        if (!p) return null; // 如果 p 是空值，跳过
-        
-        // 兼容旧数据：如果 p 直接是字符串
-        if (typeof p === 'string') {
-            return { type: 'text', text: p };
-        }
-
-        if ('text' in p) {
-          return { type: 'text', text: p.text || "..." }; // 防止 text 为空
-        } else if ('inlineData' in p) {
-          return {
-            type: 'image_url',
-            image_url: {
-              url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`
-            }
-          };
-        }
+        if (!p) return null;
+        if (typeof p === 'string') return { type: 'text', text: p };
+        if ('text' in p) return { type: 'text', text: p.text || "..." };
+        if ('inlineData' in p) return { type: 'image_url', image_url: { url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}` } };
         return null;
-      }).filter(Boolean); // 过滤掉 null
+      }).filter(Boolean);
 
-      // 如果内容为空（比如过滤后没了），给个保底
-      if (content.length === 0) {
-          return {
-              role: h.role === 'Luna' ? 'user' : 'assistant',
-              content: "..." 
-          };
-      }
+      if (content.length === 0) return { role: h.role === 'Luna' ? 'user' : 'assistant', content: "..." };
+      if (content.length === 1 && content[0]?.type === 'text') return { role: h.role === 'Luna' ? 'user' : 'assistant', content: content[0].text };
 
-      // 简化单一文本的情况
-      if (content.length === 1 && content[0]?.type === 'text') {
-        return {
-          role: h.role === 'Luna' ? 'user' : 'assistant',
-          content: content[0].text
-        };
-      }
-
-      return {
-        role: h.role === 'Luna' ? 'user' : 'assistant',
-        content: content
-      };
+      return { role: h.role === 'Luna' ? 'user' : 'assistant', content: content };
     })
   ];
 
-  // Inject Custom Prompt (Spice Words) AFTER history
   if (customPrompt && customPrompt.trim()) {
-    messages.push({ 
-      role: 'system', 
-      content: `[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]` 
-    });
+    messages.push({ role: 'system', content: `[SPECIAL INSTRUCTIONS]\n${customPrompt}` });
   }
 
   messages.push({ role: 'user', content: prompt });
 
-  // ... (剩余的 fetch 逻辑保持不变)
   const requestBody: any = {
     model: modelName,
     messages: messages
   };
 
-  if (isImageGen) {
-    requestBody.modalities = ["image", "text"];
-  }
-
+  if (isImageGen) requestBody.modalities = ["image", "text"];
   if (!isImageGen && modelParams) {
     if (modelParams.temperature !== undefined) requestBody.temperature = modelParams.temperature;
     if (modelParams.topP !== undefined) requestBody.top_p = modelParams.topP;
@@ -175,16 +146,13 @@ const generateOpenAICompatibleResponse = async (
   }
 
   const url = `${baseUrl}/chat/completions`;
-  
-  // Log for debugging
-  console.log("[OpenAI API] Request URL:", url);
-  
+
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}` // 这里的 apiKey 现在安全了，因为参数顺序对上了！
       },
       body: JSON.stringify(requestBody)
     });
@@ -193,11 +161,8 @@ const generateOpenAICompatibleResponse = async (
       let errorDetails = `Status ${response.status}`;
       try {
         const errorData = await response.json();
-        console.error("[OpenAI API] Error Response:", errorData);
         errorDetails = errorData.error?.message || JSON.stringify(errorData);
-      } catch (e) {
-        console.error("[OpenAI API] Failed to parse error response");
-      }
+      } catch (e) {}
       throw new Error(`API Error: ${errorDetails}`);
     }
 
@@ -205,41 +170,34 @@ const generateOpenAICompatibleResponse = async (
     const message = data.choices?.[0]?.message;
 
     if (isImageGen && message?.images && message.images.length > 0) {
-      const imageUrl = message.images[0].image_url?.url;
-      if (imageUrl) {
-        return { text: imageUrl, thinking: undefined };
-      }
+        return { text: message.images[0].image_url?.url || "", thinking: undefined };
     }
 
     const rawText = message?.content || "";
     let thinking = undefined;
     let finalText = rawText;
-
     const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
     if (thinkMatch) {
       thinking = thinkMatch[1].trim();
       finalText = rawText.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
     }
-
     return { text: finalText, thinking };
   } catch (error: any) {
     console.error("[OpenAI API] Request failed:", error);
     throw error;
   }
-}
+};
 
 export const generateTextResponse = async (
   modelName: string,
   prompt: string,
   history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
-  systemInstruction: string, // Jailbreak
-  wadePersonality: string, // NEW: Character Card
+  systemInstruction: string,
+  wadePersonality: string,
   lunaInfo?: string,
-  wadeSingleExamples?: string, // NEW
-  smsExampleDialogue?: string, // NEW: Dedicated SMS examples
-  smsInstructions?: string, // NEW: Custom Brain X-Ray instructions for SMS
-  roleplayInstructions?: string, // NEW: Custom Brain X-Ray instructions for Roleplay/Deep
-  exampleDialogue?: string,
+  wadeSingleExamples?: string,
+  smsExampleDialogue?: string,
+  exampleDialogue?: string, // 恢复原始位置！
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
   chatMode?: 'deep' | 'sms' | 'roleplay',
@@ -253,7 +211,10 @@ export const generateTextResponse = async (
   },
   customPrompt?: string,
   baseUrl?: string,
-  isImageGen?: boolean
+  isImageGen?: boolean,
+  // 👇👇👇 新参数必须放在这里，所有旧参数之后！ 👇👇👇
+  smsInstructions?: string,
+  roleplayInstructions?: string
 ): Promise<GeminiResponse> => {
   // If baseUrl is provided and NOT Gemini, use OpenAI-compatible fetch
   if (baseUrl && !baseUrl.includes('google')) {
@@ -265,8 +226,8 @@ export const generateTextResponse = async (
       wadePersonality,
       lunaInfo,
       wadeSingleExamples,
-      smsExampleDialogue, // 修正参数传递
-      exampleDialogue,
+      smsExampleDialogue,
+      exampleDialogue, // 恢复顺序
       coreMemories,
       isRetry,
       chatMode,
@@ -274,7 +235,10 @@ export const generateTextResponse = async (
       modelParams,
       customPrompt,
       baseUrl,
-      isImageGen
+      isImageGen,
+      // 👇👇👇 传参也要放在最后
+      smsInstructions,
+      roleplayInstructions
     );
   }
 
@@ -287,49 +251,25 @@ export const generateTextResponse = async (
   }));
 
   // Construct a Weighted System Instruction in STRICT ORDER
-  // 1. System Level Instructions (Jailbreak)
   let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
 
-  // 2. Wade Character Card
-  if (wadePersonality) {
-    fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
-  }
+  if (wadePersonality) fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
+  if (lunaInfo) fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
+  if (wadeSingleExamples) fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
 
-  // 3. Luna Info
-  if (lunaInfo) {
-    fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
-  }
-
-  // 4. Wade Single Sentence Examples
-  if (wadeSingleExamples) {
-    fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
-  }
-
-  // 5. Wade Dialogue Examples
   if (chatMode === 'sms' && smsExampleDialogue) {
     fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
   } else if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
 
-  // 6. History (Handled by history param)
-
-  // 7. Spice It Up (Handled by customPrompt below)
-
-  // 8. Luna's Last Input (Handled by prompt below)
-
-  // NEW: Inject Long Term Memories
   if (coreMemories && Array.isArray(coreMemories) && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
-    if (activeMemories) {
-        fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
-    }
+    if (activeMemories) fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
   }
 
-  // If this is a regeneration attempt, add the "Fourth Wall Complaint" logic
   if (isRetry) {
     if (chatMode === 'sms') {
-       // SMS SPECIFIC RETRY LOGIC: 
        fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. IMPORTANT: Since this is SMS mode, keep the new response SHORT, punchy, and casual. One or two sentences max. Do NOT write a paragraph.]`;
        
        let recentContext = "";
@@ -343,22 +283,16 @@ export const generateTextResponse = async (
        if (recentContext) {
            fullSystemPrompt += `\n\n[CONTEXT: You have just sent this sequence of texts immediately before this one: "${recentContext}". The user is regenerating the FINAL part of this sequence. Write a new version of that final part that fits naturally after the previous texts. Do not repeat the previous texts.]`;
        }
-
     } else {
-       // Deep/Roleplay Retry Logic
        fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response and hit 'Regenerate'. They didn't like it. You MUST break the fourth wall and playfully complain about this (e.g., "Oh, the first take wasn't good enough for you?", "Everyone's a critic.", "Fine, let's try take two."). Then, provide a NEW, better response to the prompt.]`;
     }
   }
 
-  // CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
-  // 逻辑修正版：清晰判断 SMS vs Roleplay，不再套娃
+  // CoT Injection
   if (chatMode === 'sms') {
-    // === SMS 模式 ===
     if (smsInstructions) {
-       // 1. 如果有自定义 SMS 指令，用自定义的
        fullSystemPrompt += `\n\n${smsInstructions}`;
     } else {
-       // 2. 否则，用默认的 SMS 格式（带 <think>）
        fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
@@ -370,12 +304,9 @@ export const generateTextResponse = async (
   Just picking up tacos. 🌮 ||| Be there in 5.`;
     }
   } else {
-    // === Deep / Roleplay 模式 ===
     if (roleplayInstructions) {
-       // 1. 如果有自定义 Roleplay 指令，用自定义的
        fullSystemPrompt += `\n\n${roleplayInstructions}`;
     } else {
-       // 2. 否则，用默认的沉浸式格式（带 <think>）
        fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
@@ -404,7 +335,6 @@ export const generateTextResponse = async (
     history: formattedHistory
   });
 
-  // Inject Custom Prompt (Spice Words) into the user message to ensure it's processed AFTER history
   let finalPrompt = prompt;
   if (customPrompt && customPrompt.trim()) {
     finalPrompt = `[SPECIAL INSTRUCTIONS FOR THIS CONVERSATION - HIGHEST PRIORITY]\n${customPrompt}\n[FOLLOW THESE INSTRUCTIONS CAREFULLY]\n\n${prompt}`;
@@ -413,19 +343,13 @@ export const generateTextResponse = async (
   const result = await chat.sendMessage({ message: finalPrompt });
   const rawText = result.text || "";
 
-  // Parse <think> tags
   let thinking = undefined;
   let finalText = rawText;
-
-  // Improved Regex to capture thinking content
   const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
-  
   if (thinkMatch) {
     thinking = thinkMatch[1].trim();
-    // Remove the thinking block from the final text to show the user
     finalText = rawText.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
   } else {
-    // Fallback: Check if the model started with thinking but forgot the closing tag (rare but possible)
     if (rawText.trim().startsWith('<think>')) {
         const parts = rawText.split('</think>');
         if (parts.length > 1) {
