@@ -43,10 +43,11 @@ export const MemoryBank: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Derived State
-  const availableTags = Array.from(new Set(coreMemories.flatMap(m => m.tags || []))).sort();
+  const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+  const availableTags = Array.from(new Set(safeMemories.flatMap(m => m.tags || []))).sort();
   const filteredMemories = selectedTag 
-    ? coreMemories.filter(m => m.tags?.includes(selectedTag))
-    : coreMemories;
+    ? safeMemories.filter(m => m.tags?.includes(selectedTag))
+    : safeMemories;
 
   const handleAddMemory = async () => {
     if (!newMemoryContent.trim()) return;

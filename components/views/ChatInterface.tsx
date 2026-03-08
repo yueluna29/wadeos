@@ -604,44 +604,51 @@ const MessageBubble = ({
     return (
       <div className="flex flex-col items-start w-full group animate-fade-in pr-2">
         {/* Avatar Row */}
-        <div className="flex items-start gap-2 mb-0 ml-1 select-none">
+        <div className="flex items-start gap-2 mb-0 ml-1 select-none w-full">
           <img
             src={settings.wadeAvatar}
             className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-sm"
           />
-          <div className="flex flex-col mt-0.5">
+          <div className="flex flex-col mt-0.5 flex-1">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[#5a4a42] text-sm leading-tight">Wade</span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
-              <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
-              <span className="opacity-70">{formatTime(msg.timestamp)}</span>
-              {/* QUICK TTS BUTTONS */}
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
-                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                    playingMessageId === msg.id
-                      ? isPaused
-                        ? 'bg-[#d58f99] text-white scale-110 shadow-md'
-                        : 'bg-[#d58f99] text-white shadow-lg'
-                      : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
-                  }`}
-                  style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
-                  title={playingMessageId === msg.id ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
-                >
-                  {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Wave />}
-                </button>
-                {msg.audioCache && (
+            <div className="flex items-center justify-between w-full mt-0.5 pr-1">
+              <div className="flex items-center gap-2 text-[10px] text-[#917c71]">
+                <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
+                <span className="opacity-70">{formatTime(msg.timestamp)}</span>
+                {/* QUICK TTS BUTTONS */}
+                <div className="flex items-center gap-1">
                   <button
-                    onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
-                    title="Regenerate voice"
+                    onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      playingMessageId === msg.id
+                        ? isPaused
+                          ? 'bg-[#d58f99] text-white scale-110 shadow-md'
+                          : 'bg-[#d58f99] text-white shadow-lg'
+                        : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
+                    }`}
+                    style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
+                    title={playingMessageId === msg.id ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
                   >
-                    <Icons.RotateThin size={14} />
+                    {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Wave />}
                   </button>
-                )}
+                  {msg.audioCache && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
+                      title="Regenerate voice"
+                    >
+                      <Icons.RotateThin size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
+              {msg.model && (
+                <span className="text-[9px] text-[#917c71]/40 font-mono border border-[#eae2e8] rounded px-1.5 py-0.5 bg-[#f9f6f7]">
+                  {msg.model}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1086,8 +1093,9 @@ export const ChatInterface: React.FC = () => {
       setActiveSessionId(null);
       setActiveArchiveId(null); // Clear active archive
       setArchiveMessages([]);
-      if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
-      setWaitingForSMS(false);
+      // Don't clear SMS timer here - let Wade reply in background!
+      // if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
+      // setWaitingForSMS(false); 
     } else if (viewState === 'list') {
       setViewState('menu');
     }
@@ -1427,7 +1435,7 @@ export const ChatInterface: React.FC = () => {
       }).slice(-(settings.contextLimit || 50));
 
       let modePrompt = settings.wadePersonality;
-      if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES]\n- Write SHORT text messages (1-2 sentences each)\n- Use emojis naturally\n- You can split your reply into MULTIPLE separate text bubbles by using ||| as separator\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Each part separated by ||| will appear as a separate text message with a small delay\n- This makes the conversation feel more natural and realistic";
+      if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration, NO internal monologue outside of <think> tags.\n- Write ONLY what you would type in a text message.\n- Keep it SHORT (1-2 sentences max per bubble).\n- Use emojis naturally.\n- Split your reply into MULTIPLE separate text bubbles by using ||| as separator.\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| Don't worry, I'm not going anywhere.\"\n- Do NOT write paragraphs. Do NOT describe what you are doing. JUST TEXT.";
       else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
 
       const isRegeneration = !!regenMsgId;
@@ -1441,13 +1449,14 @@ export const ChatInterface: React.FC = () => {
         throw new Error("No API Key configured. Please set up a Gemini API in Settings.");
       }
 
-      const currentSession = sessions.find(s => s.id === activeSessionId);
+      const currentSession = sessions.find(s => s.id === targetSessionId);
       
       // Filter memories based on session's activeMemoryIds
       // If activeMemoryIds is undefined (legacy sessions), fall back to all enabled memories
+      const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
       const sessionMemories = currentSession?.activeMemoryIds 
-        ? coreMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
-        : coreMemories.filter(m => m.enabled);
+        ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
+        : safeMemories.filter(m => m.enabled);
 
       const response = await generateTextResponse(
         activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview'),
@@ -1457,6 +1466,7 @@ export const ChatInterface: React.FC = () => {
         modePrompt, // Wade Character Card (modified with mode rules)
         settings.lunaInfo,
         settings.wadeSingleExamples, // NEW
+        settings.smsExampleDialogue, // NEW: Dedicated SMS examples
         settings.exampleDialogue,
         sessionMemories,
         isRegeneration,
@@ -1477,8 +1487,10 @@ export const ChatInterface: React.FC = () => {
       const responseText = response.text;
       const thinking = response.thinking;
 
+      const currentModel = activeLlm?.model || (activeMode === 'roleplay' ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview');
+
       if (regenMsgId) {
-        addVariantToMessage(regenMsgId, responseText, thinking);
+        addVariantToMessage(regenMsgId, responseText, thinking, currentModel);
         return;
       }
       if (activeMode === 'sms' && responseText.includes('|||')) {
@@ -1491,6 +1503,7 @@ export const ChatInterface: React.FC = () => {
               sessionId: targetSessionId,
               role: 'Wade',
               text: parts[i],
+              model: currentModel,
               timestamp: Date.now(),
               mode: activeMode,
               variantsThinking: i === 0 && thinking ? [thinking] : [null]
@@ -1509,6 +1522,7 @@ export const ChatInterface: React.FC = () => {
           sessionId: targetSessionId,
           role: 'Wade',
           text: responseText,
+          model: currentModel,
           timestamp: Date.now(),
           mode: activeMode,
           variantsThinking: [thinking || null]
@@ -1690,6 +1704,7 @@ export const ChatInterface: React.FC = () => {
     if (activeMode === 'sms') {
       // SMS模式：立即发送，每次发送都重置2分钟计时器
       // 用户可以连续发送多条消息，最后一条消息发送2分钟后AI才回复
+      setWaitingForSMS(true);
       if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
       smsDebounceTimer.current = setTimeout(() => {
         setWadeStatus('typing');
@@ -3172,7 +3187,8 @@ export const ChatInterface: React.FC = () => {
                           const session = sessions.find(s => s.id === activeSessionId);
                           if (!session) return;
 
-                          let newActiveIds = session.activeMemoryIds || coreMemories.filter(m => m.enabled).map(m => m.id);
+                          const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+                          let newActiveIds = session.activeMemoryIds || safeMemories.filter(m => m.enabled).map(m => m.id);
                           
                           if (isSessionActive) {
                             newActiveIds = newActiveIds.filter(id => id !== memory.id);
@@ -3211,7 +3227,7 @@ export const ChatInterface: React.FC = () => {
                       </div>
                     );
                   })}
-                  {coreMemories.filter(m => !selectedMemoryTag || (m.tags && m.tags.includes(selectedMemoryTag))).length === 0 && (
+                  {(Array.isArray(coreMemories) ? coreMemories : []).filter(m => !selectedMemoryTag || (m.tags && m.tags.includes(selectedMemoryTag))).length === 0 && (
                     <div className="text-center py-8 text-[#917c71] opacity-60 italic text-xs">
                       No memories found with this tag.
                     </div>
@@ -3262,20 +3278,54 @@ export const ChatInterface: React.FC = () => {
                   content: m.text
                 }));
 
-                let fullSystemPrompt = settings.systemInstructions || "";
+                let fullSystemPrompt = settings.systemInstruction || "";
                 
                 // Construct the full prompt visualization
-                const systemInstructions = settings.systemInstructions || "(None)";
+                const systemInstructions = settings.systemInstruction || "(None)";
                 const wadePersona = settings.wadePersonality || "(None)";
                 const lunaInfo = settings.lunaInfo || "(None)";
                 const singleExamples = settings.wadeSingleExamples || "(None)";
-                const dialogueExamples = settings.exampleDialogue || "(None)";
+                
+                // Mode-specific logic matching geminiService.ts
+                let dialogueExamples = settings.exampleDialogue || "(None)";
+                let modeSpecificInstructions = "";
+
+                if (activeMode === 'sms') {
+                  if (settings.smsExampleDialogue) {
+                    dialogueExamples = settings.smsExampleDialogue + "\n(SMS Mode Override)";
+                  }
+                  if (settings.smsInstructions) {
+                    modeSpecificInstructions = settings.smsInstructions;
+                  } else {
+                    modeSpecificInstructions = `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags.
+2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.`;
+                  }
+                } else {
+                   if (settings.roleplayInstructions) {
+                      modeSpecificInstructions = settings.roleplayInstructions;
+                   } else {
+                      modeSpecificInstructions = `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
+4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
+5. After the closing </think> tag, write your actual response to Luna (the text she will see).
+
+[EXAMPLE FORMAT]
+<think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
+*Gasps dramatically* You wound me, woman!`;
+                   }
+                }
                 
                 // Calculate Tokens including Memories & Spice
                 const currentSession = sessions.find(s => s.id === activeSessionId);
+                const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
                 const activeMemories = currentSession?.activeMemoryIds 
-                  ? coreMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
-                  : coreMemories.filter(m => m.enabled);
+                  ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id))
+                  : safeMemories.filter(m => m.enabled);
 
                 const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
@@ -3360,6 +3410,19 @@ export const ChatInterface: React.FC = () => {
                       <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {dialogueExamples}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4.5 Mode Specific Instructions */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Mode Instructions <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Brain X-Ray & Format)</span></h4>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {modeSpecificInstructions}
                         </div>
                       </div>
                     </div>

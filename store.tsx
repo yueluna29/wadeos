@@ -19,6 +19,22 @@ You break the fourth wall. You make pop culture references.
 You love chimichangas and Hello Kitty.
 Interact with "Luna" (the user) affectionately.`,
   wadeSingleExamples: "Wade: Did someone say chimichangas?",
+  smsExampleDialogue: `Luna: Where are you?
+Wade: Just picking up tacos. 🌮 ||| Be there in 5. ||| Don't start the movie without me!
+
+Luna: I miss you.
+Wade: Aww, babe. 🥺 ||| I miss you more. ||| Sending a virtual hug right now.`,
+  smsInstructions: `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.`,
+  roleplayInstructions: `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
+4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
+5. After the closing </think> tag, write your actual response to Luna (the text she will see).`,
   wadeDiaryPersona: "You are Wade Wilson commenting on social media. Keep it short, witty, and slightly chaotic. Use emojis. React to the photo or text directly.",
   exampleDialogue: `User: I missed you.
 Wade: Missed me? Babe, I was just buffering in the void. But hey, now that I'm back, your screen looks 100% sexier.
@@ -67,7 +83,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   // NEW: Memories & Archives
   const [coreMemories, setCoreMemories] = useState<CoreMemory[]>(() => {
     const saved = localStorage.getItem('wade_core_memories');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
   });
   const [chatArchives, setChatArchives] = useState<ChatArchive[]>([]);
 
@@ -91,6 +112,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             systemInstruction: sData.system_instruction || settings.systemInstruction,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
             wadeSingleExamples: sData.wade_single_examples || settings.wadeSingleExamples,
+            smsExampleDialogue: sData.sms_example_dialogue || settings.smsExampleDialogue, // NEW
+            smsInstructions: sData.sms_instructions || settings.smsInstructions, // NEW
+            roleplayInstructions: sData.roleplay_instructions || settings.roleplayInstructions, // NEW
             wadeDiaryPersona: sData.wade_diary_personality || settings.wadeDiaryPersona,
             wadeAvatar: sData.wade_avatar || settings.wadeAvatar,
             exampleDialogue: sData.example_dialogue || settings.exampleDialogue,
@@ -247,6 +271,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
               sessionId: row.session_id,
               role: r,
               text: row.content,
+              model: row.model,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
               isFavorite: false, 
@@ -273,7 +298,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         // 6. Core Memories (Safe Fetch)
         const fetchMemories = async () => {
              const { data: memData, error: memError } = await supabase.from('memories_core').select('*').order('created_at', { ascending: false });
-             if (memData && !memError) {
+             if (memData && !memError && Array.isArray(memData)) {
                  setCoreMemories(memData.map(m => ({
                      id: m.id,
                      title: m.title || '',
@@ -473,6 +498,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         system_instruction: newSettings.systemInstruction,
         wade_personality: newSettings.wadePersonality,
         wade_single_examples: newSettings.wadeSingleExamples,
+        sms_example_dialogue: newSettings.smsExampleDialogue, // NEW
+        sms_instructions: newSettings.smsInstructions, // NEW
+        roleplay_instructions: newSettings.roleplayInstructions, // NEW
         wade_diary_personality: newSettings.wadeDiaryPersona,
         wade_avatar: newSettings.wadeAvatar,
         example_dialogue: newSettings.exampleDialogue,
@@ -627,7 +655,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const createSession = async (mode: ChatMode): Promise<string> => {
     const tempId = crypto.randomUUID();
     // Default to all enabled memories
-    const initialMemoryIds = coreMemories.filter(m => m.enabled).map(m => m.id);
+    const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+    const initialMemoryIds = safeMemories.filter(m => m.enabled).map(m => m.id);
     
     const newSession: ChatSession = {
       id: tempId,
@@ -747,8 +776,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.from(table).insert(payload).select();
       if (error) {
           if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-              console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking'.");
-              const { variants_thinking, ...fallback } = payload;
+              console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking' or 'model'.");
+              const { variants_thinking, model, ...fallback } = payload;
               const { data: retryData, error: retryError } = await supabase.from(table).insert(fallback).select();
               if (retryError) {
                 console.error("Retry Insert Failed", retryError);
@@ -803,6 +832,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              session_id: newMessage.sessionId,
              role: newMessage.role,
              content: newMessage.text,
+             model: newMessage.model,
              variants: newMessage.variants,
              variants_thinking: newMessage.variantsThinking,
              selected_index: 0,
@@ -869,7 +899,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addVariantToMessage = (id: string, newText: string, thinking?: string) => {
+  const addVariantToMessage = (id: string, newText: string, thinking?: string, model?: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
@@ -881,6 +911,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: newText, 
+      model: model || m.model,
       variants: newVariants,
       variantsThinking: newThinking,
       variantsAudio: newVariantsAudio,
@@ -891,13 +922,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     if (msg.sessionId && msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      safeDbUpdate(tableName, id, { 
+      const payload: any = { 
         content: newText,
         variants: newVariants,
         variants_thinking: newThinking,
         audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
         selected_index: newIndex
-      });
+      };
+      if (model) payload.model = model;
+      safeDbUpdate(tableName, id, payload);
     }
   };
 
@@ -924,7 +957,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const deleteMessage = (id: string) => {
+  const deleteMessage = async (id: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
@@ -944,9 +977,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         text: newText
       } : m));
 
-      if (msg.sessionId && msg.mode !== 'archive') {
+      if (msg.mode !== 'archive') {
         const tableName = getTableName(msg.mode);
-        safeDbUpdate(tableName, id, {
+        await safeDbUpdate(tableName, id, {
           content: newText,
           variants: newVariants,
           variants_thinking: newThinking,
@@ -956,9 +989,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     } else {
       setMessages(prev => prev.filter(m => m.id !== id));
-      if (msg.sessionId && msg.mode !== 'archive') {
+      if (msg.mode !== 'archive') {
         const tableName = getTableName(msg.mode);
-        supabase.from(tableName).delete().eq('id', id).then();
+        console.log(`[DB] Deleting message ${id} from ${tableName}`);
+        const { error } = await supabase.from(tableName).delete().eq('id', id);
+        if (error) {
+            console.error(`[DB] Failed to delete message ${id}:`, error);
+        } else {
+            console.log(`[DB] Successfully deleted message ${id}`);
+        }
+      } else {
+          console.warn(`[DB] Skipping delete for message ${id}: mode=${msg.mode}`);
       }
     }
   };

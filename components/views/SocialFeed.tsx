@@ -269,7 +269,8 @@ export const SocialFeed: React.FC = () => {
 
     try {
         // Construct Context
-        const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
+        const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+        const memoriesText = safeMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
 
         // Find the most recent Luna comment (User author) to reply to
         const lunaComments = post.comments.filter(c => c.author === 'Luna').reverse();

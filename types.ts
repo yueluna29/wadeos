@@ -26,6 +26,7 @@ export interface Message {
   sessionId?: string; // Link to specific chat session
   role: 'Luna' | 'Wade'; // Changed from 'user' | 'model'
   text: string; // The currently displayed text
+  model?: string; // The model used to generate this message
   timestamp: number;
   audioData?: string; // Base64 audio if TTS was generated
   isFavorite?: boolean;
@@ -172,6 +173,9 @@ export interface AppSettings {
   systemInstruction: string; // NEW: System level instructions (jailbreak)
   wadePersonality: string; // Core System instruction
   wadeSingleExamples: string; // NEW: Single sentence examples
+  smsExampleDialogue?: string; // NEW: Dedicated SMS mode examples
+  smsInstructions?: string; // NEW: Custom Brain X-Ray instructions for SMS
+  roleplayInstructions?: string; // NEW: Custom Brain X-Ray instructions for Roleplay/Deep
   wadeDiaryPersona: string; // Persona for non-dialogue modes (diary comments)
   wadeAvatar: string;
   exampleDialogue: string; // Few-shot examples
@@ -220,9 +224,9 @@ export interface GlobalState {
   updateMessageAudioCache: (id: string, base64Audio: string) => void;
   
   // Updated for Thinking Process
-  addVariantToMessage: (id: string, newText: string, thinking?: string) => void; 
+  addVariantToMessage: (id: string, newText: string, thinking?: string, model?: string) => void; 
   selectMessageVariant: (id: string, index: number) => void; 
-  deleteMessage: (id: string) => void;
+  deleteMessage: (id: string) => Promise<void>;
   
   // New: Set Regenerating State
   setRegenerating: (id: string, isRegenerating: boolean) => void;

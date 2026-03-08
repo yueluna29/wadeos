@@ -25,6 +25,7 @@ const generateOpenAICompatibleResponse = async (
   wadePersonality: string, // NEW: Wade Character Card
   lunaInfo?: string,
   wadeSingleExamples?: string, // NEW: Single sentence examples
+  smsExampleDialogue?: string, // NEW: Dedicated SMS examples
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
@@ -65,7 +66,9 @@ const generateOpenAICompatibleResponse = async (
   }
 
   // 5. Wade Dialogue Examples
-  if (exampleDialogue) {
+  if (chatMode === 'sms' && smsExampleDialogue) {
+    fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
+  } else if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
 
@@ -75,7 +78,7 @@ const generateOpenAICompatibleResponse = async (
 
   // 8. Luna's Last Input (Handled by prompt below)
 
-  if (coreMemories && coreMemories.length > 0) {
+  if (coreMemories && Array.isArray(coreMemories) && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
     if (activeMemories) {
       fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
@@ -238,6 +241,9 @@ export const generateTextResponse = async (
   wadePersonality: string, // NEW: Character Card
   lunaInfo?: string,
   wadeSingleExamples?: string, // NEW
+  smsExampleDialogue?: string, // NEW: Dedicated SMS examples
+  smsInstructions?: string, // NEW: Custom Brain X-Ray instructions for SMS
+  roleplayInstructions?: string, // NEW: Custom Brain X-Ray instructions for Roleplay/Deep
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
@@ -304,7 +310,9 @@ export const generateTextResponse = async (
   }
 
   // 5. Wade Dialogue Examples
-  if (exampleDialogue) {
+  if (chatMode === 'sms' && smsExampleDialogue) {
+    fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
+  } else if (exampleDialogue) {
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
 
@@ -315,7 +323,7 @@ export const generateTextResponse = async (
   // 8. Luna's Last Input (Handled by prompt below)
 
   // NEW: Inject Long Term Memories
-  if (coreMemories && coreMemories.length > 0) {
+  if (coreMemories && Array.isArray(coreMemories) && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
     if (activeMemories) {
         fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
@@ -347,7 +355,46 @@ export const generateTextResponse = async (
   }
 
   // CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
-  fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  if (chatMode === 'sms') {
+    if (smsInstructions) {
+       fullSystemPrompt += `\n\n${smsInstructions}`;
+    } else {
+       // Fallback Default
+       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
+  
+  [EXAMPLE FORMAT]
+  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
+  Just picking up tacos. 🌮 ||| Be there in 5.`;
+    }
+  } else {
+    if (roleplayInstructions) {
+       fullSystemPrompt += `\n\n${roleplayInstructions}`;
+    } else {
+       // Fallback Default
+       // CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
+  if (chatMode === 'sms') {
+    if (smsInstructions) {
+       fullSystemPrompt += `\n\n${smsInstructions}`;
+    } else {
+       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
+  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
+  
+  [EXAMPLE FORMAT]
+  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
+  Just picking up tacos. 🌮 ||| Be there in 5.`;
+    }
+  } else {
+    if (roleplayInstructions) {
+       fullSystemPrompt += `\n\n${roleplayInstructions}`;
+    } else {
+       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
   3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
@@ -357,6 +404,10 @@ export const generateTextResponse = async (
   [EXAMPLE FORMAT]
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
   *Gasps dramatically* You wound me, woman!`;
+    }
+  }
+    }
+  }
 
   const chat = ai.chats.create({
     model: modelName || 'gemini-3-flash-preview',

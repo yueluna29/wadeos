@@ -14,6 +14,9 @@ export const PersonaTuning: React.FC = () => {
   const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
   const [wadePrompt, setWadePrompt] = useState(settings.wadePersonality);
   const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
+  const [smsExampleDialogue, setSmsExampleDialogue] = useState(settings.smsExampleDialogue || '');
+  const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || ''); // NEW
+  const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || ''); // NEW
   const [wadeExample, setWadeExample] = useState(settings.exampleDialogue);
   
   // Luna Inputs
@@ -45,6 +48,9 @@ export const PersonaTuning: React.FC = () => {
       systemInstruction: systemInstruction,
       wadePersonality: wadePrompt,
       wadeSingleExamples: wadeSingleExamples,
+      smsExampleDialogue: smsExampleDialogue,
+      smsInstructions: smsInstructions, // NEW
+      roleplayInstructions: roleplayInstructions, // NEW
       exampleDialogue: wadeExample,
       lunaInfo: lunaInfo,
     });
@@ -152,6 +158,46 @@ export const PersonaTuning: React.FC = () => {
                   className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
                   placeholder="Wade: Did someone say chimichangas?"
                />
+            </section>
+
+            {/* SMS Mode Examples - NEW */}
+            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">SMS Mode Examples (Strict)</h3>
+               <p className="text-xs text-[#d58f99] mb-4 italic">"How I text when I'm not writing a novel. Use ||| to split bubbles. NO actions, NO narration."</p>
+               <textarea 
+                  value={smsExampleDialogue}
+                  onChange={(e) => setSmsExampleDialogue(e.target.value)}
+                  className="w-full h-48 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  placeholder={`Luna: Where are you?\nWade: Just picking up tacos. 🌮 ||| Be there in 5.`}
+               />
+            </section>
+
+            {/* Mode Instructions - NEW */}
+            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
+               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Mode Instructions (Brain X-Ray)</h3>
+               <p className="text-xs text-[#d58f99] mb-4 italic">"The secret sauce. How I think before I speak."</p>
+               
+               <div className="space-y-4">
+                 <div>
+                   <label className="text-xs font-bold text-[#917c71] uppercase tracking-wider mb-2 block">SMS Mode Instructions</label>
+                   <textarea 
+                      value={smsInstructions}
+                      onChange={(e) => setSmsInstructions(e.target.value)}
+                      className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-xs font-mono text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                      placeholder="[MANDATORY OUTPUT FORMAT]..."
+                   />
+                 </div>
+                 
+                 <div>
+                   <label className="text-xs font-bold text-[#917c71] uppercase tracking-wider mb-2 block">Roleplay / Deep Mode Instructions</label>
+                   <textarea 
+                      value={roleplayInstructions}
+                      onChange={(e) => setRoleplayInstructions(e.target.value)}
+                      className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-xs font-mono text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                      placeholder="[MANDATORY OUTPUT FORMAT]..."
+                   />
+                 </div>
+               </div>
             </section>
 
             {/* Example Dialogue */}
