@@ -47,10 +47,12 @@ const generateOpenAICompatibleResponse = async (
 
   // Build full system prompt in STRICT ORDER
   // 1. System Level Instructions (Jailbreak)
-  let fullSystemPrompt = systemInstruction;
+  let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
 
   // 2. Wade Character Card
-  fullSystemPrompt += `\n\n${wadePersonality}`;
+  if (wadePersonality) {
+    fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
+  }
 
   // 3. Luna Info
   if (lunaInfo) {
@@ -284,10 +286,12 @@ export const generateTextResponse = async (
 
   // Construct a Weighted System Instruction in STRICT ORDER
   // 1. System Level Instructions (Jailbreak)
-  let fullSystemPrompt = systemInstruction;
+  let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
 
   // 2. Wade Character Card
-  fullSystemPrompt += `\n\n${wadePersonality}`;
+  if (wadePersonality) {
+    fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
+  }
 
   // 3. Luna Info
   if (lunaInfo) {

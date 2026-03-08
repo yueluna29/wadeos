@@ -438,7 +438,7 @@ const MessageBubble = ({
 
   // Determine Thinking Content
   const idx = msg.selectedIndex || 0;
-  const thinkingContent = msg.variantsThinking?.[idx];
+  const thinkingContent = msg.variantsThinking?.[idx] || msg.thinking;
 
   // Check if the message is a base64 image
   const isBase64Image = msg.text.startsWith('data:image/');
@@ -3262,9 +3262,14 @@ export const ChatInterface: React.FC = () => {
                   content: m.text
                 }));
 
-                let fullSystemPrompt = settings.wadePersonality || "Default Personality";
-                if (settings.lunaInfo) fullSystemPrompt += `\n\n[User Info]\n${settings.lunaInfo}`;
-                if (settings.exampleDialogue) fullSystemPrompt += `\n\n[Examples]\n${settings.exampleDialogue}`;
+                let fullSystemPrompt = settings.systemInstructions || "";
+                
+                // Construct the full prompt visualization
+                const systemInstructions = settings.systemInstructions || "(None)";
+                const wadePersona = settings.wadePersonality || "(None)";
+                const lunaInfo = settings.lunaInfo || "(None)";
+                const singleExamples = settings.wadeSingleExamples || "(None)";
+                const dialogueExamples = settings.exampleDialogue || "(None)";
                 
                 // Calculate Tokens including Memories & Spice
                 const currentSession = sessions.find(s => s.id === activeSessionId);
@@ -3274,7 +3279,16 @@ export const ChatInterface: React.FC = () => {
 
                 const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
-                const promptLength = JSON.stringify(historyPayload).length + fullSystemPrompt.length + memoriesContent.length + spiceContent.length;
+                
+                // Rough token estimation
+                const promptLength = JSON.stringify(historyPayload).length + 
+                                   systemInstructions.length + 
+                                   wadePersona.length + 
+                                   lunaInfo.length + 
+                                   singleExamples.length + 
+                                   dialogueExamples.length + 
+                                   memoriesContent.length + 
+                                   spiceContent.length;
                 const estTokens = Math.round(promptLength / 4);
 
                 return (
@@ -3298,15 +3312,67 @@ export const ChatInterface: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* 1. System Prompt */}
+                    {/* 1. System Instructions (Jailbreak) */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
                         <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">The Soul <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(System Prompt)</span></h4>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">System Instructions <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Jailbreak / Core Rules)</span></h4>
                       </div>
                       <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[200px] overflow-y-auto custom-scrollbar">
-                          {fullSystemPrompt}
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {systemInstructions}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. Wade's Persona */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Wade's Persona <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Character Card)</span></h4>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {wadePersona}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Single Sentence Examples */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Single Sentence Examples <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Style Guide)</span></h4>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {singleExamples}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4. Dialogue Examples */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Dialogue Examples <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Interaction Guide)</span></h4>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {dialogueExamples}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 5. Luna's Info */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
+                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Luna's Info <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(User Context)</span></h4>
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                          {lunaInfo}
                         </div>
                       </div>
                     </div>
@@ -3422,7 +3488,11 @@ export const ChatInterface: React.FC = () => {
                         <div className="mt-4 bg-[#2d2d2d] rounded-xl p-4 overflow-hidden shadow-inner">
                           <pre className="text-[10px] font-mono text-[#a6accd] overflow-x-auto custom-scrollbar leading-tight whitespace-pre-wrap">
                             {JSON.stringify({ 
-                              system: fullSystemPrompt, 
+                              system_instructions: systemInstructions,
+                              wade_persona: wadePersona,
+                              luna_info: lunaInfo,
+                              single_examples: singleExamples,
+                              dialogue_examples: dialogueExamples,
                               // Only content is sent to LLM, category is ignored
                               memories_sent: activeMemories.map(m => m.content), 
                               history: historyPayload,
