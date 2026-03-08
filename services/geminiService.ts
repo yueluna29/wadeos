@@ -387,19 +387,6 @@ export const interpretTarot = async (cardName: string, question: string, apiKey?
   return response.text || "Cards are blurry today, babe.";
 };
 
-export const summarizeConversation = async (messages: string[], apiKey?: string): Promise<string> => {
-  const ai = getClient(apiKey);
-  const textBlock = messages.join("\n");
-  const prompt = `Summarize this roleplay session as a diary entry written by Wade. Be dramatic. \n\n${textBlock}`;
-  
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: prompt
-  });
-
-  return response.text || "We talked, stuff happened.";
-};
-
 // 👇👇👇【新增】替身总结专用函数 (支持自定义模型) 👇👇👇
 
 /**
