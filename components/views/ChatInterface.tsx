@@ -3333,38 +3333,35 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 const singleExamples = settings.wadeSingleExamples || "(None)";
                 
                 // Mode-specific logic matching geminiService.ts
+                // 👇👇👇 全新逻辑开始：动态读取你的设置，不再写死废话！ 👇👇👇
+
+                // 1. 处理对话示例 (SMS 模式用 SMS 的示例，其他模式用普通的)
                 let dialogueExamples = settings.exampleDialogue || "(None)";
-                let modeSpecificInstructions = "";
+                if (activeMode === 'sms' && settings.smsExampleDialogue) {
+                   dialogueExamples = settings.smsExampleDialogue;
+                }
+
+                // 2. 处理 System Instructions (动态读取 SMS/Roleplay 指令)
+                let systemInstructions = settings.systemInstruction || "";
 
                 if (activeMode === 'sms') {
-                  if (settings.smsExampleDialogue) {
-                    dialogueExamples = settings.smsExampleDialogue + "\n(SMS Mode Override)";
-                  }
-                  if (settings.smsInstructions) {
-                    modeSpecificInstructions = settings.smsInstructions;
-                  } else {
-                    modeSpecificInstructions = `[MANDATORY OUTPUT FORMAT]
-1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags.
-2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
-3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
-4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.`;
-                  }
+                   // 如果有自定义指令就用自定义的，没有就用简短保底
+                   systemInstructions += settings.smsInstructions 
+                     ? `\n\n${settings.smsInstructions}` 
+                     : `\n\n[SMS FORMAT: Internal monologue in <think> tags first. Then split texts with |||. Short & casual.]`;
                 } else {
-                   if (settings.roleplayInstructions) {
-                      modeSpecificInstructions = settings.roleplayInstructions;
-                   } else {
-                      modeSpecificInstructions = `[MANDATORY OUTPUT FORMAT]
-1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
-3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
-4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
-5. After the closing </think> tag, write your actual response to Luna (the text she will see).
-
-[EXAMPLE FORMAT]
-<think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
-*Gasps dramatically* You wound me, woman!`;
-                   }
+                   // Roleplay/Deep 模式同理
+                   systemInstructions += settings.roleplayInstructions 
+                     ? `\n\n${settings.roleplayInstructions}` 
+                     : `\n\n[OUTPUT FORMAT: Internal monologue in <think> tags first. Then immersive response.]`;
                 }
+
+                // 3. 加上人设
+                if (settings.wadePersonality) {
+                    systemInstructions += `\n\n[CHARACTER PERSONA]\n${settings.wadePersonality}`;
+                }
+
+                // 👆👆👆 全新逻辑结束 👆👆👆
                 
                 // Calculate Tokens including Memories & Spice
                 const currentSession = sessions.find(s => s.id === activeSessionId);
@@ -3375,7 +3372,14 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                 const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
-                
+            
+                // 👇👇👇 新增：计算当前到底在用哪个模型 👇👇👇
+                const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
+                const activeLlm = effectiveLlmId ? llmPresets.find(p => p.id === effectiveLlmId) : null;
+                const currentModelName = activeLlm?.name || (activeMode === 'roleplay' ? 'Gemini 3 Pro (Default)' : 'Gemini 3 Flash (Default)');
+                const currentProvider = activeLlm?.provider || 'Google';
+                // 👆👆👆 新增结束 👆👆👆
+
                 // Rough token estimation
                 const promptLength = JSON.stringify(historyPayload).length + 
                                    systemInstructions.length + 
@@ -3390,20 +3394,34 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 return (
                   <div className="space-y-8">
                     {/* Dashboard */}
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
-                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
-                         <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{estTokens}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Estimated Tokens</div>
+                    {/* 👇 把 grid-cols-3 改成了 grid-cols-2 md:grid-cols-4 👇 */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      
+                      {/* 👇 新增：当前模型卡片 (粉色高亮) 👇 */}
+                      <div className="bg-white p-4 rounded-2xl border border-[#d58f99] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.2)] flex flex-col items-center justify-center text-center group transition-colors">
+                         <div className="text-[#d58f99] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Brain</div>
+                         <div className="text-sm font-black text-[#5a4a42] tracking-tight line-clamp-1 px-1">{currentModelName}</div>
+                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-mono uppercase">{currentProvider}</div>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
+
+                      {/* 原有的卡片 (Token) - 保持不变 */}
+                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
+                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
+                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{estTokens}</div>
+                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Est. Tokens</div>
+                      </div>
+
+                      {/* 原有的卡片 (Memories) - 保持不变 */}
+                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
                          <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
-                         <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{activeMemories.length}</div>
+                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{activeMemories.length}</div>
                          <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Injected Items</div>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
+
+                      {/* 原有的卡片 (Limit) - 保持不变 */}
+                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
                          <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
-                         <div className="text-3xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{settings.contextLimit || 50}</div>
+                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{settings.contextLimit || 50}</div>
                          <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Messages</div>
                       </div>
                     </div>
