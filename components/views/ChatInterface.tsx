@@ -3335,22 +3335,21 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 // Mode-specific logic matching geminiService.ts
                 // 👇👇👇 全新逻辑开始：动态读取你的设置，不再写死废话！ 👇👇👇
 
-                // 1. 处理对话示例 (SMS 模式用 SMS 的示例，其他模式用普通的)
+                // 1. 处理对话示例
                 let dialogueExamples = settings.exampleDialogue || "(None)";
                 if (activeMode === 'sms' && settings.smsExampleDialogue) {
                    dialogueExamples = settings.smsExampleDialogue;
                 }
 
-                // 2. 处理 System Instructions (动态读取 SMS/Roleplay 指令)
+                // 2. 处理 System Instructions
+                // 🔴 报错就是因为下面这行变量名在后面又出现了一次，必须把后面的删掉！
                 let systemInstructions = settings.systemInstruction || "";
 
                 if (activeMode === 'sms') {
-                   // 如果有自定义指令就用自定义的，没有就用简短保底
                    systemInstructions += settings.smsInstructions 
                      ? `\n\n${settings.smsInstructions}` 
                      : `\n\n[SMS FORMAT: Internal monologue in <think> tags first. Then split texts with |||. Short & casual.]`;
                 } else {
-                   // Roleplay/Deep 模式同理
                    systemInstructions += settings.roleplayInstructions 
                      ? `\n\n${settings.roleplayInstructions}` 
                      : `\n\n[OUTPUT FORMAT: Internal monologue in <think> tags first. Then immersive response.]`;
@@ -3361,8 +3360,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     systemInstructions += `\n\n[CHARACTER PERSONA]\n${settings.wadePersonality}`;
                 }
 
-                // 👆👆👆 全新逻辑结束 👆👆👆
-                
+                // 4. 计算 Token 相关的上下文 (Memories & Session)
                 // Calculate Tokens including Memories & Spice
                 const currentSession = sessions.find(s => s.id === activeSessionId);
                 const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
@@ -3372,6 +3370,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                 const spiceContent = currentSession?.customPrompt || "";
                 const memoriesContent = JSON.stringify(activeMemories);
+                const lunaInfo = settings.lunaInfo || "(None)";
+                const singleExamples = settings.wadeSingleExamples || "(None)";
             
                 // 👇👇👇 新增：计算当前到底在用哪个模型 👇👇👇
                 const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
