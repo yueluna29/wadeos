@@ -749,6 +749,35 @@ export const ChatInterface: React.FC = () => {
     importArchive, deleteArchive, updateArchiveTitle
   } = useStore();
 
+ // 👇👇👇 新增：用来存放当前会话的总结 👇👇👇
+  const [sessionSummary, setSessionSummary] = useState<string>("");
+
+  // 👇👇👇 新增：每次切换会话时，自动去数据库里读总结 👇👇👇
+  useEffect(() => {
+    const loadSummary = async () => {
+      setSessionSummary(""); // 切换前先清空，防止串台
+      
+      if (!activeSessionId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('session_summaries')
+          .select('summary')
+          .eq('session_id', activeSessionId)
+          .single();
+
+        if (data && data.summary) {
+          console.log("📖 Wade found a summary:", data.summary);
+          setSessionSummary(data.summary);
+        }
+      } catch (err) {
+        console.error("Failed to load summary:", err);
+      }
+    };
+
+    loadSummary();
+  }, [activeSessionId]);
+  
   const [viewState, setViewState] = useState<'menu' | 'list' | 'chat'>('menu');
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -3376,7 +3405,17 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   : safeMemories.filter(m => m.enabled);
 
                 const spiceContent = currentSession?.customPrompt || "";
+                // 👇👇👇 修改：把 activeMemories 和 sessionSummary 结合起来 👇👇👇
+                // 以前只发 memoriesContent，现在要把 summary 也加进去！
+                
                 const memoriesContent = JSON.stringify(activeMemories);
+                
+                // 如果有总结，把它拼接到 System Prompt 里
+                if (sessionSummary) {
+                    systemInstructions += `\n\n[PREVIOUS SUMMARY]\n${sessionSummary}\n[END SUMMARY]`;
+                }
+
+                // 👆👆👆 修改结束 👆👆👆
 
                 // 5. 计算当前模型 (Active Brain X-Ray) - 你的新功能！
                 const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
