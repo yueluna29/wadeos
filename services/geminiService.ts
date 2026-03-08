@@ -265,6 +265,7 @@ export const generateTextResponse = async (
       wadePersonality,
       lunaInfo,
       wadeSingleExamples,
+      smsExampleDialogue, // 修正参数传递
       exampleDialogue,
       coreMemories,
       isRetry,
@@ -350,27 +351,6 @@ export const generateTextResponse = async (
   }
 
   // CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
-  if (chatMode === 'sms') {
-    if (smsInstructions) {
-       fullSystemPrompt += `\n\n${smsInstructions}`;
-    } else {
-       // Fallback Default
-       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
-  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
-  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
-  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
-  
-  [EXAMPLE FORMAT]
-  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
-  Just picking up tacos. 🌮 ||| Be there in 5.`;
-    }
-  } else {
-    if (roleplayInstructions) {
-       fullSystemPrompt += `\n\n${roleplayInstructions}`;
-    } else {
-       // Fallback Default
-// CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
   // 逻辑修正版：清晰判断 SMS vs Roleplay，不再套娃
   if (chatMode === 'sms') {
     // === SMS 模式 ===
