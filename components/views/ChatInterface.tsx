@@ -1465,6 +1465,14 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
       // 4. 准备 System Prompt (加强了 SMS 分段的要求)
       let modePrompt = settings.wadePersonality;
+
+      // 👇👇👇 新增：如果数据库里有总结，把它狠狠地塞进 Wade 的脑子里！ 👇👇👇
+      if (sessionSummary) {
+          // 把总结拼在人设的前面，作为最高优先级的背景信息
+          modePrompt = `[PREVIOUS CONVERSATION SUMMARY]\n${sessionSummary}\n[END SUMMARY]\n\n${modePrompt}`;
+      }
+      // 👆👆👆 新增结束 👆👆👆
+
       if (activeMode === 'sms') modePrompt += "\n\n[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration.\n- Write ONLY text messages.\n- Keep it SHORT (1-2 sentences per bubble).\n- Use emojis naturally.\n- IMPORTANT: You MUST split your reply into MULTIPLE separate text bubbles by using ||| as the separator.\n- Example: \"Hey babe! 😘 ||| Miss me already? ||| I'm coming over.\"\n- IF YOU DO NOT USE |||, THE USER CANNOT SEE YOUR MESSAGE.";
       else if (activeMode === 'roleplay') modePrompt += "\n\n[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative";
 
