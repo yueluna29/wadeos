@@ -21,11 +21,11 @@ const generateOpenAICompatibleResponse = async (
   modelName: string,
   prompt: string,
   history: { role: string; parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] }[],
-  systemInstruction: string, // This will now be the "System Level Instructions"
-  wadePersonality: string, // NEW: Wade Character Card
+  systemInstruction: string,
+  wadePersonality: string,
   lunaInfo?: string,
-  wadeSingleExamples?: string, // NEW: Single sentence examples
-  smsExampleDialogue?: string, // NEW: Dedicated SMS examples
+  wadeSingleExamples?: string,
+  smsExampleDialogue?: string,
   exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
@@ -49,22 +49,16 @@ const generateOpenAICompatibleResponse = async (
   // Build full system prompt in STRICT ORDER
   // 1. System Level Instructions (Jailbreak)
   let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
-
+  
   // 2. Wade Character Card
-  if (wadePersonality) {
-    fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
-  }
-
+  if (wadePersonality) fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
+  
   // 3. Luna Info
-  if (lunaInfo) {
-    fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
-  }
-
+  if (lunaInfo) fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
+  
   // 4. Wade Single Sentence Examples
-  if (wadeSingleExamples) {
-    fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
-  }
-
+  if (wadeSingleExamples) fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
+  
   // 5. Wade Dialogue Examples
   if (chatMode === 'sms' && smsExampleDialogue) {
     fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
@@ -72,27 +66,22 @@ const generateOpenAICompatibleResponse = async (
     fullSystemPrompt += `\n\n[EXAMPLE DIALOGUE - MIMIC THIS STYLE]\n${exampleDialogue}`;
   }
 
-  // 6. History (Handled by messages array below)
-
-  // 7. Spice It Up (Handled by customPrompt below)
-
-  // 8. Luna's Last Input (Handled by prompt below)
-
+  // 6. Long Term Memories
   if (coreMemories && Array.isArray(coreMemories) && coreMemories.length > 0) {
     const activeMemories = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
-    if (activeMemories) {
-      fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
-    }
+    if (activeMemories) fullSystemPrompt += `\n\n[LONG TERM MEMORY BANK - FACTS YOU MUST REMEMBER]\n${activeMemories}\n[END MEMORIES]`;
   }
 
+  // 7. Retry Logic
   if (isRetry) {
-    if (chatMode === 'sms') {
-      fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. IMPORTANT: Since this is SMS mode, keep the new response SHORT, punchy, and casual. One or two sentences max. Do NOT write a paragraph.]`;
-    } else {
-      fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response and hit 'Regenerate'. They didn't like it. You MUST break the fourth wall and playfully complain about this (e.g., "Oh, the first take wasn't good enough for you?", "Everyone's a critic.", "Fine, let's try take two."). Then, provide a NEW, better response to the prompt.]`;
-    }
+     if (chatMode === 'sms') {
+       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. SHORT response.]`;
+     } else {
+       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response. Provide a NEW, better response.]`;
+     }
   }
-
+  
+  // 8. Mandatory Output Format (Thinking)
   fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
@@ -104,15 +93,26 @@ const generateOpenAICompatibleResponse = async (
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
   *Gasps dramatically* You wound me, woman!`;
 
+  // --- [DELETED DUPLICATE LOGIC HERE] --- 
+  // 之前你在这里重复了上面添加人设、示例的代码，我已经删掉了，现在很清爽！
 
-
-  // Transform history
+  // Transform history (这是你修复好的完美防御代码)
   const messages: any[] = [
     { role: 'system', content: fullSystemPrompt },
     ...history.map(h => {
-      const content = h.parts.map(p => {
+      // 防御性编程：确保 h.parts 存在
+      const rawParts = h.parts || []; 
+      
+      const content = rawParts.map(p => {
+        if (!p) return null; // 如果 p 是空值，跳过
+        
+        // 兼容旧数据：如果 p 直接是字符串
+        if (typeof p === 'string') {
+            return { type: 'text', text: p };
+        }
+
         if ('text' in p) {
-          return { type: 'text', text: p.text };
+          return { type: 'text', text: p.text || "..." }; // 防止 text 为空
         } else if ('inlineData' in p) {
           return {
             type: 'image_url',
@@ -122,9 +122,17 @@ const generateOpenAICompatibleResponse = async (
           };
         }
         return null;
-      }).filter(Boolean);
+      }).filter(Boolean); // 过滤掉 null
 
-      // If content is just one text part, simplify (optional but cleaner)
+      // 如果内容为空（比如过滤后没了），给个保底
+      if (content.length === 0) {
+          return {
+              role: h.role === 'Luna' ? 'user' : 'assistant',
+              content: "..." 
+          };
+      }
+
+      // 简化单一文本的情况
       if (content.length === 1 && content[0]?.type === 'text') {
         return {
           role: h.role === 'Luna' ? 'user' : 'assistant',
@@ -139,7 +147,7 @@ const generateOpenAICompatibleResponse = async (
     })
   ];
 
-  // Inject Custom Prompt (Spice Words) AFTER history, before latest input
+  // Inject Custom Prompt (Spice Words) AFTER history
   if (customPrompt && customPrompt.trim()) {
     messages.push({ 
       role: 'system', 
@@ -149,18 +157,16 @@ const generateOpenAICompatibleResponse = async (
 
   messages.push({ role: 'user', content: prompt });
 
-  // Build request body - CRITICAL: Strip unsupported params for image gen models
+  // ... (剩余的 fetch 逻辑保持不变)
   const requestBody: any = {
     model: modelName,
     messages: messages
   };
 
-  // Add modalities parameter for image generation models (OpenRouter requirement)
   if (isImageGen) {
     requestBody.modalities = ["image", "text"];
   }
 
-  // Only add generation params if NOT an image generation model
   if (!isImageGen && modelParams) {
     if (modelParams.temperature !== undefined) requestBody.temperature = modelParams.temperature;
     if (modelParams.topP !== undefined) requestBody.top_p = modelParams.topP;
@@ -169,12 +175,10 @@ const generateOpenAICompatibleResponse = async (
   }
 
   const url = `${baseUrl}/chat/completions`;
-
+  
+  // Log for debugging
   console.log("[OpenAI API] Request URL:", url);
-  console.log("[OpenAI API] Model:", modelName);
-  console.log("[OpenAI API] Is Image Gen:", isImageGen);
-  console.log("[OpenAI API] Request Body:", JSON.stringify(requestBody, null, 2));
-
+  
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -186,7 +190,6 @@ const generateOpenAICompatibleResponse = async (
     });
 
     if (!response.ok) {
-      // CRITICAL: Parse error response for debugging
       let errorDetails = `Status ${response.status}`;
       try {
         const errorData = await response.json();
@@ -199,24 +202,16 @@ const generateOpenAICompatibleResponse = async (
     }
 
     const data = await response.json();
-    console.log("[OpenAI API] Full Response:", JSON.stringify(data, null, 2));
-
     const message = data.choices?.[0]?.message;
 
-    // Handle image generation response
     if (isImageGen && message?.images && message.images.length > 0) {
-      console.log("[OpenAI API] Image generation detected");
       const imageUrl = message.images[0].image_url?.url;
       if (imageUrl) {
-        // Return the base64 image URL as the text response
         return { text: imageUrl, thinking: undefined };
       }
     }
 
-    // Handle text response
     const rawText = message?.content || "";
-
-    // Parse <think> tags
     let thinking = undefined;
     let finalText = rawText;
 
@@ -375,11 +370,15 @@ export const generateTextResponse = async (
        fullSystemPrompt += `\n\n${roleplayInstructions}`;
     } else {
        // Fallback Default
-       // CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
+// CoT Injection: Encourage thinking if supported (Hidden prompt engineering)
+  // 逻辑修正版：清晰判断 SMS vs Roleplay，不再套娃
   if (chatMode === 'sms') {
+    // === SMS 模式 ===
     if (smsInstructions) {
+       // 1. 如果有自定义 SMS 指令，用自定义的
        fullSystemPrompt += `\n\n${smsInstructions}`;
     } else {
+       // 2. 否则，用默认的 SMS 格式（带 <think>）
        fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
@@ -391,9 +390,12 @@ export const generateTextResponse = async (
   Just picking up tacos. 🌮 ||| Be there in 5.`;
     }
   } else {
+    // === Deep / Roleplay 模式 ===
     if (roleplayInstructions) {
+       // 1. 如果有自定义 Roleplay 指令，用自定义的
        fullSystemPrompt += `\n\n${roleplayInstructions}`;
     } else {
+       // 2. 否则，用默认的沉浸式格式（带 <think>）
        fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
   1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
   2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
@@ -404,8 +406,6 @@ export const generateTextResponse = async (
   [EXAMPLE FORMAT]
   <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
   *Gasps dramatically* You wound me, woman!`;
-    }
-  }
     }
   }
 
