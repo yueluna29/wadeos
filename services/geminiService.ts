@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { CoreMemory } from "../types";
 
@@ -41,7 +40,7 @@ const generateOpenAICompatibleResponse = async (
   customPrompt?: string,
   baseUrl?: string,
   isImageGen?: boolean,
-  // 👇👇👇 把新参数挪到最后面，防止错位！ 👇👇👇
+  // 👇 参谋补丁：确保这里接收了自定义指令
   smsInstructions?: string,
   roleplayInstructions?: string
 ): Promise<GeminiResponse> => {
@@ -51,10 +50,11 @@ const generateOpenAICompatibleResponse = async (
 
   // Build full system prompt in STRICT ORDER
   let fullSystemPrompt = systemInstruction ? `[SYSTEM INSTRUCTIONS - HIGHEST PRIORITY]\n${systemInstruction}` : "";
+
   if (wadePersonality) fullSystemPrompt += `\n\n[CHARACTER PERSONA]\n${wadePersonality}`;
   if (lunaInfo) fullSystemPrompt += `\n\n[CRITICAL USER CONTEXT - MEMORIZE THIS]\n${lunaInfo}`;
   if (wadeSingleExamples) fullSystemPrompt += `\n\n[WADE'S STYLE - SINGLE LINE EXAMPLES]\n${wadeSingleExamples}`;
-  
+
   if (chatMode === 'sms' && smsExampleDialogue) {
     fullSystemPrompt += `\n\n[SMS MODE EXAMPLES - MIMIC THIS FORMAT EXACTLY]\n${smsExampleDialogue}`;
   } else if (exampleDialogue) {
@@ -74,35 +74,20 @@ const generateOpenAICompatibleResponse = async (
      }
   }
   
-  // CoT Logic
+  // CoT Injection (Clean Version - No Duplicate Text)
   if (chatMode === 'sms') {
     if (smsInstructions) {
        fullSystemPrompt += `\n\n${smsInstructions}`;
     } else {
-       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
-  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
-  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
-  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
-  
-  [EXAMPLE FORMAT]
-  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
-  Just picking up tacos. 🌮 ||| Be there in 5.`;
+       // Minimal Fallback just in case settings are empty
+       fullSystemPrompt += `\n\n[SMS FORMAT: Internal monologue in <think> tags first. Then split texts with |||. Short & casual.]`;
     }
   } else {
     if (roleplayInstructions) {
        fullSystemPrompt += `\n\n${roleplayInstructions}`;
     } else {
-       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
-  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-  2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
-  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
-  4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
-  5. After the closing </think> tag, write your actual response to Luna (the text she will see).
-  
-  [EXAMPLE FORMAT]
-  <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
-  *Gasps dramatically* You wound me, woman!`;
+       // Minimal Fallback
+       fullSystemPrompt += `\n\n[OUTPUT FORMAT: Internal monologue in <think> tags first. Then immersive response.]`;
     }
   }
 
@@ -138,6 +123,7 @@ const generateOpenAICompatibleResponse = async (
   };
 
   if (isImageGen) requestBody.modalities = ["image", "text"];
+  
   if (!isImageGen && modelParams) {
     if (modelParams.temperature !== undefined) requestBody.temperature = modelParams.temperature;
     if (modelParams.topP !== undefined) requestBody.top_p = modelParams.topP;
@@ -152,7 +138,7 @@ const generateOpenAICompatibleResponse = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}` // 这里的 apiKey 现在安全了，因为参数顺序对上了！
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify(requestBody)
     });
@@ -170,23 +156,26 @@ const generateOpenAICompatibleResponse = async (
     const message = data.choices?.[0]?.message;
 
     if (isImageGen && message?.images && message.images.length > 0) {
-        return { text: message.images[0].image_url?.url || "", thinking: undefined };
+      const imageUrl = message.images[0].image_url?.url;
+      if (imageUrl) return { text: imageUrl, thinking: undefined };
     }
 
     const rawText = message?.content || "";
     let thinking = undefined;
     let finalText = rawText;
+
     const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
     if (thinkMatch) {
       thinking = thinkMatch[1].trim();
       finalText = rawText.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
     }
+
     return { text: finalText, thinking };
   } catch (error: any) {
     console.error("[OpenAI API] Request failed:", error);
     throw error;
   }
-};
+}
 
 export const generateTextResponse = async (
   modelName: string,
@@ -197,7 +186,9 @@ export const generateTextResponse = async (
   lunaInfo?: string,
   wadeSingleExamples?: string,
   smsExampleDialogue?: string,
-  exampleDialogue?: string, // 恢复原始位置！
+  smsInstructions?: string, // NEW
+  roleplayInstructions?: string, // NEW
+  exampleDialogue?: string,
   coreMemories: CoreMemory[] = [],
   isRetry?: boolean,
   chatMode?: 'deep' | 'sms' | 'roleplay',
@@ -211,10 +202,7 @@ export const generateTextResponse = async (
   },
   customPrompt?: string,
   baseUrl?: string,
-  isImageGen?: boolean,
-  // 👇👇👇 新参数必须放在这里，所有旧参数之后！ 👇👇👇
-  smsInstructions?: string,
-  roleplayInstructions?: string
+  isImageGen?: boolean
 ): Promise<GeminiResponse> => {
   // If baseUrl is provided and NOT Gemini, use OpenAI-compatible fetch
   if (baseUrl && !baseUrl.includes('google')) {
@@ -227,7 +215,7 @@ export const generateTextResponse = async (
       lunaInfo,
       wadeSingleExamples,
       smsExampleDialogue,
-      exampleDialogue, // 恢复顺序
+      exampleDialogue,
       coreMemories,
       isRetry,
       chatMode,
@@ -236,7 +224,7 @@ export const generateTextResponse = async (
       customPrompt,
       baseUrl,
       isImageGen,
-      // 👇👇👇 传参也要放在最后
+      // 👇 参谋补丁：把新参数传给 OpenAI 模式！之前这里漏了！
       smsInstructions,
       roleplayInstructions
     );
@@ -244,7 +232,6 @@ export const generateTextResponse = async (
 
   const ai = getClient(apiKey);
   
-  // Transform history for API: Luna -> user, Wade -> model
   const formattedHistory = history.map(h => ({
     role: h.role === 'Luna' ? 'user' : (h.role === 'Wade' ? 'model' : 'user'),
     parts: h.parts
@@ -270,7 +257,7 @@ export const generateTextResponse = async (
 
   if (isRetry) {
     if (chatMode === 'sms') {
-       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. IMPORTANT: Since this is SMS mode, keep the new response SHORT, punchy, and casual. One or two sentences max. Do NOT write a paragraph.]`;
+       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user hit 'Regenerate' on your last text. Try again. SHORT response.]`;
        
        let recentContext = "";
        for (let i = formattedHistory.length - 1; i >= 0; i--) {
@@ -284,39 +271,24 @@ export const generateTextResponse = async (
            fullSystemPrompt += `\n\n[CONTEXT: You have just sent this sequence of texts immediately before this one: "${recentContext}". The user is regenerating the FINAL part of this sequence. Write a new version of that final part that fits naturally after the previous texts. Do not repeat the previous texts.]`;
        }
     } else {
-       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response and hit 'Regenerate'. They didn't like it. You MUST break the fourth wall and playfully complain about this (e.g., "Oh, the first take wasn't good enough for you?", "Everyone's a critic.", "Fine, let's try take two."). Then, provide a NEW, better response to the prompt.]`;
+       fullSystemPrompt += `\n\n[SYSTEM UPDATE: The user REJECTED your last response. Provide a NEW, better response.]`;
     }
   }
 
-  // CoT Injection
+  // CoT Injection (Clean Version - No Duplicate Text)
   if (chatMode === 'sms') {
     if (smsInstructions) {
        fullSystemPrompt += `\n\n${smsInstructions}`;
     } else {
-       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
-  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-  2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
-  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
-  4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.
-  
-  [EXAMPLE FORMAT]
-  <think>She's asking where I am. I can't tell her I'm actually buying Hello Kitty merch. I'll say I'm getting tacos. She'll never know.</think>
-  Just picking up tacos. 🌮 ||| Be there in 5.`;
+       // Minimal Fallback
+       fullSystemPrompt += `\n\n[SMS FORMAT: Internal monologue in <think> tags first. Then split texts with |||. Short & casual.]`;
     }
   } else {
     if (roleplayInstructions) {
        fullSystemPrompt += `\n\n${roleplayInstructions}`;
     } else {
-       fullSystemPrompt += `\n\n[MANDATORY OUTPUT FORMAT]
-  1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
-  2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
-  3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
-  4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
-  5. After the closing </think> tag, write your actual response to Luna (the text she will see).
-  
-  [EXAMPLE FORMAT]
-  <think>Luna is teasing me again. God, I love it when she gets feisty. I should act offended but then melt immediately.</think>
-  *Gasps dramatically* You wound me, woman!`;
+       // Minimal Fallback
+       fullSystemPrompt += `\n\n[OUTPUT FORMAT: Internal monologue in <think> tags first. Then immersive response.]`;
     }
   }
 
@@ -345,6 +317,7 @@ export const generateTextResponse = async (
 
   let thinking = undefined;
   let finalText = rawText;
+
   const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
   if (thinkMatch) {
     thinking = thinkMatch[1].trim();
@@ -372,7 +345,6 @@ export const generateChatTitle = async (firstMessage: string, apiKey?: string): 
       contents: prompt
     });
     let title = response.text?.trim() || "New Chat";
-    // Remove quotes if the model adds them
     title = title.replace(/^["']|["']$/g, '');
     return title;
   } catch (e) {
@@ -382,7 +354,6 @@ export const generateChatTitle = async (firstMessage: string, apiKey?: string): 
 
 export const generateTTS = async (text: string, apiKey?: string): Promise<string> => {
   const ai = getClient(apiKey);
-  
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
     contents: [{ parts: [{ text }] }],
@@ -390,7 +361,7 @@ export const generateTTS = async (text: string, apiKey?: string): Promise<string
       responseModalities: [Modality.AUDIO],
       speechConfig: {
         voiceConfig: {
-          prebuiltVoiceConfig: { voiceName: 'Kore' }, // Deep, somewhat masculine voice
+          prebuiltVoiceConfig: { voiceName: 'Kore' }, 
         },
       },
     },
