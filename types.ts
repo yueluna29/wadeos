@@ -41,6 +41,8 @@ export interface Message {
   variantsThinking?: (string | null)[]; 
   // NEW: Store Audio for each variant
   variantsAudio?: (string | null)[];
+  // NEW: Store Model for each variant
+  variantsModel?: (string | null)[];
   selectedIndex?: number; // Index of the currently shown version
   
   // UI State (Transient)

@@ -266,18 +266,31 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              }
              while (parsedAudio.length < parsedVariants.length) parsedAudio.push(null);
 
+             // Parse Model Variants
+             let parsedModel: (string|null)[] = [];
+             if (row.variants_model) {
+                if (Array.isArray(row.variants_model)) parsedModel = row.variants_model;
+                else if (typeof row.variants_model === 'string') {
+                   try { parsedModel = JSON.parse(row.variants_model); } catch(e){}
+                }
+             } else if (row.model) {
+                parsedModel = [row.model];
+             }
+             while (parsedModel.length < parsedVariants.length) parsedModel.push(null);
+
             return {
               id: row.id,
               sessionId: row.session_id,
               role: r,
               text: row.content,
-              model: row.model,
+              model: parsedModel[row.selected_index || 0] || row.model,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
               isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
               variantsAudio: parsedAudio,
+              variantsModel: parsedModel,
               selectedIndex: row.selected_index || 0,
               audioCache: parsedAudio[row.selected_index || 0] || undefined // Backwards compatibility for UI
             };
@@ -811,6 +824,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       ...m,
       variants: m.variants || [m.text],
       variantsThinking: m.variantsThinking || [null],
+      variantsModel: m.variantsModel || [m.model || null],
       selectedIndex: 0
     };
 
@@ -835,6 +849,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              model: newMessage.model,
              variants: newMessage.variants,
              variants_thinking: newMessage.variantsThinking,
+             variants_model: JSON.stringify(newMessage.variantsModel),
              selected_index: 0,
              created_at: new Date(newMessage.timestamp).toISOString()
           });
@@ -906,6 +921,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const newVariants = [...(msg.variants || [msg.text]), newText];
     const newThinking = [...(msg.variantsThinking || Array(msg.variants?.length || 1).fill(null)), thinking || null];
     const newVariantsAudio = [...(msg.variantsAudio || Array(msg.variants?.length || 1).fill(null)), null]; // Add null for new variant
+    const newVariantsModel = [...(msg.variantsModel || Array(msg.variants?.length || 1).fill(msg.model || null)), model || null];
     const newIndex = newVariants.length - 1;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
@@ -915,6 +931,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       variants: newVariants,
       variantsThinking: newThinking,
       variantsAudio: newVariantsAudio,
+      variantsModel: newVariantsModel,
       selectedIndex: newIndex,
       audioCache: undefined, // Clear current audio cache for new variant
       isRegenerating: false 
@@ -927,6 +944,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         variants: newVariants,
         variants_thinking: newThinking,
         audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
+        variants_model: JSON.stringify(newVariantsModel),
         selected_index: newIndex
       };
       if (model) payload.model = model;
@@ -940,20 +958,24 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     const selectedText = msg.variants[index];
     const selectedAudio = msg.variantsAudio ? msg.variantsAudio[index] : undefined;
+    const selectedModel = msg.variantsModel ? msg.variantsModel[index] : msg.model;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: selectedText, 
+      model: selectedModel || m.model,
       selectedIndex: index,
       audioCache: selectedAudio || undefined // Switch to audio for this variant
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      safeDbUpdate(tableName, id, { 
+      const payload: any = { 
         content: selectedText,
         selected_index: index
-      });
+      };
+      if (selectedModel) payload.model = selectedModel;
+      safeDbUpdate(tableName, id, payload);
     }
   };
 
@@ -965,26 +987,36 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const currentIdx = msg.selectedIndex || 0;
       const newVariants = msg.variants.filter((_, i) => i !== currentIdx);
       const newThinking = (msg.variantsThinking || []).filter((_, i) => i !== currentIdx);
+      const newVariantsAudio = (msg.variantsAudio || []).filter((_, i) => i !== currentIdx);
+      const newVariantsModel = (msg.variantsModel || []).filter((_, i) => i !== currentIdx);
 
       const newIndex = Math.min(currentIdx, newVariants.length - 1);
       const newText = newVariants[newIndex];
+      const newModel = newVariantsModel[newIndex] || msg.model;
 
       setMessages(prev => prev.map(m => m.id === id ? {
         ...m,
         variants: newVariants,
         variantsThinking: newThinking,
+        variantsAudio: newVariantsAudio,
+        variantsModel: newVariantsModel,
         selectedIndex: newIndex,
-        text: newText
+        text: newText,
+        model: newModel
       } : m));
 
       if (msg.mode !== 'archive') {
         const tableName = getTableName(msg.mode);
-        await safeDbUpdate(tableName, id, {
+        const payload: any = {
           content: newText,
           variants: newVariants,
           variants_thinking: newThinking,
+          audio_cache: JSON.stringify(newVariantsAudio),
+          variants_model: JSON.stringify(newVariantsModel),
           selected_index: newIndex
-        });
+        };
+        if (newModel) payload.model = newModel;
+        await safeDbUpdate(tableName, id, payload);
       }
 
     } else {
