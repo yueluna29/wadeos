@@ -107,11 +107,11 @@ export const Home: React.FC = () => {
   }, [settings.activeLlmId, settings.homeLlmId]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f9f6f7] px-6 pt-4 pb-24">
+    <div className="h-full overflow-y-auto bg-wade-bg-app px-6 pt-4 pb-24">
       <header className="mb-4 flex justify-between items-start">
         <div>
-          <h1 className="font-hand text-3xl text-[#d58f99] mb-1">Welcome Home, Luna.</h1>
-          <p className="text-[#917c71] text-sm opacity-80">
+          <h1 className="font-hand text-3xl text-wade-accent mb-1">Welcome Home, Luna.</h1>
+          <p className="text-wade-text-muted text-sm opacity-80">
             {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -121,18 +121,18 @@ export const Home: React.FC = () => {
       <CouplesCounter />
 
       {/* Wade's Status Card */}
-      <section className="bg-white rounded-3xl p-6 shadow-sm border border-[#eae2e8] mb-4 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-[#fff0f3] rounded-full -mr-8 -mt-8 z-0"></div>
+      <section className="bg-white rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 z-0"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              <h3 className="font-bold text-[#5a4a42]">Wade's Daily Sass</h3>
+              <h3 className="font-bold text-wade-text-main">Wade's Daily Sass</h3>
             </div>
             <button 
               onClick={generateQuote}
               disabled={isGeneratingQuote}
-              className="text-[#d58f99] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#fff0f3] p-1.5 rounded-full disabled:opacity-50"
+              className="text-wade-accent opacity-0 group-hover:opacity-100 transition-opacity hover:bg-wade-accent-light p-1.5 rounded-full disabled:opacity-50"
               title="Refresh Status"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isGeneratingQuote ? "animate-spin" : ""}>
@@ -141,7 +141,7 @@ export const Home: React.FC = () => {
               </svg>
             </button>
           </div>
-          <div className="text-xl text-[#d58f99] font-hand italic min-h-[60px] flex items-center w-full">
+          <div className="text-xl text-wade-accent font-hand italic min-h-[60px] flex items-center w-full">
             {isGeneratingQuote ? (
               <span className="animate-pulse opacity-70">Wade is thinking...</span>
             ) : (
@@ -159,14 +159,14 @@ export const Home: React.FC = () => {
       <section className="mb-4">
          <div className="flex justify-between items-end mb-4 px-1">
             <div className="flex items-center gap-2">
-                <h3 className="font-bold text-[#917c71] text-lg">Time Capsules</h3>
-                <span className="bg-[#fff0f3] text-[#d58f99] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#d58f99]/20">
+                <h3 className="font-bold text-wade-text-muted text-lg">Time Capsules</h3>
+                <span className="bg-wade-accent-light text-wade-accent text-[10px] font-bold px-2 py-0.5 rounded-full border border-wade-accent/20">
                     {capsules.filter(c => new Date(c.unlockDate) <= new Date()).length} UNLOCKED
                 </span>
             </div>
             <button 
               onClick={() => setTab('time-capsules')}
-              className="text-xs font-bold text-[#d58f99] hover:text-[#c07a84] uppercase tracking-wider flex items-center gap-1 transition-colors"
+              className="text-xs font-bold text-wade-accent hover:text-wade-accent-hover uppercase tracking-wider flex items-center gap-1 transition-colors"
             >
               View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
@@ -224,12 +224,12 @@ export const Home: React.FC = () => {
                      <div
                        key={cap.id}
                        onClick={() => setTab('time-capsules')}
-                       className={`h-40 bg-[#f9f6f7] rounded-[24px] border-2 border-dashed border-[#eae2e8] flex flex-col items-center justify-center text-[#917c71]/40 cursor-pointer hover:bg-[#fff0f3] hover:border-[#d58f99]/30 transition-all group ${visibilityClass}`}
+                       className={`h-40 bg-wade-bg-app rounded-[24px] border-2 border-dashed border-wade-border flex flex-col items-center justify-center text-wade-text-muted/40 cursor-pointer hover:bg-wade-accent-light hover:border-wade-accent/30 transition-all group ${visibilityClass}`}
                      >
-                        <div className="w-10 h-10 rounded-full bg-[#eae2e8]/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <div className="w-10 h-10 rounded-full bg-wade-border/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         </div>
-                        <span className="text-xs font-bold text-[#917c71]/60">{cap.date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                        <span className="text-xs font-bold text-wade-text-muted/60">{cap.date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                         <span className="text-[10px] font-medium mt-0.5">{cap.title}</span>
                      </div>
                    );
@@ -251,20 +251,20 @@ export const Home: React.FC = () => {
                      }}
                      className={`h-40 rounded-[24px] relative group cursor-pointer transition-all hover:-translate-y-1 shadow-sm hover:shadow-md border ${visibilityClass}
                        ${isUnlocked 
-                         ? 'bg-white border-[#d58f99]/30' 
-                         : 'bg-white border-[#eae2e8]'
+                         ? 'bg-white border-wade-accent/30' 
+                         : 'bg-white border-wade-border'
                        }
                      `}
                    >
                        {/* Status Badge */}
                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm
-                               ${isUnlocked ? 'bg-[#fff0f3] text-[#d58f99]' : 'bg-[#f9f6f7] text-[#917c71]'}
+                               ${isUnlocked ? 'bg-wade-accent-light text-wade-accent' : 'bg-wade-bg-app text-wade-text-muted'}
                            `}>
                                {isUnlocked ? '💌' : '🔒'}
                            </div>
                            <span className={`text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider
-                               ${isUnlocked ? 'bg-[#d58f99] text-white' : 'bg-[#eae2e8] text-[#917c71]'}
+                               ${isUnlocked ? 'bg-wade-accent text-white' : 'bg-wade-border text-wade-text-muted'}
                            `}>
                                {isUnlocked ? 'OPEN' : 'LOCKED'}
                            </span>
@@ -272,17 +272,17 @@ export const Home: React.FC = () => {
 
                        {/* Content */}
                        <div className="absolute bottom-4 left-4 right-4 z-10">
-                           <h4 className={`font-bold text-sm leading-tight mb-1 line-clamp-2 ${isUnlocked ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
+                           <h4 className={`font-bold text-sm leading-tight mb-1 line-clamp-2 ${isUnlocked ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>
                                {cap.title || "A Letter from Wade"}
                            </h4>
-                           <p className="text-[10px] text-[#917c71] opacity-80">
+                           <p className="text-[10px] text-wade-text-muted opacity-80">
                                Unlocks: {unlockDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                            </p>
                        </div>
 
                        {/* Decorative Elements */}
                        {isUnlocked && (
-                           <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-[#fff0f3] to-transparent rounded-tl-[32px] rounded-br-[24px] -z-0 opacity-50 pointer-events-none"></div>
+                           <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-wade-accent-light to-transparent rounded-tl-[32px] rounded-br-[24px] -z-0 opacity-50 pointer-events-none"></div>
                        )}
                    </div>
                  );
@@ -294,10 +294,10 @@ export const Home: React.FC = () => {
       {/* Recommendations */}
       <section>
         <div className="flex justify-between items-end mb-4">
-          <h3 className="font-bold text-[#917c71] text-lg">Wade's Picks 🎬</h3>
+          <h3 className="font-bold text-wade-text-muted text-lg">Wade's Picks 🎬</h3>
           <button 
             onClick={() => setTab('wade-picks')}
-            className="text-xs font-bold text-[#d58f99] hover:text-[#c07a84] uppercase tracking-wider flex items-center"
+            className="text-xs font-bold text-wade-accent hover:text-wade-accent-hover uppercase tracking-wider flex items-center"
           >
             View All <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
@@ -307,21 +307,21 @@ export const Home: React.FC = () => {
               <div 
                 key={rec.id} 
                 onClick={() => setTab('wade-picks')} 
-                className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group ${index >= 2 ? 'hidden lg:flex' : ''}`}
+                className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group ${index >= 2 ? 'hidden lg:flex' : ''}`}
               >
                 {rec.coverUrl ? (
                   <img src={rec.coverUrl} className="w-16 h-24 object-cover rounded-lg bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow shrink-0" alt={rec.title} referrerPolicy="no-referrer" />
                 ) : (
-                  <div className="w-16 h-24 rounded-lg bg-[#fff0f3] flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow shrink-0">
+                  <div className="w-16 h-24 rounded-lg bg-wade-accent-light flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow shrink-0">
                     {rec.type === 'movie' ? '🎬' : rec.type === 'music' ? '🎵' : '📚'}
                   </div>
                 )}
                 <div className="flex-1 flex flex-col min-w-0">
-                  <h4 className="font-bold text-[#5a4a42] text-sm truncate group-hover:text-[#d58f99] transition-colors">{rec.title}</h4>
+                  <h4 className="font-bold text-wade-text-main text-sm truncate group-hover:text-wade-accent transition-colors">{rec.title}</h4>
                   <div className="flex items-center gap-2 mt-1 mb-2">
-                    <span className="inline-block text-[10px] font-bold text-[#917c71] bg-[#fff0f3] px-2 py-0.5 rounded-full uppercase shrink-0">{rec.type}</span>
+                    <span className="inline-block text-[10px] font-bold text-wade-text-muted bg-wade-accent-light px-2 py-0.5 rounded-full uppercase shrink-0">{rec.type}</span>
                     {rec.lunaRating && (
-                      <span className="text-[10px] text-[#ffb6c1] font-bold flex items-center shrink-0 gap-0.5">
+                      <span className="text-[10px] text-wade-accent/70 font-bold flex items-center shrink-0 gap-0.5">
                         {[1, 2, 3, 4, 5].map(star => (
                           <svg key={star} width="10" height="10" viewBox="0 0 24 24" fill={star <= rec.lunaRating! ? "currentColor" : "none"} stroke="currentColor" className="mr-0.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         ))}
@@ -329,7 +329,7 @@ export const Home: React.FC = () => {
                     )}
                   </div>
                   <div className="mt-auto">
-                    <p className="text-[13px] text-[#d58f99] italic line-clamp-2 leading-relaxed break-words">"{rec.comment}"</p>
+                    <p className="text-[13px] text-wade-accent italic line-clamp-2 leading-relaxed break-words">"{rec.comment}"</p>
                   </div>
                 </div>
               </div>

@@ -1,3 +1,168 @@
+:root, [data-theme="default"] {
+  --wade-accent-rgb: 213, 143, 153;
+  --wade-accent: #d58f99;
+  --wade-accent-hover-rgb: 192, 122, 132;
+  --wade-accent-hover: #c07a84;
+  --wade-accent-light-rgb: 255, 240, 243;
+  --wade-accent-light: #fff0f3;
+  
+  --wade-bg-base-rgb: 253, 251, 251;
+  --wade-bg-base: #fdfbfb;
+  --wade-bg-card-rgb: 255, 255, 255;
+  --wade-bg-card: #ffffff;
+  --wade-bg-app-rgb: 249, 246, 247;
+  --wade-bg-app: #f9f6f7;
+  
+  --wade-text-main-rgb: 90, 74, 66;
+  --wade-text-main: #5a4a42;
+  --wade-text-muted-rgb: 145, 124, 113;
+  --wade-text-muted: #917c71;
+  
+  --wade-border-rgb: 234, 226, 232;
+  --wade-border: #eae2e8;
+  --wade-border-light-rgb: 250, 212, 220;
+  --wade-border-light: #fad4dc;
+  
+  --wade-code-bg-rgb: 45, 45, 45;
+  --wade-code-bg: #2d2d2d;
+  --wade-code-text-rgb: 166, 172, 205;
+  --wade-code-text: #a6accd;
+
+  --wade-shadow-glow: 0 4px 12px rgba(var(--wade-accent-rgb), 0.4);
+}
+
+[data-theme="cyberpunk"] {
+  --wade-accent-rgb: 4, 186, 232;
+  --wade-accent: #04BAE8;
+  --wade-accent-hover-rgb: 254, 85, 190;
+  --wade-accent-hover: #FE55BE;
+  --wade-accent-light-rgb: 21, 35, 54;
+  --wade-accent-light: #152336;
+  
+  --wade-bg-base-rgb: 11, 8, 20;
+  --wade-bg-base: #0B0814;
+  --wade-bg-card-rgb: 21, 16, 38;
+  --wade-bg-card: #151026;
+  --wade-bg-app-rgb: 14, 10, 26;
+  --wade-bg-app: #0E0A1A;
+  
+  --wade-text-main-rgb: 234, 251, 255;
+  --wade-text-main: #EAFBFF;
+  --wade-text-muted-rgb: 157, 142, 173;
+  --wade-text-muted: #9D8EAD;
+  
+  --wade-border-rgb: 42, 30, 78;
+  --wade-border: #2A1E4E;
+  --wade-border-light-rgb: 254, 85, 190;
+  --wade-border-light: #FE55BE;
+  
+  --wade-code-bg-rgb: 6, 4, 10;
+  --wade-code-bg: #06040A;
+  --wade-code-text-rgb: 255, 219, 241;
+  --wade-code-text: #FFDBF1;
+
+  --wade-shadow-glow: 0 4px 15px rgba(4, 186, 232, 0.4), 0 0 10px rgba(254, 85, 190, 0.2);
+}
+
+[data-theme="deadpool"] {
+  --wade-accent-rgb: 226, 54, 54;
+  --wade-accent: #E23636;
+  --wade-accent-hover-rgb: 255, 77, 77;
+  --wade-accent-hover: #FF4D4D;
+  --wade-accent-light-rgb: 61, 28, 28;
+  --wade-accent-light: #3D1C1C;
+  
+  --wade-bg-base-rgb: 20, 15, 15;
+  --wade-bg-base: #140F0F;
+  --wade-bg-card-rgb: 31, 24, 24;
+  --wade-bg-card: #1F1818;
+  --wade-bg-app-rgb: 26, 20, 20;
+  --wade-bg-app: #1A1414;
+  
+  --wade-text-main-rgb: 245, 230, 230;
+  --wade-text-main: #F5E6E6;
+  --wade-text-muted-rgb: 163, 133, 133;
+  --wade-text-muted: #A38585;
+  
+  --wade-border-rgb: 61, 40, 40;
+  --wade-border: #3D2828;
+  --wade-border-light-rgb: 226, 54, 54;
+  --wade-border-light: #E23636;
+  
+  --wade-code-bg-rgb: 10, 5, 5;
+  --wade-code-bg: #0A0505;
+  --wade-code-text-rgb: 255, 200, 200;
+  --wade-code-text: #FFC8C8;
+
+  --wade-shadow-glow: 0 4px 12px rgba(226, 54, 54, 0.4);
+}
+
+[data-theme="midnight"] {
+  --wade-accent-rgb: 157, 141, 241;
+  --wade-accent: #9D8DF1;
+  --wade-accent-hover-rgb: 181, 168, 245;
+  --wade-accent-hover: #B5A8F5;
+  --wade-accent-light-rgb: 42, 37, 64;
+  --wade-accent-light: #2A2540;
+  
+  --wade-bg-base-rgb: 15, 14, 20;
+  --wade-bg-base: #0F0E14;
+  --wade-bg-card-rgb: 24, 22, 33;
+  --wade-bg-card: #181621;
+  --wade-bg-app-rgb: 20, 18, 28;
+  --wade-bg-app: #14121C;
+  
+  --wade-text-main-rgb: 230, 230, 240;
+  --wade-text-main: #E6E6F0;
+  --wade-text-muted-rgb: 140, 138, 160;
+  --wade-text-muted: #8C8AA0;
+  
+  --wade-border-rgb: 50, 47, 70;
+  --wade-border: #322F46;
+  --wade-border-light-rgb: 157, 141, 241;
+  --wade-border-light: #9D8DF1;
+  
+  --wade-code-bg-rgb: 8, 7, 12;
+  --wade-code-bg: #08070C;
+  --wade-code-text-rgb: 180, 178, 210;
+  --wade-code-text: #B4B2D2;
+
+  --wade-shadow-glow: 0 4px 12px rgba(157, 141, 241, 0.3);
+}
+
+[data-theme="serenity"] {
+  --wade-accent-rgb: 91, 155, 179;
+  --wade-accent: #5B9BB3;
+  --wade-accent-hover-rgb: 74, 130, 153;
+  --wade-accent-hover: #4A8299;
+  --wade-accent-light-rgb: 230, 242, 247;
+  --wade-accent-light: #E6F2F7;
+  
+  --wade-bg-base-rgb: 248, 250, 252;
+  --wade-bg-base: #F8FAFC;
+  --wade-bg-card-rgb: 255, 255, 255;
+  --wade-bg-card: #FFFFFF;
+  --wade-bg-app-rgb: 241, 245, 249;
+  --wade-bg-app: #F1F5F9;
+  
+  --wade-text-main-rgb: 30, 41, 59;
+  --wade-text-main: #1E293B;
+  --wade-text-muted-rgb: 100, 116, 139;
+  --wade-text-muted: #64748B;
+  
+  --wade-border-rgb: 226, 232, 240;
+  --wade-border: #E2E8F0;
+  --wade-border-light-rgb: 203, 213, 225;
+  --wade-border-light: #CBD5E1;
+  
+  --wade-code-bg-rgb: 241, 245, 249;
+  --wade-code-bg: #F1F5F9;
+  --wade-code-text-rgb: 71, 85, 105;
+  --wade-code-text: #475569;
+
+  --wade-shadow-glow: 0 4px 12px rgba(91, 155, 179, 0.3);
+}
+
 body {
   font-family: 'Nunito', sans-serif !important;
 }
@@ -6,11 +171,11 @@ body {
 @keyframes audio-pulse {
   0%, 100% {
     transform: scale(1.1);
-    box-shadow: 0 0 0 0 rgba(213, 143, 153, 0.7);
+    box-shadow: 0 0 0 0 rgba(var(--wade-accent-rgb), 0.7);
   }
   50% {
     transform: scale(1.15);
-    box-shadow: 0 0 0 8px rgba(213, 143, 153, 0);
+    box-shadow: 0 0 0 8px rgba(var(--wade-accent-rgb), 0);
   }
 }
 
@@ -105,7 +270,7 @@ body {
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3 {
-  color: #d58f99 !important;
+  color: var(--wade-accent) !important;
   font-weight: 700 !important;
   margin-top: 0.8rem !important;
   margin-bottom: 0.4rem !important;
@@ -119,19 +284,19 @@ body {
 /* 分隔线 */
 .markdown-content hr {
   border: none !important;
-  border-top: 1px solid #eae2e8 !important;
+  border-top: 1px solid var(--wade-border) !important;
   margin: 0.5rem 0 !important;
 }
 
 /* 引用块 */
 div.markdown-content blockquote,
 .markdown-content > blockquote {
-  border-left: 3px solid #d58f99 !important;
-  background: #fff0f3 !important;
+  border-left: 3px solid var(--wade-accent) !important;
+  background: var(--wade-accent-light) !important;
   padding: 0 0.6rem !important;
   margin: 0 0 !important;
   border-radius: 0.3rem !important;
-  color: #5a4a42 !important;
+  color: var(--wade-text-main) !important;
 }
 
 div.markdown-content blockquote p,
@@ -177,7 +342,7 @@ div.markdown-content blockquote p,
   content: "—"; 
   position: absolute;
   left: -1.5em; /* 增加间距，让短横线和文字分开 */
-  color: #d58f99;
+  color: var(--wade-accent);
   font-weight: bold;
   transform: scaleX(0.8);
 }
@@ -189,15 +354,15 @@ div.markdown-content blockquote p,
 }
 
 .markdown-content ol li::marker {
-  color: #d58f99 !important;
+  color: var(--wade-accent) !important;
   font-weight: 600 !important;
   font-family: var(--font-mono);
 }
 
 /* 行内代码 */
 .markdown-content code {
-  background: #fff0f3 !important;
-  color: #d58f99 !important;
+  background: var(--wade-accent-light) !important;
+  color: var(--wade-accent) !important;
   padding: 0.1rem 0.3rem !important;
   border-radius: 0.25rem !important;
   font-size: 0.9em !important;
@@ -205,19 +370,19 @@ div.markdown-content blockquote p,
 
 /* 加粗 */
 .markdown-content strong {
-  color: #d58f99 !important;
+  color: var(--wade-accent) !important;
   font-weight: 700 !important;
 }
 
 /* 斜体 */
 .markdown-content em {
-  color: #917c71 !important;
+  color: var(--wade-text-muted) !important;
   font-style: italic !important;
 }
 
 /* Wade的气泡中，斜体字加背景颜色 */
 .bg-white .markdown-content em {
-  background-color: rgba(145, 124, 113, 0.05) !important;
+  background-color: rgba(var(--wade-text-muted-rgb), 0.05) !important;
   padding: 0 0.2em !important;
   border-radius: 0.2em !important;
 }
@@ -234,18 +399,18 @@ div.markdown-content blockquote p,
 
 /* 链接 */
 .markdown-content a {
-  color: #d58f99 !important;
+  color: var(--wade-accent) !important;
   text-decoration: underline !important;
 }
 
 .markdown-content a:hover {
-  color: #c07a84 !important;
+  color: var(--wade-accent-hover) !important;
 }
 
 /* 代码框 */
 .markdown-content pre {
-  background: #fff0f3 !important;
-  border: 1px solid #fad4dc !important;
+  background: var(--wade-accent-light) !important;
+  border: 1px solid var(--wade-border-light) !important;
   border-radius: 0.5rem !important;
   padding: 1rem !important;
   margin: 0.5rem 0 !important;

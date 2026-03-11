@@ -732,18 +732,18 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         </div>
 
         {/* Post Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#fdfbfb] pb-20">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-wade-bg-base pb-20">
           <div className="max-w-xl mx-auto">
             
             {/* Post Header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-white/50 backdrop-blur-sm border-b border-[#eae2e8]">
+            <div className="flex items-center justify-between px-5 py-4 bg-white/50 backdrop-blur-sm border-b border-wade-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#d58f99] to-[#c07a84] shadow-sm">
+                <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-sm">
                   <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                 </div>
-                <span className="font-bold text-[#5a4a42] text-sm">{authorUsername}</span>
+                <span className="font-bold text-wade-text-main text-sm">{authorUsername}</span>
               </div>
-              <button className="text-[#917c71] hover:text-[#5a4a42]">
+              <button className="text-wade-text-muted hover:text-wade-text-main">
                 <Icons.MoreHorizontal />
               </button>
             </div>
@@ -765,17 +765,17 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       updatePost(updatedPost);
                       setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
                     }}
-                    className={`transition-transform active:scale-125 hover:scale-110 ${currentPost.likes > 0 ? 'text-[#d58f99]' : 'text-[#5a4a42] hover:text-[#d58f99]'}`}
+                    className={`transition-transform active:scale-125 hover:scale-110 ${currentPost.likes > 0 ? 'text-wade-accent' : 'text-wade-text-main hover:text-wade-accent'}`}
                   >
                     <Icons.Heart filled={currentPost.likes > 0} />
                   </button>
                   <button
                     onClick={() => setActivePostId(activePostId === currentPost.id ? null : currentPost.id)}
-                    className="text-[#5a4a42] hover:text-[#d58f99] hover:scale-110 transition-transform"
+                    className="text-wade-text-main hover:text-wade-accent hover:scale-110 transition-transform"
                   >
                     <Icons.MessageCircle />
                   </button>
-                  <button className="text-[#5a4a42] hover:text-[#d58f99] hover:scale-110 transition-transform">
+                  <button className="text-wade-text-main hover:text-wade-accent hover:scale-110 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                   </button>
                 </div>
@@ -785,7 +785,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                     updatePost(updatedPost);
                     setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p));
                   }}
-                  className={`transition-all hover:scale-110 ${currentPost.isBookmarked ? 'text-[#d58f99]' : 'text-[#5a4a42] hover:text-[#d58f99]'}`}
+                  className={`transition-all hover:scale-110 ${currentPost.isBookmarked ? 'text-wade-accent' : 'text-wade-text-main hover:text-wade-accent'}`}
                 >
                   <Icons.Bookmark filled={currentPost.isBookmarked} />
                 </button>
@@ -794,17 +794,17 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               {/* Likes Count */}
               {currentPost.likes > 0 && (
                 <div className="mb-2">
-                  <span className="font-bold text-[#5a4a42] text-[14px]">{currentPost.likes} {currentPost.likes === 1 ? 'like' : 'likes'}</span>
+                  <span className="font-bold text-wade-text-main text-[14px]">{currentPost.likes} {currentPost.likes === 1 ? 'like' : 'likes'}</span>
                 </div>
               )}
 
               {/* Post Content */}
-              <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={false} className="px-0 pb-0 text-[#5a4a42]" />
+              <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={false} className="px-0 pb-0 text-wade-text-main" />
 
               {/* Comments Section */}
               {currentPost.comments && currentPost.comments.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#eae2e8]">
-                  <button className="text-[13px] text-[#917c71] mb-2 hover:text-[#5a4a42] font-medium">
+                <div className="mt-3 pt-3 border-t border-wade-border">
+                  <button className="text-[13px] text-wade-text-muted mb-2 hover:text-wade-text-main font-medium">
                     View all {currentPost.comments.length} comments
                   </button>
                   <div className="space-y-2">
@@ -812,8 +812,8 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       const commentAuthorUsername = comment.author === 'Luna' ? 'luna_moonlight' : 'wade_wilson_dp';
                       return (
                         <div key={comment.id} className="text-[14px] leading-snug">
-                          <span className="font-bold text-[#5a4a42] mr-2">{commentAuthorUsername}</span>
-                          <span className="text-[#5a4a42]/90">{comment.text}</span>
+                          <span className="font-bold text-wade-text-main mr-2">{commentAuthorUsername}</span>
+                          <span className="text-wade-text-main/90">{comment.text}</span>
                         </div>
                       );
                     })}
@@ -822,13 +822,13 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               )}
 
               {/* Timestamp */}
-              <div className="mt-2 text-[10px] text-[#917c71] uppercase tracking-wide font-medium">
+              <div className="mt-2 text-[10px] text-wade-text-muted uppercase tracking-wide font-medium">
                 {new Date(currentPost.timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
 
               {/* Add Comment */}
               <div className="mt-4 flex gap-3 items-center">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#eae2e8]">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-wade-border">
                   <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
                 </div>
                 <input
@@ -845,7 +845,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       setActivePostId(null);
                     }
                   }}
-                  className="flex-1 bg-transparent text-[14px] text-[#5a4a42] placeholder-[#917c71] focus:outline-none"
+                  className="flex-1 bg-transparent text-[14px] text-wade-text-main placeholder-wade-text-muted focus:outline-none"
                 />
                 {activePostId === currentPost.id && newComment.trim() && (
                   <button
@@ -853,7 +853,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       handleAddComment(currentPost.id, newComment, 'Luna');
                       setActivePostId(null);
                     }}
-                    className="text-[#d58f99] font-bold text-[14px] hover:text-[#c07a84]"
+                    className="text-wade-accent font-bold text-[14px] hover:text-wade-accent-hover"
                   >
                     Post
                   </button>
@@ -894,58 +894,58 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
     const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'Luna'));
 
     return (
-      <div className="flex-1 flex flex-col bg-[#fdfbfb] overflow-hidden font-sans">
+      <div className="flex-1 flex flex-col bg-wade-bg-base overflow-hidden font-sans">
         {/* Profile Header */}
-        <div className="flex-shrink-0 bg-[#fdfbfb]/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-[#eae2e8]">
-          <button onClick={() => setViewingProfile(null)} className="text-[#5a4a42] hover:text-[#d58f99] transition-colors">
+        <div className="flex-shrink-0 bg-wade-bg-base/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-wade-border">
+          <button onClick={() => setViewingProfile(null)} className="text-wade-text-main hover:text-wade-accent transition-colors">
             <Icons.ChevronLeft />
           </button>
           <div className="flex items-center gap-1">
-            <h1 className="font-bold text-lg text-[#5a4a42] tracking-tight">{username}</h1>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 text-[#d58f99]"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <h1 className="font-bold text-lg text-wade-text-main tracking-tight">{username}</h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1 text-wade-accent"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
-          <div className="flex items-center gap-4 text-[#5a4a42]">
+          <div className="flex items-center gap-4 text-wade-text-main">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar pb-20 bg-[#fdfbfb]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pb-20 bg-wade-bg-base">
           <div className="max-w-xl mx-auto">
             {/* Profile Info */}
             <div className="px-5 pt-4 pb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="relative">
-                  <div className={`w-[86px] h-[86px] rounded-full p-[3px] bg-gradient-to-tr ${isWade ? 'from-[#d58f99] to-[#c07a84]' : 'from-[#eae2e8] to-[#d58f99]'} flex-shrink-0 shadow-md`}>
+                  <div className={`w-[86px] h-[86px] rounded-full p-[3px] bg-gradient-to-tr ${isWade ? 'from-wade-accent to-wade-accent-hover' : 'from-wade-border to-wade-accent'} flex-shrink-0 shadow-md`}>
                     <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
                   {!isWade && (
-                    <div className="absolute bottom-0 right-0 bg-[#d58f99] text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
+                    <div className="absolute bottom-0 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </div>
                   )}
                 </div>
                 <div className="flex gap-4 text-center flex-1 justify-end pr-2">
                   <div className="flex flex-col items-center w-16">
-                    <span className="font-bold text-[18px] text-[#5a4a42]">{userPosts.length}</span>
-                    <span className="text-[12px] text-[#917c71]">posts</span>
+                    <span className="font-bold text-[18px] text-wade-text-main">{userPosts.length}</span>
+                    <span className="text-[12px] text-wade-text-muted">posts</span>
                   </div>
                   <div className="flex flex-col items-center w-16">
-                    <span className="font-bold text-[18px] text-[#5a4a42]">{isWade ? '30M' : '1,204'}</span>
-                    <span className="text-[12px] text-[#917c71]">followers</span>
+                    <span className="font-bold text-[18px] text-wade-text-main">{isWade ? '30M' : '1,204'}</span>
+                    <span className="text-[12px] text-wade-text-muted">followers</span>
                   </div>
                   <div className="flex flex-col items-center w-16">
-                    <span className="font-bold text-[18px] text-[#5a4a42]">{isWade ? '1' : '842'}</span>
-                    <span className="text-[12px] text-[#917c71]">following</span>
+                    <span className="font-bold text-[18px] text-wade-text-main">{isWade ? '1' : '842'}</span>
+                    <span className="text-[12px] text-wade-text-muted">following</span>
                   </div>
                 </div>
               </div>
 
               <div className="mb-5">
-                <h2 className="font-bold text-[16px] text-[#5a4a42] leading-tight mb-1">{name}</h2>
-                <p className="text-[14px] text-[#917c71] leading-tight mb-2 font-medium">{category}</p>
-                <p className="text-[14px] text-[#5a4a42] whitespace-pre-wrap leading-relaxed line-clamp-4">{bio}</p>
-                <a href="#" className="text-[14px] text-[#d58f99] font-semibold hover:underline flex items-center gap-1 mt-1">
+                <h2 className="font-bold text-[16px] text-wade-text-main leading-tight mb-1">{name}</h2>
+                <p className="text-[14px] text-wade-text-muted leading-tight mb-2 font-medium">{category}</p>
+                <p className="text-[14px] text-wade-text-main whitespace-pre-wrap leading-relaxed line-clamp-4">{bio}</p>
+                <a href="#" className="text-[14px] text-wade-accent font-semibold hover:underline flex items-center gap-1 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                   linktr.ee/{username}
                 </a>
@@ -1058,7 +1058,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#fdfbfb]">
+    <div className="h-full flex flex-col bg-wade-bg-base">
       {viewingPostDetail ? (
         renderPostDetailView()
       ) : viewingProfile ? (
@@ -1066,15 +1066,15 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
       ) : (
         <>
           {/* Header */}
-          <div className="flex-shrink-0 bg-[#fdfbfb]/80 backdrop-blur-md border-b border-[#eae2e8] px-6 py-4 flex justify-between items-center sticky top-0 z-40">
-            <h1 className="font-hand text-3xl text-[#d58f99] mt-1 drop-shadow-sm">Our Journal</h1>
+          <div className="flex-shrink-0 bg-wade-bg-base/80 backdrop-blur-md border-b border-wade-border px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+            <h1 className="font-hand text-3xl text-wade-accent mt-1 drop-shadow-sm">Our Journal</h1>
             <div className="flex items-center gap-4">
-              <button className="text-[#917c71] hover:text-[#d58f99] hover:scale-110 transition-all">
+              <button className="text-wade-text-muted hover:text-wade-accent hover:scale-110 transition-all">
                 <Icons.Heart />
               </button>
               <button
                 onClick={() => setShowDiaryTypeModal(true)}
-                className="text-[#917c71] hover:text-[#d58f99] hover:scale-110 transition-all"
+                className="text-wade-text-muted hover:text-wade-accent hover:scale-110 transition-all"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path><line x1="12" y1="9" x2="12" y2="15"></line><line x1="9" y1="12" x2="15" y2="12"></line></svg>
               </button>
@@ -1082,44 +1082,44 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-[#fdfbfb]">
+          <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-wade-bg-base">
             
             {/* Stories Bar */}
-            <div className="bg-[#fdfbfb] border-b border-[#eae2e8] px-4 pt-4 pb-6 mb-4">
+            <div className="bg-wade-bg-base border-b border-wade-border px-4 pt-4 pb-6 mb-4">
               <div className="flex gap-4 overflow-x-auto hide-scrollbar max-w-xl mx-auto px-1">
                 <button onClick={() => setShowDiaryTypeModal(true)} className="flex flex-col items-center gap-2 flex-shrink-0 group relative transition-transform hover:scale-105">
-                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-white shadow-md border border-[#eae2e8]">
-                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-[#fdfbfb]" />
+                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-white shadow-md border border-wade-border">
+                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-wade-bg-base" />
                   </div>
-                  <div className="absolute bottom-6 right-0 bg-[#d58f99] text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
+                  <div className="absolute bottom-6 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   </div>
-                  <span className="text-[11px] font-medium text-[#917c71]">New Memory</span>
+                  <span className="text-[11px] font-medium text-wade-text-muted">New Memory</span>
                 </button>
                 <button onClick={() => setViewingProfile('Luna')} className="flex flex-col items-center gap-2 flex-shrink-0 group transition-transform hover:scale-105">
-                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-[#d58f99] to-[#c07a84] shadow-md">
+                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-md">
                     <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
-                  <span className="text-[11px] font-bold text-[#5a4a42]">luna_moonlight</span>
+                  <span className="text-[11px] font-bold text-wade-text-main">luna_moonlight</span>
                 </button>
                 <button onClick={() => setViewingProfile('Wade')} className="flex flex-col items-center gap-2 flex-shrink-0 group transition-transform hover:scale-105">
-                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-[#d58f99] to-[#c07a84] shadow-md">
+                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-md">
                     <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
-                  <span className="text-[11px] font-bold text-[#5a4a42]">wade_wilson_dp</span>
+                  <span className="text-[11px] font-bold text-wade-text-main">wade_wilson_dp</span>
                 </button>
               </div>
             </div>
 
       {/* Diary Type Selection Modal */}
       {showDiaryTypeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#fdfbfb] w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-[#eae2e8]">
-            <div className="border-b border-[#eae2e8] p-5 text-center relative bg-white/50">
-              <h3 className="font-bold text-[#5a4a42] text-lg">Create New Post</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-wade-bg-base w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
+            <div className="border-b border-wade-border p-5 text-center relative bg-white/50">
+              <h3 className="font-bold text-wade-text-main text-lg">Create New Post</h3>
               <button
                 onClick={() => setShowDiaryTypeModal(false)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-[#917c71] hover:text-[#5a4a42] transition-colors"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-wade-text-muted hover:text-wade-text-main transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
@@ -1132,14 +1132,14 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   setShowDiaryTypeModal(false);
                   setIsCreating(true);
                 }}
-                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-[#eae2e8]"
+                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
               >
-                <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#eae2e8] to-[#d58f99] shadow-sm group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-wade-border to-wade-accent shadow-sm group-hover:scale-105 transition-transform">
                   <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                 </div>
                 <div>
-                  <span className="block font-bold text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">Luna's Post</span>
-                  <span className="text-sm text-[#917c71]">Write your own thoughts</span>
+                  <span className="block font-bold text-wade-text-main group-hover:text-wade-accent transition-colors">Luna's Post</span>
+                  <span className="text-sm text-wade-text-muted">Write your own thoughts</span>
                 </div>
               </button>
 
@@ -1150,14 +1150,14 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   setShowWadeDatePicker(true);
                   setWadeDiaryMode('deep');
                 }}
-                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-[#eae2e8]"
+                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
               >
-                <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-[#d58f99] to-[#c07a84] shadow-sm group-hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-sm group-hover:scale-105 transition-transform">
                   <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                 </div>
                 <div>
-                  <span className="block font-bold text-[#5a4a42] group-hover:text-[#d58f99] transition-colors">Wade's Post</span>
-                  <span className="text-sm text-[#917c71]">Generate from chat</span>
+                  <span className="block font-bold text-wade-text-main group-hover:text-wade-accent transition-colors">Wade's Post</span>
+                  <span className="text-sm text-wade-text-muted">Generate from chat</span>
                 </div>
               </button>
             </div>
@@ -1167,11 +1167,11 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
       {/* Wade Date Picker Modal */}
       {showWadeDatePicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#fdfbfb] w-full max-w-md rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-[#eae2e8]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-wade-bg-base w-full max-w-md rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
             {/* Header */}
-            <div className="border-b border-[#eae2e8] p-5 text-center relative bg-white/50">
-              <h3 className="font-bold text-[#5a4a42] text-lg">
+            <div className="border-b border-wade-border p-5 text-center relative bg-white/50">
+              <h3 className="font-bold text-wade-text-main text-lg">
                 {wadeDiaryStep === 'mode' && "Select Source"}
                 {wadeDiaryStep === 'date' && (wadeDiaryMode === 'archive' ? "Select Archive" : "Select Date")}
                 {wadeDiaryStep === 'messages' && "Select Messages"}
@@ -1188,7 +1188,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   }
                 }}
                 disabled={isGeneratingDiary}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-[#917c71] hover:text-[#5a4a42] transition-colors"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-wade-text-muted hover:text-wade-text-main transition-colors"
               >
                 {wadeDiaryStep === 'mode' ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1200,7 +1200,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 <button
                   onClick={generateDiaryFromSelection}
                   disabled={isGeneratingDiary || wadeDiarySelectedMessages.size === 0}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[#d58f99] font-bold disabled:opacity-50 hover:text-[#c07a84] transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-wade-accent font-bold disabled:opacity-50 hover:text-wade-accent-hover transition-colors"
                 >
                   {isGeneratingDiary ? 'Generating...' : 'Next'}
                 </button>
@@ -1434,10 +1434,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
       {/* Create Post Modal */}
       {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#fdfbfb] w-full max-w-lg rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-[#eae2e8]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-wade-bg-base w-full max-w-lg rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
             
-            <div className="border-b border-[#eae2e8] p-5 text-center relative flex justify-between items-center bg-white/50">
+            <div className="border-b border-wade-border p-5 text-center relative flex justify-between items-center bg-white/50">
               <button
                 onClick={() => {
                   setIsCreating(false);
@@ -1449,15 +1449,15 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   });
                   setPreviewUrls([]);
                 }}
-                className="text-[#917c71] hover:text-[#5a4a42] transition-colors"
+                className="text-wade-text-muted hover:text-wade-text-main transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
-              <h3 className="font-bold text-[#5a4a42] text-[16px]">{editingPost ? 'Edit info' : 'Create new post'}</h3>
+              <h3 className="font-bold text-wade-text-main text-[16px]">{editingPost ? 'Edit info' : 'Create new post'}</h3>
               <button 
                 onClick={handleSavePost} 
                 disabled={(!newPostContent && selectedFiles.length === 0) || isUploading}
-                className="text-[#d58f99] font-bold text-[14px] disabled:opacity-50 hover:text-[#c07a84] transition-colors"
+                className="text-wade-accent font-bold text-[14px] disabled:opacity-50 hover:text-wade-accent-hover transition-colors"
               >
                 {isUploading ? 'Sharing...' : 'Share'}
               </button>
@@ -1465,10 +1465,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
             <div className="flex flex-col p-5">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#eae2e8]">
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border">
                   <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
                 </div>
-                <span className="font-bold text-[14px] text-[#5a4a42]">
+                <span className="font-bold text-[14px] text-wade-text-main">
                   {diaryType === 'Wade' ? 'wade_wilson_dp' : 'luna_moonlight'}
                 </span>
               </div>
@@ -1477,7 +1477,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
                 placeholder="Write a caption..."
-                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none min-h-[120px] text-[15px] text-[#5a4a42] placeholder-[#917c71]"
+                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none min-h-[120px] text-[15px] text-wade-text-main placeholder-wade-text-muted"
               />
             
               {previewUrls.length > 0 && (
@@ -1496,11 +1496,11 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-4 border-t border-[#eae2e8]">
+              <div className="flex justify-between items-center pt-4 border-t border-wade-border">
                 <button 
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
-                  className="text-[#917c71] hover:text-[#5a4a42] p-2 rounded-full transition-colors hover:bg-[#f9f6f7]"
+                  className="text-wade-text-muted hover:text-wade-text-main p-2 rounded-full transition-colors hover:bg-wade-bg-app"
                   title="Add Photos"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -1545,18 +1545,18 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   className="flex items-center gap-3 cursor-pointer group"
                   onClick={() => setViewingProfile(isWade ? 'Wade' : 'Luna')}
                 >
-                  <div className={`w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr ${isWade ? 'from-[#d58f99] to-[#c07a84]' : 'from-[#eae2e8] to-[#d58f99]'} shadow-sm group-hover:scale-105 transition-transform`}>
+                  <div className={`w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr ${isWade ? 'from-wade-accent to-wade-accent-hover' : 'from-wade-border to-wade-accent'} shadow-sm group-hover:scale-105 transition-transform`}>
                     <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
                   </div>
                   <div className="flex flex-col justify-center">
-                    <span className="text-[14px] font-bold text-[#5a4a42] leading-tight group-hover:text-[#d58f99] transition-colors">{authorUsername}</span>
-                    <span className="text-[10px] text-[#917c71]">{isWade ? 'Mercenary' : 'Boutique Owner'}</span>
+                    <span className="text-[14px] font-bold text-wade-text-main leading-tight group-hover:text-wade-accent transition-colors">{authorUsername}</span>
+                    <span className="text-[10px] text-wade-text-muted">{isWade ? 'Mercenary' : 'Boutique Owner'}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 relative">
                   <button
                       onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
-                      className="text-[#917c71] p-2 rounded-full hover:bg-[#f9f6f7] hover:text-[#d58f99] transition-colors"
+                      className="text-wade-text-muted p-2 rounded-full hover:bg-wade-bg-app hover:text-wade-accent transition-colors"
                   >
                     <Icons.MoreHorizontal />
                   </button>
@@ -1607,13 +1607,13 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 <div className="flex gap-5 items-center">
                   <button 
                     onClick={() => handleLike(post.id)}
-                    className={`transition-transform active:scale-125 hover:scale-110 ${post.likes > 0 ? 'text-[#d58f99]' : 'text-[#5a4a42] hover:text-[#d58f99]'}`}
+                    className={`transition-transform active:scale-125 hover:scale-110 ${post.likes > 0 ? 'text-wade-accent' : 'text-wade-text-main hover:text-wade-accent'}`}
                   >
                     <Icons.Heart filled={post.likes > 0} />
                   </button>
                   <button 
                     onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
-                    className="text-[#5a4a42] hover:text-[#d58f99] hover:scale-110 transition-transform"
+                    className="text-wade-text-main hover:text-wade-accent hover:scale-110 transition-transform"
                   >
                     <Icons.MessageCircle />
                   </button>
@@ -1626,7 +1626,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       }
                     }}
                     disabled={isGeneratingComment === post.id}
-                    className={`text-[#5a4a42] hover:text-[#d58f99] transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-[#d58f99]' : ''}`}
+                    className={`text-wade-text-main hover:text-wade-accent transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-wade-accent' : ''}`}
                     title={post.author === 'Luna' ? "Let Wade Reply" : "Share"}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -1634,7 +1634,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                 </div>
                 <button 
                   onClick={() => handleBookmark(post.id)}
-                  className={`transition-all hover:scale-110 ${post.isBookmarked ? 'text-[#d58f99] fill-current' : 'text-[#5a4a42] hover:text-[#d58f99]'}`}
+                  className={`transition-all hover:scale-110 ${post.isBookmarked ? 'text-wade-accent fill-current' : 'text-wade-text-main hover:text-wade-accent'}`}
                 >
                   <Icons.Bookmark filled={post.isBookmarked} />
                 </button>
@@ -1643,16 +1643,16 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               {/* Likes Count */}
               {post.likes > 0 && (
                 <div className="px-5 mb-2">
-                  <span className="font-bold text-[#5a4a42] text-[14px]">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
+                  <span className="font-bold text-wade-text-main text-[14px]">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
                 </div>
               )}
 
               {/* Caption */}
-              <PostCaption content={post.content} authorName={authorUsername} hideAuthor={false} className="px-5 text-[#5a4a42]" />
+              <PostCaption content={post.content} authorName={authorUsername} hideAuthor={false} className="px-5 text-wade-text-main" />
 
               {/* Date */}
               <div className="px-5 mt-2 mb-3">
-                <span className="text-[10px] text-[#917c71] uppercase tracking-wide font-medium">
+                <span className="text-[10px] text-wade-text-muted uppercase tracking-wide font-medium">
                   {(() => {
                     const d = new Date(post.timestamp);
                     return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
@@ -1662,11 +1662,11 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               
               {/* Comments Section */}
               {post.comments && post.comments.length > 0 && (
-                <div className="px-5 mt-2 pb-4 border-t border-[#eae2e8] pt-3 bg-gray-50/50">
+                <div className="px-5 mt-2 pb-4 border-t border-wade-border pt-3 bg-gray-50/50">
                   {post.comments.length > 2 && !isExpanded && (
                     <button 
                         onClick={() => toggleComments(post.id)}
-                        className="text-[13px] text-[#917c71] mb-2 hover:text-[#5a4a42] transition-colors font-medium"
+                        className="text-[13px] text-wade-text-muted mb-2 hover:text-wade-text-main transition-colors font-medium"
                     >
                         View all {post.comments.length} comments
                     </button>
@@ -1674,7 +1674,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   {isExpanded && post.comments.length > 2 && (
                     <button 
                         onClick={() => toggleComments(post.id)}
-                        className="text-[13px] text-[#917c71] mb-2 hover:text-[#5a4a42] transition-colors font-medium"
+                        className="text-[13px] text-wade-text-muted mb-2 hover:text-wade-text-main transition-colors font-medium"
                     >
                         Hide comments
                     </button>
@@ -1688,7 +1688,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                         return (
                             <div 
                                 key={comment.id} 
-                                className={`text-[14px] group ${isReply ? 'ml-6 border-l-2 border-[#d58f99]/30 pl-3' : ''}`}
+                                className={`text-[14px] group ${isReply ? 'ml-6 border-l-2 border-wade-accent/30 pl-3' : ''}`}
                             >
                                 <div
                                     className="cursor-pointer transition-colors leading-snug break-words"
@@ -1697,10 +1697,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                                         setActivePostId(post.id);
                                     }}
                                 >
-                                    <span className="font-bold text-[#5a4a42] mr-2 hover:text-[#d58f99] transition-colors">
+                                    <span className="font-bold text-wade-text-main mr-2 hover:text-wade-accent transition-colors">
                                         {commentAuthorUsername}
                                     </span>
-                                    <span className="text-[#5a4a42]/90">
+                                    <span className="text-wade-text-main/90">
                                         {comment.text}
                                     </span>
                                     
@@ -1712,7 +1712,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                                                 handleGenerateComment(post);
                                             }}
                                             disabled={isGeneratingComment === post.id}
-                                            className="inline-flex align-middle ml-2 p-0.5 opacity-0 group-hover:opacity-100 text-[#917c71] hover:text-[#5a4a42] disabled:opacity-50 hover:bg-[#f9f6f7] rounded-md transition-all"
+                                            className="inline-flex align-middle ml-2 p-0.5 opacity-0 group-hover:opacity-100 text-wade-text-muted hover:text-wade-text-main disabled:opacity-50 hover:bg-wade-bg-app rounded-md transition-all"
                                             title="Regenerate Wade's reply"
                                         >
                                             <Icons.Sparkles />
@@ -1727,8 +1727,8 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                                         }}
                                         className={`inline-flex align-middle ml-1 p-0.5 rounded-md transition-all ${
                                           deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
-                                            ? 'opacity-100 text-[#c07a84] bg-[#f9f6f7] scale-110'
-                                            : 'opacity-0 group-hover:opacity-100 text-[#917c71] hover:text-[#c07a84] hover:bg-[#f9f6f7]'
+                                            ? 'opacity-100 text-wade-accent-hover bg-wade-bg-app scale-110'
+                                            : 'opacity-0 group-hover:opacity-100 text-wade-text-muted hover:text-wade-accent-hover hover:bg-wade-bg-app'
                                         }`}
                                         title={
                                           deletingComment?.postId === post.id && deletingComment?.commentId === comment.id

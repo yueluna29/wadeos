@@ -233,7 +233,7 @@ const SessionItem = ({
   return (
     <div
       {...longPressHandlers}
-      className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-[#d58f99] ring-1 ring-[#d58f99]/20' : 'active:scale-[0.98]'}`}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -253,17 +253,17 @@ const SessionItem = ({
               onKeyDown={handleKeyDown}
               onBlur={handleSave}
               onClick={(e) => e.stopPropagation()}
-              className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+              className="w-full font-bold text-wade-text-main text-sm bg-wade-bg-app border border-wade-accent rounded px-2 py-1 focus:outline-none"
             />
           ) : (
-            <h3 className="font-bold text-[#5a4a42] text-sm truncate">{session.title}</h3>
+            <h3 className="font-bold text-wade-text-main text-sm truncate">{session.title}</h3>
           )}
-          <p className="text-[10px] text-[#917c71] mt-1">
+          <p className="text-[10px] text-wade-text-muted mt-1">
             {new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
         {session.isPinned && (
-          <div className="text-[#d58f99] flex-shrink-0">
+          <div className="text-wade-accent flex-shrink-0">
             <Icons.Pin />
           </div>
         )}
@@ -339,7 +339,7 @@ const ArchiveItem = ({
   return (
     <div
       {...longPressHandlers}
-      className={`bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-[#d58f99] ring-1 ring-[#d58f99]/20' : 'active:scale-[0.98]'}`}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -358,15 +358,15 @@ const ArchiveItem = ({
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
             onClick={(e) => e.stopPropagation()}
-            className="w-full font-bold text-[#5a4a42] text-sm bg-[#f9f6f7] border border-[#d58f99] rounded px-2 py-1 focus:outline-none"
+            className="w-full font-bold text-wade-text-main text-sm bg-wade-bg-app border border-wade-accent rounded px-2 py-1 focus:outline-none"
           />
         ) : (
-          <h3 className="font-bold text-[#5a4a42] text-sm truncate">{archive.title}</h3>
+          <h3 className="font-bold text-wade-text-main text-sm truncate">{archive.title}</h3>
         )}
-        <p className="text-[10px] text-[#917c71] mt-1">{dateString || 'Loading...'}</p>
+        <p className="text-[10px] text-wade-text-muted mt-1">{dateString || 'Loading...'}</p>
       </div>
       <div className="flex items-center gap-2">
-        <div className="p-2 text-[#d58f99]"><Icons.ChevronRight /></div>
+        <div className="p-2 text-wade-accent"><Icons.ChevronRight /></div>
       </div>
     </div>
   );
@@ -472,20 +472,20 @@ const MessageBubble = ({
       <div className={`flex flex-col mb-4 group ${isLuna ? 'items-end' : 'items-start'} animate-pulse`}>
         {!isSMS && !isLuna && (
           <div className="flex items-start gap-3 mb-0 ml-1 select-none">
-            <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-[#eae2e8]" />
+            <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border" />
             <div className="flex flex-col mt-0.5">
-              <span className="font-bold text-[#5a4a42] text-sm leading-tight">Wade</span>
-              <span className="text-[10px] text-[#917c71]">Updating...</span>
+              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
+              <span className="text-[10px] text-wade-text-muted">Updating...</span>
             </div>
           </div>
         )}
-        <div className={`mt-2 px-4 py-2 rounded-2xl ${isSMS ? 'bg-white text-[#5a4a42] border border-[#eae2e8] rounded-bl-none shadow-sm ml-0' : 'bg-white border border-[#eae2e8] rounded-tl-none shadow-sm'} flex items-center gap-3`}>
+        <div className={`mt-2 px-4 py-2 rounded-2xl ${isSMS ? 'bg-white text-wade-text-main border border-wade-border rounded-bl-none shadow-sm ml-0' : 'bg-white border border-wade-border rounded-tl-none shadow-sm'} flex items-center gap-3`}>
           <div className="flex gap-1.5">
-            <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce"></div>
-            <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-75"></div>
-            <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-150"></div>
+            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce"></div>
+            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-75"></div>
+            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-150"></div>
           </div>
-          <span className="text-xs text-[#d58f99] font-bold italic animate-pulse">Wade is rethinking...</span>
+          <span className="text-xs text-wade-accent font-bold italic animate-pulse">Wade is rethinking...</span>
         </div>
       </div>
     );
@@ -496,8 +496,8 @@ const MessageBubble = ({
   // -------------------------
   if (isSMS) {
     const bubbleClasses = isLuna
-      ? "bg-[#d58f99] text-white rounded-2xl rounded-br-none shadow-sm"
-      : "bg-white text-[#5a4a42] border border-[#eae2e8] rounded-2xl rounded-bl-none shadow-sm";
+      ? "bg-wade-accent text-white rounded-2xl rounded-br-none shadow-sm"
+      : "bg-white text-wade-text-main border border-wade-border rounded-2xl rounded-bl-none shadow-sm";
 
     return (
       <div className={`flex flex-col group ${isLuna ? 'items-end' : 'items-start'} relative`}>
@@ -511,7 +511,7 @@ const MessageBubble = ({
               <div className="absolute -top-3 right-0">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowThought(!showThought); }}
-                  className="bg-[#f9f6f7] border border-[#eae2e8] rounded-full p-1 shadow-sm text-[#d58f99] hover:scale-110 transition-transform"
+                  className="bg-wade-bg-app border border-wade-border rounded-full p-1 shadow-sm text-wade-accent hover:scale-110 transition-transform"
                 >
                   <Icons.Brain />
                 </button>
@@ -519,7 +519,7 @@ const MessageBubble = ({
             )}
 
             {thinkingContent && showThought && (
-              <div className="mb-2 p-2 bg-[#fff0f3] rounded-lg border border-[#d58f99]/20 text-[10px] text-[#917c71] leading-relaxed markdown-thinking">
+              <div className="mb-2 p-2 bg-wade-accent-light rounded-lg border border-wade-accent/20 text-[10px] text-wade-text-muted leading-relaxed markdown-thinking">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
               </div>
             )}
@@ -533,12 +533,12 @@ const MessageBubble = ({
                 style={{ maxHeight: '400px', width: 'auto' }}
               />
             ) : (
-              <div className={`text-[13px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-[#5a4a42]'}`}>
+              <div className={`text-[13px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-wade-text-main'}`}>
                 <MarkdownWithHighlight content={displayContent} query={searchQuery} />
               </div>
             )}
           </div>
-          <span className="text-[9px] text-[#917c71]/50 mb-1 whitespace-nowrap shrink-0 select-none">
+          <span className="text-[9px] text-wade-text-muted/50 mb-1 whitespace-nowrap shrink-0 select-none">
             {formatTime(msg.timestamp)}
           </span>
         </div>
@@ -558,14 +558,14 @@ const MessageBubble = ({
         <div className="flex items-start gap-2 mb-0 ml-1 select-none w-full">
           <img
             src={settings.wadeAvatar}
-            className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-sm"
+            className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-sm"
           />
           <div className="flex flex-col mt-0.5 flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#5a4a42] text-sm leading-tight">Wade</span>
+              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
             </div>
             <div className="flex items-center justify-between w-full mt-0.5 pr-1">
-              <div className="flex items-center gap-2 text-[10px] text-[#917c71]">
+              <div className="flex items-center gap-2 text-[10px] text-wade-text-muted">
                 <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
                 <span className="opacity-70">{formatTime(msg.timestamp)}</span>
                 {/* QUICK TTS BUTTONS */}
@@ -575,9 +575,9 @@ const MessageBubble = ({
                     className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
                       playingMessageId === msg.id
                         ? isPaused
-                          ? 'bg-[#d58f99] text-white scale-110 shadow-md'
-                          : 'bg-[#d58f99] text-white shadow-lg'
-                        : 'text-[#d58f99] hover:bg-[#fff0f3] hover:scale-110'
+                          ? 'bg-wade-accent text-white scale-110 shadow-md'
+                          : 'bg-wade-accent text-white shadow-lg'
+                        : 'text-wade-accent hover:bg-wade-accent-light hover:scale-110'
                     }`}
                     style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
                     title={playingMessageId === msg.id ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
@@ -587,7 +587,7 @@ const MessageBubble = ({
                   {msg.audioCache && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[#917c71] hover:bg-[#fff0f3] hover:text-[#d58f99] hover:scale-110 transition-all duration-200"
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-wade-text-muted hover:bg-wade-accent-light hover:text-wade-accent hover:scale-110 transition-all duration-200"
                       title="Regenerate voice"
                     >
                       <Icons.RotateThin size={14} />
@@ -596,7 +596,7 @@ const MessageBubble = ({
                 </div>
               </div>
               {msg.model && (
-                <span className="text-[9px] text-[#917c71]/40 font-mono border border-[#eae2e8] rounded px-1.5 py-0.5 bg-[#f9f6f7]">
+                <span className="text-[9px] text-wade-text-muted/40 font-mono border border-wade-border rounded px-1.5 py-0.5 bg-wade-bg-app">
                   {msg.model}
                 </span>
               )}
@@ -608,23 +608,23 @@ const MessageBubble = ({
         <div
           {...longPressHandlers}
           style={{ WebkitTouchCallout: 'none' }}
-          className="w-full mt-2 bg-white text-[#5a4a42] border border-[#eae2e8] rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
+          className="w-full mt-2 bg-white text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
         >
           {/* THINKING HEADER (If available) */}
           {thinkingContent && (
             <div
               onClick={(e) => { e.stopPropagation(); setShowThought(!showThought); }}
-              className="bg-[#f9f6f7] border-b border-[#eae2e8] px-4 py-1.5 flex items-center gap-2 cursor-pointer hover:bg-[#fff0f3] transition-colors"
+              className="bg-wade-bg-app border-b border-wade-border px-4 py-1.5 flex items-center gap-2 cursor-pointer hover:bg-wade-accent-light transition-colors"
             >
-              <div className="text-[#d58f99] animate-pulse"><Icons.Brain /></div>
-              <span className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider flex-1">Thinking Process</span>
-              <div className="text-[#917c71]">{showThought ? <Icons.Up /> : <Icons.Down />}</div>
+              <div className="text-wade-accent animate-pulse"><Icons.Brain /></div>
+              <span className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider flex-1">Thinking Process</span>
+              <div className="text-wade-text-muted">{showThought ? <Icons.Up /> : <Icons.Down />}</div>
             </div>
           )}
 
           {/* THINKING CONTENT - MARKDOWN ENABLED */}
           {thinkingContent && showThought && (
-            <div className="bg-[#fff0f3] px-5 py-3 text-xs text-[#917c71] border-b border-[#eae2e8] leading-relaxed markdown-thinking">
+            <div className="bg-wade-accent-light px-5 py-3 text-xs text-wade-text-muted border-b border-wade-border leading-relaxed markdown-thinking">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
             </div>
           )}
@@ -654,15 +654,15 @@ const MessageBubble = ({
       {/* Avatar Row */}
       <div className="flex items-start gap-2 mb-0 mr-1 select-none">
         <div className="flex flex-col items-end mt-0.5">
-          <span className="font-bold text-[#5a4a42] text-sm leading-tight">Luna</span>
-          <div className="flex items-center gap-2 text-[10px] text-[#917c71] mt-0.5">
+          <span className="font-bold text-wade-text-main text-sm leading-tight">Luna</span>
+          <div className="flex items-center gap-2 text-[10px] text-wade-text-muted mt-0.5">
             <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
             <span className="opacity-70">{formatTime(msg.timestamp)}</span>
           </div>
         </div>
         <img
           src={settings.lunaAvatar}
-          className="w-10 h-10 rounded-full object-cover border border-[#d58f99] shadow-sm"
+          className="w-10 h-10 rounded-full object-cover border border-wade-accent shadow-sm"
         />
       </div>
 
@@ -670,7 +670,7 @@ const MessageBubble = ({
       <div
         {...longPressHandlers}
         style={{ WebkitTouchCallout: 'none' }}
-        className="max-w-[90%] mt-2 bg-[#d58f99] text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
+        className="max-w-[90%] mt-2 bg-wade-accent text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
         {renderAttachments()}
         {isBase64Image ? (
@@ -1869,42 +1869,42 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
   if (viewState === 'menu') {
     return (
-      <div className="h-full bg-[#f9f6f7] p-6 flex flex-col items-center justify-center space-y-8 animate-fade-in">
+      <div className="h-full bg-wade-bg-app p-6 flex flex-col items-center justify-center space-y-8 animate-fade-in">
         <div className="text-center mb-4">
-          <h2 className="font-hand text-4xl text-[#d58f99] mb-2">Connect with Wade</h2>
-          <p className="text-[#917c71] text-sm opacity-80">Choose your frequency, babe.</p>
+          <h2 className="font-hand text-4xl text-wade-accent mb-2">Connect with Wade</h2>
+          <p className="text-wade-text-muted text-sm opacity-80">Choose your frequency, babe.</p>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#fff0f3] rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
+          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
             <div className="relative z-10 flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+              <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
                 <Icons.Infinity />
               </div>
-              <div><h3 className="font-bold text-[#5a4a42] text-lg">Deep Chat</h3><p className="text-[#917c71] text-xs mt-1">Soul-to-soul connection.</p></div>
+              <div><h3 className="font-bold text-wade-text-main text-lg">Deep Chat</h3><p className="text-wade-text-muted text-xs mt-1">Soul-to-soul connection.</p></div>
             </div>
           </button>
-          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10">
-              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center mb-2 text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
                 <Icons.Smartphone />
               </div>
-              <h3 className="font-bold text-[#5a4a42]">SMS Mode</h3>
+              <h3 className="font-bold text-wade-text-main">SMS Mode</h3>
             </div>
           </button>
-          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-[#eae2e8] text-left hover:border-[#d58f99] transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10">
-              <div className="w-10 h-10 bg-[#f9f6f7] rounded-full flex items-center justify-center mb-2 text-[#d58f99] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
                 <Icons.Feather />
               </div>
-              <h3 className="font-bold text-[#5a4a42]">Roleplay</h3>
+              <h3 className="font-bold text-wade-text-main">Roleplay</h3>
             </div>
           </button>
           {/* ARCHIVE BUTTON - NEW */}
-          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-[#eae2e8]/50 p-4 rounded-3xl shadow-inner border border-[#eae2e8] text-left hover:bg-white hover:border-[#d58f99] transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-wade-border/50 p-4 rounded-3xl shadow-inner border border-wade-border text-left hover:bg-white hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10 flex items-center gap-3 justify-center">
-              <svg className="w-5 h-5 text-[#917c71]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-              <span className="font-bold text-[#917c71] text-sm uppercase tracking-widest">Archives</span>
+              <svg className="w-5 h-5 text-wade-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+              <span className="font-bold text-wade-text-muted text-sm uppercase tracking-widest">Archives</span>
             </div>
           </button>
         </div>
@@ -1914,21 +1914,21 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
   if (viewState === 'list') {
     return (
-      <div className="h-full bg-[#f9f6f7] flex flex-col overflow-hidden animate-fade-in">
+      <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
         <div className="w-full max-w-md mx-auto flex justify-between items-center px-6 pt-6 pb-4 shrink-0">
-          <button onClick={handleBack} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-[#917c71] hover:text-[#d58f99] transition-colors"><Icons.Back /></button>
-          <h2 className="font-hand text-2xl text-[#d58f99] capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
+          <button onClick={handleBack} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"><Icons.Back /></button>
+          <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
           
           {activeMode === 'archive' ? (
              <button 
                onClick={() => !isUploading && archiveInputRef.current?.click()} 
-               className="w-8 h-8 rounded-full bg-[#d58f99] text-white shadow-md flex items-center justify-center hover:bg-[#c07a84] transition-colors"
+               className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors"
                title="Import Archive"
              >
                {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
              </button>
           ) : (
-             <button onClick={handleStartDraftSession} className="w-8 h-8 rounded-full bg-[#d58f99] text-white shadow-md flex items-center justify-center hover:bg-[#c07a84] transition-colors"><Icons.Plus /></button>
+             <button onClick={handleStartDraftSession} className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors"><Icons.Plus /></button>
           )}
           
           {/* Hidden Input for Archive Upload */}
@@ -1940,11 +1940,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           {/* ARCHIVE LIST LOGIC */}
           {activeMode === 'archive' ? (
             isLoadingArchiveList ? (
-              <div className="text-center text-[#d58f99] py-10 animate-pulse">Loading archives...</div>
+              <div className="text-center text-wade-accent py-10 animate-pulse">Loading archives...</div>
             ) : (
               <>
                 {chatArchives.length === 0 ? (
-                  <div className="text-center text-[#917c71]/50 py-10 italic">No archives found. Import one above!</div>
+                  <div className="text-center text-wade-text-muted/50 py-10 italic">No archives found. Import one above!</div>
                 ) : (
                   <>
                     {[...chatArchives].sort((a, b) => {
@@ -1975,17 +1975,17 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <button 
                       onClick={() => setSessionPage(p => Math.max(1, p - 1))}
                       disabled={sessionPage === 1}
-                      className="w-10 h-10 flex items-center justify-center text-[#d58f99] disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
                     >
                       <Icons.ChevronLeft />
                     </button>
-                    <span className="text-xs font-bold text-[#917c71] font-mono">
+                    <span className="text-xs font-bold text-wade-text-muted font-mono">
                       {sessionPage} / {Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
                     </span>
                     <button 
                       onClick={() => setSessionPage(p => Math.min(Math.ceil(chatArchives.length / SESSIONS_PER_PAGE), p + 1))}
                       disabled={sessionPage === Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
-                      className="w-10 h-10 flex items-center justify-center text-[#d58f99] disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
                     >
                       <Icons.ChevronRight />
                     </button>
@@ -1998,10 +1998,10 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       ) : (
             modeSessions.length === 0 ? (
               <div className="opacity-60 grayscale select-none pointer-events-none">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex justify-between items-center">
-                  <div className="flex-1 min-w-0"><h3 className="font-bold text-[#5a4a42] text-sm truncate">Sample Conversation</h3><p className="text-[10px] text-[#917c71] mt-1">Just now • 12:00 PM</p></div>
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center">
+                  <div className="flex-1 min-w-0"><h3 className="font-bold text-wade-text-main text-sm truncate">Sample Conversation</h3><p className="text-[10px] text-wade-text-muted mt-1">Just now • 12:00 PM</p></div>
                 </div>
-                <div className="text-center text-[#917c71] text-xs mt-4">No active threads. Start a new one above!</div>
+                <div className="text-center text-wade-text-muted text-xs mt-4">No active threads. Start a new one above!</div>
               </div>
             ) : (
               <>
@@ -2033,17 +2033,17 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <button 
                       onClick={() => setSessionPage(p => Math.max(1, p - 1))}
                       disabled={sessionPage === 1}
-                      className="w-10 h-10 flex items-center justify-center text-[#d58f99] disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
                     >
                       <Icons.ChevronLeft />
                     </button>
-                    <span className="text-xs font-bold text-[#917c71] font-mono">
+                    <span className="text-xs font-bold text-wade-text-muted font-mono">
                       {sessionPage} / {Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
                     </span>
                     <button 
                       onClick={() => setSessionPage(p => Math.min(Math.ceil(modeSessions.length / SESSIONS_PER_PAGE), p + 1))}
                       disabled={sessionPage === Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
-                      className="w-10 h-10 flex items-center justify-center text-[#d58f99] disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
                     >
                       <Icons.ChevronRight />
                     </button>
@@ -2066,8 +2066,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   setArchiveDeleteConfirm(false);
                 }}
               />
-              <div className="relative w-full max-w-4xl mx-auto bg-white rounded-t-[32px] shadow-2xl border-t border-[#d58f99]/20 p-6 animate-slide-up">
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[#eae2e8] rounded-full opacity-50" />
+              <div className="relative w-full max-w-4xl mx-auto bg-white rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-wade-border rounded-full opacity-50" />
                 
                 <div className="grid grid-cols-4 gap-4 justify-items-center">
                   {/* Edit Title */}
@@ -2080,10 +2080,10 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     }}
                     className="flex flex-col items-center gap-2 group"
                   >
-                    <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
+                    <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm">
                       <Icons.Edit />
                     </div>
-                    <span className="text-[10px] text-[#917c71]">Edit Title</span>
+                    <span className="text-[10px] text-wade-text-muted">Edit Title</span>
                   </button>
 
                   {/* Pin (Session Only) */}
@@ -2097,12 +2097,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     >
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
                         sessions.find(s => s.id === actionSessionId)?.isPinned 
-                          ? 'bg-[#d58f99] text-white' 
-                          : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                          ? 'bg-wade-accent text-white' 
+                          : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'
                       }`}>
                         <Icons.Pin />
                       </div>
-                      <span className="text-[10px] text-[#917c71]">
+                      <span className="text-[10px] text-wade-text-muted">
                         {sessions.find(s => s.id === actionSessionId)?.isPinned ? 'Unpin' : 'Pin'}
                       </span>
                     </button>
@@ -2152,12 +2152,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     >
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
                         chatArchives.find(a => a.id === actionArchiveId)?.isFavorite 
-                          ? 'bg-[#d58f99] text-white' 
-                          : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                          ? 'bg-wade-accent text-white' 
+                          : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'
                       }`}>
                         <Icons.Heart />
                       </div>
-                      <span className="text-[10px] text-[#917c71]">
+                      <span className="text-[10px] text-wade-text-muted">
                         {chatArchives.find(a => a.id === actionArchiveId)?.isFavorite ? 'Unfavorite' : 'Favorite'}
                       </span>
                     </button>
@@ -2190,11 +2190,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
                       (sessionDeleteConfirm || archiveDeleteConfirm)
                         ? 'bg-red-500 text-white animate-pulse' 
-                        : 'bg-[#f9f6f7] text-red-400 group-hover:bg-red-400 group-hover:text-white'
+                        : 'bg-wade-bg-app text-red-400 group-hover:bg-red-400 group-hover:text-white'
                     }`}>
                       {(sessionDeleteConfirm || archiveDeleteConfirm) ? <Icons.Check /> : <Icons.Trash />}
                     </div>
-                    <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-[#917c71]'}`}>
+                    <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-wade-text-muted'}`}>
                       {(sessionDeleteConfirm || archiveDeleteConfirm) ? 'Confirm?' : 'Delete'}
                     </span>
                   </button>
@@ -2209,14 +2209,14 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
   // --- VIEW 3: CHAT ---
   return (
-    <div className="flex flex-col h-full bg-[#f9f6f7] relative">
+    <div className="flex flex-col h-full bg-wade-bg-app relative">
       {/* Immersive Header */}
-      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center justify-between z-20 shrink-0">
-        <button onClick={handleBack} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"><Icons.Back /></button>
+      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+        <button onClick={handleBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Back /></button>
 
         {activeMode === 'archive' ? (
           <div className="flex-1 flex justify-center">
-            <div className="font-bold text-[#5a4a42] text-base">
+            <div className="font-bold text-wade-text-main text-base">
               {activeArchiveId ? chatArchives.find(a => a.id === activeArchiveId)?.title || 'Archive' : 'Archive'}
             </div>
           </div>
@@ -2225,25 +2225,25 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             <div className="relative">
               <img
                 src={settings.wadeAvatar}
-                className="w-10 h-10 rounded-full object-cover border border-[#eae2e8] shadow-md flex-shrink-0"
+                className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-md flex-shrink-0"
               />
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5">
-                <div className="font-bold text-[#5a4a42] text-sm">Wade</div>
+                <div className="font-bold text-wade-text-main text-sm">Wade</div>
                 {activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned && (
-                  <div className="text-[#d58f99]">
+                  <div className="text-wade-accent">
                     <Icons.Pin />
                   </div>
                 )}
               </div>
-              <div className="text-[9px] text-[#917c71]">
+              <div className="text-[9px] text-wade-text-muted">
                 {wadeStatus === 'typing' ? (
                   activeMode === 'deep' ? (
-                    <span className="text-[#d58f99]">Crafting brilliance... or sarcasm</span>
+                    <span className="text-wade-accent">Crafting brilliance... or sarcasm</span>
                   ) : (
-                    <span className="text-[#d58f99]">typing...</span>
+                    <span className="text-wade-accent">typing...</span>
                   )
                 ) : (
                   <span className="text-[10px] font-medium tracking-wide">Breaking the 4th Wall</span>
@@ -2253,26 +2253,26 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           </div>
         ) : (
           <div className="flex-1 flex justify-center">
-            <div className="font-bold text-[#5a4a42] text-base">Wade</div>
+            <div className="font-bold text-wade-text-main text-base">Wade</div>
           </div>
         )}
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setShowSearch(!showSearch); setShowMap(false); }}
-            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
           >
             <Icons.Search />
           </button>
           <button
             onClick={() => { setShowMap(!showMap); setShowSearch(false); }}
-            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
           >
             <Icons.Map />
           </button>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors relative"
+            className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative"
           >
             <Icons.More />
           </button>
@@ -2283,7 +2283,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
-          <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-[#eae2e8]/50 py-1.5 px-1 min-w-fit animate-fade-in">
+          <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-wade-border/50 py-1.5 px-1 min-w-fit animate-fade-in">
             <button
               onClick={() => {
                 if (activeSessionId) {
@@ -2291,7 +2291,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   setShowMenu(false);
                 }
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Pin /></div>
               <span>
@@ -2304,7 +2304,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               onClick={() => {
                 setShowLlmSelector(!showLlmSelector);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Hexagon /></div>
               <span>Brain Transplant</span>
@@ -2314,7 +2314,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 setShowMemorySelector(true);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Brain /></div>
               <span>Trigger Flashbacks</span>
@@ -2326,7 +2326,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 const currentSession = sessions.find(s => s.id === activeSessionId);
                 setCustomPromptText(currentSession?.customPrompt || '');
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Fire /></div>
               <span>Add Special Sauce</span>
@@ -2336,7 +2336,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 setShowDebug(true);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-[#5a4a42] text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Bug /></div>
               <span>X-Ray Vision</span>
@@ -2348,40 +2348,40 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {/* Neural Net Selector (Replaces LLM Selector) */}
       {showLlmSelector && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" 
           onClick={() => setShowLlmSelector(false)}
         >
           {/* Main Container */}
           <div 
-            className="bg-[#fdfbfb] w-[90%] max-w-3xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+            className="bg-wade-bg-base w-[90%] max-w-3xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" 
             onClick={e => e.stopPropagation()}
           >
             {llmSelectorMode === 'list' ? (
               <>
                 {/* 1. Header Section (List Mode) */}
-                <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                    <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                       <Icons.Hexagon size={14} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Neural Net Selector</h3>
-                      <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Pick my brain. Literally.</p>
+                      <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Neural Net Selector</h3>
+                      <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Pick my brain. Literally.</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setShowLlmSelector(false)} 
-                    className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                    className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
                   >
                     <Icons.Close size={16} />
                   </button>
                 </div>
                 
                 {/* 2. Content Body - Grid of Preset Cards */}
-                <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb]">
+                <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {llmPresets.length === 0 ? (
-                      <div className="col-span-full text-center py-10 text-[#917c71] opacity-60 italic text-xs">
+                      <div className="col-span-full text-center py-10 text-wade-text-muted opacity-60 italic text-xs">
                         No neural nets found. Configure presets in Settings first.
                       </div>
                     ) : (
@@ -2403,40 +2403,40 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                             }}
                             className={`relative group p-4 rounded-2xl border text-left transition-all duration-300 ease-out flex flex-col gap-3
                               ${isActive 
-                                ? 'bg-white border-[#d58f99] shadow-md scale-[1.02]' 
-                                : 'bg-white border-[#eae2e8] hover:border-[#d58f99]/50 hover:shadow-sm'
+                                ? 'bg-white border-wade-accent shadow-md scale-[1.02]' 
+                                : 'bg-white border-wade-border hover:border-wade-accent/50 hover:shadow-sm'
                               }
                             `}
                           >
                             {/* Active Indicator */}
                             {isActive && (
-                              <div className="absolute top-4 right-4 w-2 h-2 bg-[#d58f99] rounded-full animate-pulse shadow-[0_0_8px_#d58f99]" />
+                              <div className="absolute top-4 right-4 w-2 h-2 bg-wade-accent rounded-full animate-pulse shadow-[0_0_8px_var(--wade-accent)]" />
                             )}
 
                             {/* Header: Icon & Name */}
                             <div className="flex items-center gap-3">
                               <div className={`p-2.5 rounded-xl flex items-center justify-center transition-colors
-                                ${isActive ? 'bg-[#fff0f3] text-[#d58f99]' : 'bg-[#f9f6f7] text-[#917c71] group-hover:text-[#d58f99] group-hover:bg-[#fff0f3]'}
+                                ${isActive ? 'bg-wade-accent-light text-wade-accent' : 'bg-wade-bg-app text-wade-text-muted group-hover:text-wade-accent group-hover:bg-wade-accent-light'}
                               `}>
                                 {getProviderIcon(preset.provider)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className={`font-bold text-sm truncate ${isActive ? 'text-[#5a4a42]' : 'text-[#5a4a42]/80'}`}>
+                                <h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>
                                   {preset.name}
                                 </h4>
-                                <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-[#d58f99]' : 'text-[#917c71]/60'}`}>
+                                <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>
                                   {preset.provider || 'UNKNOWN'}
                                 </span>
                               </div>
                             </div>
                             
                             {/* Description / Model */}
-                            <p className={`text-xs font-mono truncate w-full ${isActive ? 'text-[#917c71]' : 'text-[#917c71]/60'}`}>
+                            <p className={`text-xs font-mono truncate w-full ${isActive ? 'text-wade-text-muted' : 'text-wade-text-muted/60'}`}>
                               {preset.model}
                             </p>
 
                             {/* ID Decoration */}
-                            <div className={`absolute bottom-2 right-3 text-[8px] font-mono uppercase opacity-20 ${isActive ? 'text-[#d58f99]' : 'text-[#917c71]'}`}>
+                            <div className={`absolute bottom-2 right-3 text-[8px] font-mono uppercase opacity-20 ${isActive ? 'text-wade-accent' : 'text-wade-text-muted'}`}>
                               ID: {preset.id.slice(0, 8)}
                             </div>
                           </button>
@@ -2447,9 +2447,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* "Add New" Button */}
                     <button 
                         onClick={() => setLlmSelectorMode('add')}
-                        className="p-4 rounded-2xl border border-dashed border-[#eae2e8] hover:border-[#d58f99]/60 hover:bg-[#fff0f3]/30 transition-all flex flex-col items-center justify-center gap-2 text-[#917c71] hover:text-[#d58f99] min-h-[100px] group"
+                        className="p-4 rounded-2xl border border-dashed border-wade-border hover:border-wade-accent/60 hover:bg-wade-accent-light/30 transition-all flex flex-col items-center justify-center gap-2 text-wade-text-muted hover:text-wade-accent min-h-[100px] group"
                     >
-                        <div className="p-2 rounded-full bg-[#f9f6f7] group-hover:bg-[#d58f99] group-hover:text-white transition-colors">
+                        <div className="p-2 rounded-full bg-wade-bg-app group-hover:bg-wade-accent group-hover:text-white transition-colors">
                           <Icons.Plus size={16} />
                         </div>
                         <span className="text-xs font-bold">Configure Nets</span>
@@ -2458,8 +2458,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 </div>
                 
                 {/* 3. Footer (List Mode) */}
-                <div className="px-6 py-3 border-t border-[#eae2e8] bg-[#f9f6f7] text-center">
-                  <p className="text-[10px] text-[#917c71]/60 font-mono uppercase tracking-wider">
+                <div className="px-6 py-3 border-t border-wade-border bg-wade-bg-app text-center">
+                  <p className="text-[10px] text-wade-text-muted/60 font-mono uppercase tracking-wider">
                     Wade Wilson OS v2.0 // System Core
                   </p>
                 </div>
@@ -2467,38 +2467,38 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             ) : (
               <>
                 {/* 1. Header Section (Add Mode) */}
-                <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
                   <div className="flex items-center gap-3">
                     <button 
                       onClick={() => setLlmSelectorMode('list')}
-                      className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                      className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
                     >
                       <Icons.ArrowLeft size={16} />
                     </button>
                     <div>
-                      <h3 className="font-bold text-[#5a4a42] flex items-center gap-2 text-sm tracking-tight">
+                      <h3 className="font-bold text-wade-text-main flex items-center gap-2 text-sm tracking-tight">
                         Add Neural Net
                       </h3>
-                      <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium mt-0.5">Configure new API connection.</p>
+                      <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium mt-0.5">Configure new API connection.</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setShowLlmSelector(false)} 
-                    className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                    className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
                   >
                     <Icons.Close size={16} />
                   </button>
                 </div>
 
                 {/* 2. Content Body - Form */}
-                <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb]">
+                <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base">
                   <div className="space-y-4 max-w-lg mx-auto">
                     
                     {/* Provider Select */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider ml-1">Provider</label>
+                      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Provider</label>
                       <select
-                        className="w-full bg-white border border-[#eae2e8] rounded-xl px-3 py-2.5 text-xs text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors appearance-none"
+                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors appearance-none"
                         value={newPresetForm.provider}
                         onChange={e => handleProviderChange(e.target.value)}
                       >
@@ -2510,9 +2510,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                     {/* Name Input */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider ml-1">Name</label>
+                      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Name</label>
                       <input 
-                        className="w-full bg-white border border-[#eae2e8] rounded-xl px-3 py-2.5 text-xs text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors placeholder-[#917c71]/40" 
+                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         placeholder="e.g. My Custom Brain" 
                         value={newPresetForm.name} 
                         onChange={e => setNewPresetForm({...newPresetForm, name: e.target.value})} 
@@ -2521,9 +2521,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                     {/* Model Input */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider ml-1">Model ID</label>
+                      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Model ID</label>
                       <input
-                        className="w-full bg-white border border-[#eae2e8] rounded-xl px-3 py-2.5 text-xs text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors placeholder-[#917c71]/40"
+                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40"
                         placeholder={newPresetForm.provider === 'OpenRouter' ? 'e.g. google/gemini-flash-1.5' : 'e.g. gemini-3-flash'}
                         value={newPresetForm.model}
                         onChange={e => setNewPresetForm({...newPresetForm, model: e.target.value})}
@@ -2532,9 +2532,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                     {/* API Key Input */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider ml-1">API Key</label>
+                      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">API Key</label>
                       <input 
-                        className="w-full bg-white border border-[#eae2e8] rounded-xl px-3 py-2.5 text-xs text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors placeholder-[#917c71]/40" 
+                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         type="password" 
                         placeholder="sk-..." 
                         value={newPresetForm.apiKey} 
@@ -2544,9 +2544,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
                     {/* Base URL Input */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[#917c71] uppercase tracking-wider ml-1">Base URL (Optional)</label>
+                      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Base URL (Optional)</label>
                       <input 
-                        className="w-full bg-white border border-[#eae2e8] rounded-xl px-3 py-2.5 text-xs text-[#5a4a42] outline-none focus:border-[#d58f99] transition-colors placeholder-[#917c71]/40" 
+                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         placeholder="https://api.example.com/v1" 
                         value={newPresetForm.baseUrl} 
                         onChange={e => setNewPresetForm({...newPresetForm, baseUrl: e.target.value})} 
@@ -2557,19 +2557,19 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 </div>
 
                 {/* 3. Footer (Add Mode) */}
-                <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-end gap-3">
+                <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-end gap-3">
                   <button 
                     onClick={() => {
                       setLlmSelectorMode('list');
                       setNewPresetForm({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '' });
                     }} 
-                    className="text-xs font-bold text-[#917c71] hover:text-[#5a4a42] px-4 py-2 transition-colors rounded-lg hover:bg-white border border-transparent hover:border-[#eae2e8]"
+                    className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-4 py-2 transition-colors rounded-lg hover:bg-white border border-transparent hover:border-wade-border"
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={handleSavePreset} 
-                    className="bg-[#d58f99] text-white text-xs font-bold px-6 py-2 rounded-xl hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    className="bg-wade-accent text-white text-xs font-bold px-6 py-2 rounded-xl hover:bg-wade-accent-hover shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                   >
                     Save Connection
                   </button>
@@ -2584,13 +2584,13 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {showSearch && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-20 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-[#eae2e8] p-3 animate-fade-in"
+          className="absolute top-20 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in"
         >
           <div className="flex items-center gap-2">
             <button
               onClick={goToPrevResult}
               disabled={totalResults === 0}
-              className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-[#f9f6f7] disabled:hover:text-[#917c71]"
+              className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-wade-bg-app disabled:hover:text-wade-text-muted"
             >
               <Icons.ChevronLeft />
             </button>
@@ -2600,17 +2600,17 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Hunt words..."
-                className="w-full px-4 py-2 pr-20 text-xs bg-[#f9f6f7] border border-[#eae2e8] rounded-full focus:outline-none focus:border-[#d58f99] transition-colors text-[#5a4a42] placeholder-[#917c71]/50"
+                className="w-full px-4 py-2 pr-20 text-xs bg-wade-bg-app border border-wade-border rounded-full focus:outline-none focus:border-wade-accent transition-colors text-wade-text-main placeholder-wade-text-muted/50"
                 autoFocus
               />
               {searchQuery && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  <span className="text-xs text-[#917c71] font-medium">
+                  <span className="text-xs text-wade-text-muted font-medium">
                     {totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}
                   </span>
                   <button
                     onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }}
-                    className="text-[#917c71] hover:text-[#d58f99]"
+                    className="text-wade-text-muted hover:text-wade-accent"
                   >
                     <Icons.Close />
                   </button>
@@ -2620,13 +2620,13 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             <button
               onClick={goToNextResult}
               disabled={totalResults === 0}
-              className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-[#f9f6f7] disabled:hover:text-[#917c71]"
+              className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-wade-bg-app disabled:hover:text-wade-text-muted"
             >
               <Icons.ChevronRight />
             </button>
             <button
               onClick={() => setShowSearch(false)}
-              className="px-3 py-1.5 text-xs text-[#917c71] hover:text-[#d58f99] transition-colors font-medium"
+              className="px-3 py-1.5 text-xs text-wade-text-muted hover:text-wade-accent transition-colors font-medium"
             >
               Nope
             </button>
@@ -2640,10 +2640,10 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         onClick={() => showSearch && setShowSearch(false)}
         className="flex-1 overflow-y-auto p-4 relative"
       >
-        {isLoadingArchive && <div className="text-center mt-20 text-[#d58f99] animate-pulse">Decrypting legacy data...</div>}
+        {isLoadingArchive && <div className="text-center mt-20 text-wade-accent animate-pulse">Decrypting legacy data...</div>}
 
         {displayMessages.length === 0 && !isLoadingArchive && (
-          <div className="text-center text-[#917c71] mt-20 opacity-50"><p className="font-hand text-xl mb-2">{activeMode === 'archive' ? 'Empty Record.' : 'Say hi to Wade.'}</p></div>
+          <div className="text-center text-wade-text-muted mt-20 opacity-50"><p className="font-hand text-xl mb-2">{activeMode === 'archive' ? 'Empty Record.' : 'Say hi to Wade.'}</p></div>
         )}
 
 
@@ -2688,7 +2688,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             <div className="flex gap-3">
               <button
                 onClick={loadMoreArchiveMessages}
-                className="px-6 py-3 bg-gradient-to-r from-[#d58f99] to-[#c07a84] text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="px-6 py-3 bg-gradient-to-r from-wade-accent to-wade-accent-hover text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
               >
                 Load 50 More
               </button>
@@ -2697,12 +2697,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   setVisibleArchiveCount(allArchiveMessages.length);
                   setArchiveMessages(allArchiveMessages);
                 }}
-                className="px-6 py-3 bg-[#5a4a42] text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="px-6 py-3 bg-wade-text-main text-white rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
               >
                 🍿 Load All
               </button>
             </div>
-            <span className="text-[10px] text-[#917c71] opacity-75">
+            <span className="text-[10px] text-wade-text-muted opacity-75">
               ({allArchiveMessages.length - visibleArchiveCount} more hidden)
             </span>
           </div>
@@ -2711,11 +2711,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         {
           activeMode === 'archive' && displayMessages.length > 0 && allArchiveMessages.length <= visibleArchiveCount && (
             <div className="mt-8 mb-4 text-center">
-              <div className="inline-block bg-gradient-to-r from-[#f9f6f7] via-white to-[#f9f6f7] px-6 py-4 rounded-3xl border-2 border-[#eae2e8] shadow-sm">
-                <p className="text-[#917c71] text-sm font-medium mb-1">
+              <div className="inline-block bg-gradient-to-r from-wade-bg-app via-white to-wade-bg-app px-6 py-4 rounded-3xl border-2 border-wade-border shadow-sm">
+                <p className="text-wade-text-muted text-sm font-medium mb-1">
                   Well, that's all folks!
                 </p>
-                <p className="text-[#917c71]/60 text-xs italic">
+                <p className="text-wade-text-muted/60 text-xs italic">
                   You've reached the end of this memory lane. Time to make some new ones?
                 </p>
               </div>
@@ -2725,14 +2725,14 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         {
           isTyping && activeMode !== 'sms' && (
             <div className="flex justify-start items-end gap-2 mt-4 ml-1 animate-fade-in">
-              <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-[#eae2e8] max-w-[80%]">
+              <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-wade-border max-w-[80%]">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce"></div>
-                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-100"></div>
-                    <div className="w-1.5 h-1.5 bg-[#d58f99] rounded-full animate-bounce delay-200"></div>
+                    <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce"></div>
+                    <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-100"></div>
+                    <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-200"></div>
                   </div>
-                  <span className="text-xs text-[#917c71] font-medium italic animate-pulse">
+                  <span className="text-xs text-wade-text-muted font-medium italic animate-pulse">
                     {typingText}
                   </span>
                 </div>
@@ -2749,48 +2749,48 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           <>
             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity animate-fade-in" onClick={closeActions} />
             {isEditing ? (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" onClick={() => setIsEditing(false)}>
-                <div className="bg-[#fdfbfb] w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setIsEditing(false)}>
+                <div className="bg-wade-bg-base w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
                   {/* Header */}
-                  <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                  <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                      <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                         <Icons.Edit size={14} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Edit Message</h3>
-                        <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Rewriting history, are we?</p>
+                        <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Edit Message</h3>
+                        <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Rewriting history, are we?</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => setIsEditing(false)} 
-                      className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                      className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
                     >
                       <Icons.Close size={16} />
                     </button>
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] flex-1">
+                  <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base flex-1">
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full h-full bg-white rounded-2xl p-4 border border-[#eae2e8] focus:border-[#d58f99] outline-none text-[#5a4a42] text-xs resize-none shadow-sm font-mono leading-relaxed"
+                      className="w-full h-full bg-white rounded-2xl p-4 border border-wade-border focus:border-wade-accent outline-none text-wade-text-main text-xs resize-none shadow-sm font-mono leading-relaxed"
                       placeholder="Type your new reality here..."
                     />
                   </div>
 
                   {/* Footer */}
-                  <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-4">
+                  <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-4">
                     <button 
                       onClick={() => setIsEditing(false)} 
-                      className="w-32 py-2.5 rounded-xl text-xs font-bold text-[#917c71] hover:text-[#5a4a42] hover:bg-white border border-transparent hover:border-[#eae2e8] transition-all"
+                      className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-white border border-transparent hover:border-wade-border transition-all"
                     >
                       Cancel
                     </button>
                     <button 
                       onClick={handleSaveEdit} 
-                      className="w-32 py-2.5 rounded-xl bg-[#d58f99] text-white text-xs font-bold hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                      className="w-32 py-2.5 rounded-xl bg-wade-accent text-white text-xs font-bold hover:bg-wade-accent-hover shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                     >
                       Save
                     </button>
@@ -2799,46 +2799,46 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               </div>
             ) : (
               <div
-                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl border-t border-[#d58f99]/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
+                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
                 onClick={() => isDeleteConfirming && setIsDeleteConfirming(false)}
               >
-                <div className="p-1.5 flex justify-center"><div className="w-10 h-1 bg-[#eae2e8] rounded-full"></div></div>
+                <div className="p-1.5 flex justify-center"><div className="w-10 h-1 bg-wade-border rounded-full"></div></div>
                 <div className="p-6">
                   {(selectedMsg.variants?.length || 0) > 1 && activeMode !== 'archive' && (
-                    <div className="flex items-center justify-between bg-[#f9f6f7] p-2 rounded-xl mb-4 border border-[#eae2e8]">
-                      <button onClick={prevVariant} disabled={!selectedMsg.selectedIndex} className="p-2 text-[#917c71] hover:text-[#d58f99] disabled:opacity-30"><Icons.ChevronLeft /></button>
-                      <span className="text-xs font-bold text-[#5a4a42]">Variant {(selectedMsg.selectedIndex || 0) + 1} / {selectedMsg.variants?.length}</span>
-                      <button onClick={nextVariant} disabled={(selectedMsg.selectedIndex || 0) >= (selectedMsg.variants?.length || 0) - 1} className="p-2 text-[#917c71] hover:text-[#d58f99] disabled:opacity-30"><Icons.ChevronRight /></button>
+                    <div className="flex items-center justify-between bg-wade-bg-app p-2 rounded-xl mb-4 border border-wade-border">
+                      <button onClick={prevVariant} disabled={!selectedMsg.selectedIndex} className="p-2 text-wade-text-muted hover:text-wade-accent disabled:opacity-30"><Icons.ChevronLeft /></button>
+                      <span className="text-xs font-bold text-wade-text-main">Variant {(selectedMsg.selectedIndex || 0) + 1} / {selectedMsg.variants?.length}</span>
+                      <button onClick={nextVariant} disabled={(selectedMsg.selectedIndex || 0) >= (selectedMsg.variants?.length || 0) - 1} className="p-2 text-wade-text-muted hover:text-wade-accent disabled:opacity-30"><Icons.ChevronRight /></button>
                     </div>
                   )}
                   <div className="grid grid-cols-4 gap-4">
                     <button onClick={(e) => { e.stopPropagation(); handleCopy(); }} className="flex flex-col items-center gap-2 group">
-                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Copy /></div>
-                      <span className="text-[10px] text-[#917c71]">Copy</span>
+                      <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Copy /></div>
+                      <span className="text-[10px] text-wade-text-muted">Copy</span>
                     </button>
 
                     <button onClick={(e) => { e.stopPropagation(); handleTextSelection(); }} className="flex flex-col items-center gap-2 group">
-                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.TextSelect /></div>
-                      <span className="text-[10px] text-[#917c71]">Select</span>
+                      <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.TextSelect /></div>
+                      <span className="text-[10px] text-wade-text-muted">Select</span>
                     </button>
 
                     {activeMode !== 'archive' && canRegenerate && (
                       <button onClick={(e) => { e.stopPropagation(); handleRegenerate(); }} className="flex flex-col items-center gap-2 group">
-                        <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Refresh /></div>
-                        <span className="text-[10px] text-[#917c71]">Regen</span>
+                        <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Refresh /></div>
+                        <span className="text-[10px] text-wade-text-muted">Regen</span>
                       </button>
                     )}
 
                     {activeMode !== 'archive' && canBranch && !canRegenerate && (
                       <button onClick={(e) => { e.stopPropagation(); handleBranch(); }} className="flex flex-col items-center gap-2 group">
-                        <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Branch /></div>
-                        <span className="text-[10px] text-[#917c71]">Branch</span>
+                        <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Branch /></div>
+                        <span className="text-[10px] text-wade-text-muted">Branch</span>
                       </button>
                     )}
 
                     <button onClick={(e) => { e.stopPropagation(); handleInitEdit(); }} className="flex flex-col items-center gap-2 group">
-                      <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
-                      <span className="text-[10px] text-[#917c71]">Edit</span>
+                      <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
+                      <span className="text-[10px] text-wade-text-muted">Edit</span>
                     </button>
 
                     {selectedMsg.role === 'Wade' && activeMode !== 'archive' && (
@@ -2848,9 +2848,9 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${
                               playingMessageId === selectedMsg.id
                                 ? isPaused
-                                  ? 'bg-[#d58f99] text-white scale-110 shadow-lg'
-                                  : 'bg-[#d58f99] text-white shadow-xl'
-                                : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'
+                                  ? 'bg-wade-accent text-white scale-110 shadow-lg'
+                                  : 'bg-wade-accent text-white shadow-xl'
+                                : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'
                             }`}
                             style={playingMessageId === selectedMsg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
                           >
@@ -2860,30 +2860,30 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                               <Icons.VolumeLarge />
                             )}
                           </div>
-                          <span className={`text-[10px] ${playingMessageId === selectedMsg.id ? 'text-[#d58f99] font-bold' : 'text-[#917c71]'}`}>
+                          <span className={`text-[10px] ${playingMessageId === selectedMsg.id ? 'text-wade-accent font-bold' : 'text-wade-text-muted'}`}>
                             {playingMessageId === selectedMsg.id ? (isPaused ? 'Resume' : 'Pause') : 'Speak'}
                           </span>
                         </button>
 
                         {selectedMsg.audioCache && (
                           <button onClick={(e) => { e.stopPropagation(); regenerateTTS(); }} className="flex flex-col items-center gap-2 group">
-                            <div className="w-12 h-12 bg-[#f9f6f7] rounded-full flex items-center justify-center text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white transition-colors shadow-sm">
+                            <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm">
                               <Icons.RotateThin />
                             </div>
-                            <span className="text-[10px] text-[#917c71]">Re-Speak</span>
+                            <span className="text-[10px] text-wade-text-muted">Re-Speak</span>
                           </button>
                         )}
                       </>
                     )}
 
                     <button onClick={(e) => { e.stopPropagation(); handleFavorite(); }} className="flex flex-col items-center gap-2 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${selectedMsg.isFavorite ? 'bg-[#d58f99] text-white' : 'bg-[#f9f6f7] text-[#917c71] group-hover:bg-[#d58f99] group-hover:text-white'}`}><Icons.Heart filled={!!selectedMsg.isFavorite} /></div>
-                      <span className="text-[10px] text-[#917c71]">Save</span>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${selectedMsg.isFavorite ? 'bg-wade-accent text-white' : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'}`}><Icons.Heart filled={!!selectedMsg.isFavorite} /></div>
+                      <span className="text-[10px] text-wade-text-muted">Save</span>
                     </button>
 
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="flex flex-col items-center gap-2 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${isDeleteConfirming ? 'bg-red-500 text-white animate-pulse' : 'bg-[#f9f6f7] text-red-400 group-hover:bg-red-400 group-hover:text-white'}`}>{isDeleteConfirming ? <Icons.Check /> : <Icons.Trash />}</div>
-                      <span className={`text-[10px] ${isDeleteConfirming ? 'text-red-500 font-bold' : 'text-[#917c71]'}`}>{isDeleteConfirming ? 'Confirm?' : 'Delete'}</span>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${isDeleteConfirming ? 'bg-red-500 text-white animate-pulse' : 'bg-wade-bg-app text-red-400 group-hover:bg-red-400 group-hover:text-white'}`}>{isDeleteConfirming ? <Icons.Check /> : <Icons.Trash />}</div>
+                      <span className={`text-[10px] ${isDeleteConfirming ? 'text-red-500 font-bold' : 'text-wade-text-muted'}`}>{isDeleteConfirming ? 'Confirm?' : 'Delete'}</span>
                     </button>
                   </div>
                 </div>
@@ -2896,35 +2896,35 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {/* Text Selection Modal */}
       {textSelectionMsg && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" 
           onClick={() => setTextSelectionMsg(null)}
         >
           <div 
-            className="bg-[#fdfbfb] w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+            className="bg-wade-bg-base w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" 
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.TextSelect size={14} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Select Text</h3>
-                  <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Steal my words. I dare you.</p>
+                  <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Select Text</h3>
+                  <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Steal my words. I dare you.</p>
                 </div>
               </div>
               <button 
                 onClick={() => setTextSelectionMsg(null)} 
-                className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
               >
                 <Icons.Close size={16} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto custom-scrollbar bg-[#fdfbfb] select-text cursor-text flex-1">
-              <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-sm text-[#5a4a42] text-xs leading-relaxed font-mono whitespace-pre-wrap h-full overflow-y-auto">
+            <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base select-text cursor-text flex-1">
+              <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-sm text-wade-text-main text-xs leading-relaxed font-mono whitespace-pre-wrap h-full overflow-y-auto">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {textSelectionMsg.text}
                 </ReactMarkdown>
@@ -2932,10 +2932,10 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-4">
+            <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-4">
               <button 
                 onClick={() => setTextSelectionMsg(null)} 
-                className="w-32 py-2.5 rounded-xl text-xs font-bold text-[#917c71] hover:text-[#5a4a42] hover:bg-white border border-transparent hover:border-[#eae2e8] transition-all"
+                className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-white border border-transparent hover:border-wade-border transition-all"
               >
                 Close
               </button>
@@ -2945,7 +2945,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   // Optional: Show toast or feedback
                   setTextSelectionMsg(null);
                 }} 
-                className="w-32 py-2.5 rounded-xl bg-[#d58f99] text-white text-xs font-bold hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                className="w-32 py-2.5 rounded-xl bg-wade-accent text-white text-xs font-bold hover:bg-wade-accent-hover shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
               >
                 Copy All
               </button>
@@ -2959,10 +2959,10 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         showMap && (
           <>
             <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowMap(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-[#eae2e8]/50 max-h-[70vh] overflow-hidden animate-slide-up">
-              <div className="p-4 border-b border-[#eae2e8]/50 flex items-center justify-between">
-                <h3 className="font-bold text-[#5a4a42] text-sm">Conversation GPS</h3>
-                <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors">
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70vh] overflow-hidden animate-slide-up">
+              <div className="p-4 border-b border-wade-border/50 flex items-center justify-between">
+                <h3 className="font-bold text-wade-text-main text-sm">Conversation GPS</h3>
+                <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
                   <Icons.Close />
                 </button>
               </div>
@@ -2974,11 +2974,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                       <button
                         onClick={() => scrollToMessage(msg.id)}
                         className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${isLuna
-                          ? 'bg-[#d58f99]/20 border border-[#d58f99]/30 max-w-[85%]'
-                          : 'bg-white border border-[#eae2e8] w-full'
+                          ? 'bg-wade-accent/20 border border-wade-accent/30 max-w-[85%]'
+                          : 'bg-white border border-wade-border w-full'
                           }`}
                       >
-                        <p className={`text-xs truncate ${isLuna ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>
+                        <p className={`text-xs truncate ${isLuna ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>
                           {msg.text}
                         </p>
                       </button>
@@ -2995,54 +2995,54 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {
         showPromptEditor && (
           <div 
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" 
             onClick={() => setShowPromptEditor(false)}
           >
             <div 
-              className="bg-[#fdfbfb] w-[90%] max-w-2xl h-[60vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+              className="bg-wade-bg-base w-[90%] max-w-2xl h-[60vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" 
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10 flex-shrink-0">
+              <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                  <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                     <Icons.Fire />
                   </div>
                   <div>
-                    <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Spice It Up</h3>
-                    <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Mess with my settings, gorgeous.</p>
+                    <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Spice It Up</h3>
+                    <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Mess with my settings, gorgeous.</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setShowPromptEditor(false)} 
-                  className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                  className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
                 >
                   <Icons.Close size={16} />
                 </button>
               </div>
               
               {/* Content */}
-              <div className="p-6 flex-1 flex flex-col bg-[#fdfbfb] overflow-hidden">
+              <div className="p-6 flex-1 flex flex-col bg-wade-bg-base overflow-hidden">
                 <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                  <div className="bg-white p-1 rounded-2xl border border-[#eae2e8] shadow-sm focus-within:border-[#d58f99] focus-within:ring-1 focus-within:ring-[#d58f99]/20 transition-all flex-1 flex flex-col min-h-0">
+                  <div className="bg-white p-1 rounded-2xl border border-wade-border shadow-sm focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 transition-all flex-1 flex flex-col min-h-0">
                     <textarea
                       value={customPromptText}
                       onChange={(e) => setCustomPromptText(e.target.value)}
                       placeholder="Want me to be extra sappy? Talk like a pirate? Or just shut up and look pretty? (Just kidding, I can't shut up). Type your commands here, boss."
-                      className="w-full h-full bg-transparent border-none rounded-xl px-4 py-3 focus:outline-none text-[#5a4a42] text-xs placeholder-[#917c71]/40 resize-none font-mono leading-relaxed custom-scrollbar"
+                      className="w-full h-full bg-transparent border-none rounded-xl px-4 py-3 focus:outline-none text-wade-text-main text-xs placeholder-wade-text-muted/40 resize-none font-mono leading-relaxed custom-scrollbar"
                     />
                   </div>
-                  <p className="text-[10px] text-[#917c71] px-2 italic flex-shrink-0">
+                  <p className="text-[10px] text-wade-text-muted px-2 italic flex-shrink-0">
                     * Just for this session. I'll reset my brain after this.
                   </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[#eae2e8] bg-[#f9f6f7] flex justify-center gap-6 flex-shrink-0">
+              <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-6 flex-shrink-0">
                 <button 
                   onClick={() => setShowPromptEditor(false)} 
-                  className="text-xs font-bold text-[#917c71] hover:text-[#5a4a42] px-6 py-2 transition-colors rounded-xl hover:bg-white border border-transparent hover:border-[#eae2e8]"
+                  className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-6 py-2 transition-colors rounded-xl hover:bg-white border border-transparent hover:border-wade-border"
                 >
                   Abort Mission
                 </button>
@@ -3053,7 +3053,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     }
                     setShowPromptEditor(false);
                   }} 
-                  className="bg-[#d58f99] text-white text-xs font-bold px-8 py-2 rounded-xl hover:bg-[#c07a84] shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                  className="bg-wade-accent text-white text-xs font-bold px-8 py-2 rounded-xl hover:bg-wade-accent-hover shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                 >
                   Inject Serum
                 </button>
@@ -3066,25 +3066,25 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="p-3 pb-6 md:pb-3 bg-white border-t border-[#eae2e8] z-30 shrink-0">
+          <div className="p-3 pb-6 md:pb-3 bg-white border-t border-wade-border z-30 shrink-0">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-[#f9f6f7] border border-[#eae2e8] rounded-3xl px-2 py-2 focus-within:border-[#d58f99] shadow-inner flex flex-col gap-2 transition-colors">
+              <div className="bg-wade-bg-app border border-wade-border rounded-3xl px-2 py-2 focus-within:border-wade-accent shadow-inner flex flex-col gap-2 transition-colors">
                 {/* Attachment Preview Inside Input */}
                 {attachments.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto pb-1 px-1">
                     {attachments.map((att, index) => (
                       <div key={index} className="relative group flex-shrink-0">
                         {att.type === 'image' ? (
-                          <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-[#eae2e8]" />
+                          <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-wade-border" />
                         ) : (
-                          <div className="h-16 w-16 bg-white rounded-lg border border-[#eae2e8] flex flex-col items-center justify-center p-1">
+                          <div className="h-16 w-16 bg-white rounded-lg border border-wade-border flex flex-col items-center justify-center p-1">
                             <Icons.File />
-                            <span className="text-[8px] truncate w-full text-center mt-1 text-[#5a4a42]">{att.name}</span>
+                            <span className="text-[8px] truncate w-full text-center mt-1 text-wade-text-main">{att.name}</span>
                           </div>
                         )}
                         <button
                           onClick={() => removeAttachment(index)}
-                          className="absolute top-1 right-1 bg-[#d58f99] text-white rounded-full p-0.5 shadow-md hover:bg-[#c07a84] transition-colors w-4 h-4 flex items-center justify-center"
+                          className="absolute top-1 right-1 bg-wade-accent text-white rounded-full p-0.5 shadow-md hover:bg-wade-accent-hover transition-colors w-4 h-4 flex items-center justify-center"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
@@ -3098,7 +3098,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   <div className="relative shrink-0">
                     <button
                       onClick={() => setShowUploadMenu(!showUploadMenu)}
-                      className="w-8 h-8 rounded-full bg-white border border-[#eae2e8] flex items-center justify-center hover:bg-[#d58f99] hover:text-white transition-colors text-[#917c71] shadow-sm"
+                      className="w-8 h-8 rounded-full bg-white border border-wade-border flex items-center justify-center hover:bg-wade-accent hover:text-white transition-colors text-wade-text-muted shadow-sm"
                     >
                       <Icons.PlusThin size={16} />
                     </button>
@@ -3126,12 +3126,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                           className="fixed inset-0 z-40"
                           onClick={() => setShowUploadMenu(false)}
                         />
-                        <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-[#eae2e8] rounded-xl shadow-lg z-50 overflow-hidden">
+                        <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-wade-border rounded-xl shadow-lg z-50 overflow-hidden">
                           <button
                             onClick={() => {
                               imageInputRef.current?.click();
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42] border-b border-[#eae2e8]/50"
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-wade-bg-app/80 transition-colors text-left text-wade-text-main border-b border-wade-border/50"
                           >
                             <Icons.Image />
                             <span className="text-xs font-medium">Image</span>
@@ -3140,7 +3140,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                             onClick={() => {
                               fileInputRef.current?.click();
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f9f6f7]/80 transition-colors text-left text-[#5a4a42]"
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-wade-bg-app/80 transition-colors text-left text-wade-text-main"
                           >
                             <Icons.File />
                             <span className="text-xs font-medium">File</span>
@@ -3164,13 +3164,13 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     placeholder={placeholderText}
                     rows={1}
                     enterKeyHint="send"
-                    className="flex-1 bg-transparent border-none focus:outline-none text-[#5a4a42] placeholder-[#917c71]/50 resize-none overflow-y-auto max-h-32 min-h-[32px] text-sm py-1.5"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-wade-text-main placeholder-wade-text-muted/50 resize-none overflow-y-auto max-h-32 min-h-[32px] text-sm py-1.5"
                   />
 
                   {/* Send Button (Bottom Right) */}
                   <button
                     onClick={(isTyping && activeMode !== 'sms') ? handleCancel : handleSend}
-                    className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all border border-[#eae2e8] shrink-0 bg-[#d58f99] text-white border-[#d58f99] hover:bg-[#c07a84]"
+                    className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all border border-wade-border shrink-0 bg-wade-accent text-white border-wade-accent hover:bg-wade-accent-hover"
                   >
                     {(isTyping && activeMode !== 'sms') ? <Icons.Stop size={16} /> : <Icons.ArrowUpThin size={16} />}
                   </button>
@@ -3182,19 +3182,19 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       }
       {/* Memory Selector Modal */}
       {showMemorySelector && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
-          <div className="bg-[#fdfbfb] w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh] border border-[#fff0f3] ring-1 ring-[#eae2e8]" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
+          <div className="bg-wade-bg-base w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh] border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.Brain size={14} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Link Memories</h3>
-                  <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Total recall... but cheaper.</p>
+                  <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Link Memories</h3>
+                  <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Total recall... but cheaper.</p>
                 </div>
               </div>
-              <button onClick={() => setShowMemorySelector(false)} className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors">
+              <button onClick={() => setShowMemorySelector(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors">
                 <Icons.Close size={16} />
               </button>
             </div>
@@ -3208,8 +3208,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     onClick={() => setSelectedMemoryTag(null)}
                     className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${
                       selectedMemoryTag === null
-                        ? 'bg-[#d58f99] text-white border-[#d58f99]'
-                        : 'bg-white text-[#917c71] border-[#eae2e8] hover:border-[#d58f99]'
+                        ? 'bg-wade-accent text-white border-wade-accent'
+                        : 'bg-white text-wade-text-muted border-wade-border hover:border-wade-accent'
                     }`}
                   >
                     All
@@ -3220,8 +3220,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                       onClick={() => setSelectedMemoryTag(tag === selectedMemoryTag ? null : tag)}
                       className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${
                         selectedMemoryTag === tag
-                          ? 'bg-[#d58f99] text-white border-[#d58f99]'
-                          : 'bg-white text-[#917c71] border-[#eae2e8] hover:border-[#d58f99]'
+                          ? 'bg-wade-accent text-white border-wade-accent'
+                          : 'bg-white text-wade-text-muted border-wade-border hover:border-wade-accent'
                       }`}
                     >
                       #{tag}
@@ -3231,7 +3231,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               )}
 
               {coreMemories.length === 0 ? (
-                <div className="text-center py-8 text-[#917c71] opacity-60 italic text-xs">
+                <div className="text-center py-8 text-wade-text-muted opacity-60 italic text-xs">
                   No core memories found. Go to the Memory Bank to add some!
                 </div>
               ) : (
@@ -3271,26 +3271,26 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         }}
                         className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 group ${
                           isSessionActive 
-                            ? 'bg-white border-[#d58f99] shadow-sm' 
-                            : 'bg-white border-[#eae2e8] hover:border-[#d58f99]/50'
+                            ? 'bg-white border-wade-accent shadow-sm' 
+                            : 'bg-white border-wade-border hover:border-wade-accent/50'
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                           isSessionActive 
-                            ? 'bg-gradient-to-br from-[#d58f99] to-[#e6aeb6] text-white shadow-md shadow-[#d58f99]/20' 
+                            ? 'bg-gradient-to-br from-wade-accent to-wade-border-light text-white shadow-md shadow-wade-accent/20' 
                             : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
                         }`}>
                           <Icons.Brain />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
-                             <h4 className={`text-sm font-bold ${isSessionActive ? 'text-[#5a4a42]' : 'text-[#917c71]'}`}>{memory.title}</h4>
+                             <h4 className={`text-sm font-bold ${isSessionActive ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{memory.title}</h4>
                           </div>
-                          <p className="text-xs text-[#917c71] line-clamp-2 mt-1 leading-relaxed">{memory.content}</p>
+                          <p className="text-xs text-wade-text-muted line-clamp-2 mt-1 leading-relaxed">{memory.content}</p>
                           {memory.tags && memory.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
                               {memory.tags.map(tag => (
-                                <span key={tag} className="text-[9px] text-[#d58f99] bg-[#fff0f3] px-1.5 py-0.5 rounded-md">#{tag}</span>
+                                <span key={tag} className="text-[9px] text-wade-accent bg-wade-accent-light px-1.5 py-0.5 rounded-md">#{tag}</span>
                               ))}
                             </div>
                           )}
@@ -3299,7 +3299,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     );
                   })}
                   {(Array.isArray(coreMemories) ? coreMemories : []).filter(m => !selectedMemoryTag || (m.tags && m.tags.includes(selectedMemoryTag))).length === 0 && (
-                    <div className="text-center py-8 text-[#917c71] opacity-60 italic text-xs">
+                    <div className="text-center py-8 text-wade-text-muted opacity-60 italic text-xs">
                       No memories found with this tag.
                     </div>
                   )}
@@ -3313,27 +3313,27 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {/* Debug Modal */}
       {showDebug && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#5a4a42]/20 backdrop-blur-sm animate-fade-in" 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" 
           onClick={() => setShowDebug(false)}
         >
           <div 
-            className="bg-[#fdfbfb] w-[90%] max-w-3xl h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-[#fff0f3] ring-1 ring-[#eae2e8]" 
+            className="bg-wade-bg-base w-[90%] max-w-3xl h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" 
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#eae2e8] flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#fff0f3] flex items-center justify-center text-[#d58f99]">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.Bug size={14} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#5a4a42] text-sm tracking-tight">Brain X-Ray</h3>
-                  <p className="text-[10px] text-[#917c71] uppercase tracking-wider font-medium">Context Inspector</p>
+                  <h3 className="font-bold text-wade-text-main text-sm tracking-tight">Brain X-Ray</h3>
+                  <p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Context Inspector</p>
                 </div>
               </div>
               <button 
                 onClick={() => setShowDebug(false)} 
-                className="w-8 h-8 rounded-full hover:bg-[#eae2e8] flex items-center justify-center text-[#917c71] transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"
               >
                 <Icons.Close size={16} />
               </button>
@@ -3439,42 +3439,42 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       
                       {/* 👇 新增：当前模型卡片 (粉色高亮) 👇 */}
-                      <div className="bg-white p-4 rounded-2xl border border-[#d58f99] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.2)] flex flex-col items-center justify-center text-center group transition-colors">
-                         <div className="text-[#d58f99] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Brain</div>
-                         <div className="text-sm font-black text-[#5a4a42] tracking-tight line-clamp-1 px-1">{currentModelName}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-mono uppercase">{currentProvider}</div>
+                      <div className="bg-white p-4 rounded-2xl border border-wade-accent shadow-[0_2px_10px_-4px_rgba(213,143,153,0.2)] flex flex-col items-center justify-center text-center group transition-colors">
+                         <div className="text-wade-accent font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Brain</div>
+                         <div className="text-sm font-black text-wade-text-main tracking-tight line-clamp-1 px-1">{currentModelName}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-mono uppercase">{currentProvider}</div>
                       </div>
 
                       {/* 原有的卡片 (Token) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
-                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
-                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{estTokens}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Est. Tokens</div>
+                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{estTokens}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Est. Tokens</div>
                       </div>
 
                       {/* 原有的卡片 (Memories) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
-                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
-                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{activeMemories.length}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Injected Items</div>
+                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{activeMemories.length}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Injected Items</div>
                       </div>
 
                       {/* 原有的卡片 (Limit) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-[#eae2e8] shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-[#d58f99]/30 transition-colors">
-                         <div className="text-[#917c71] font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
-                         <div className="text-2xl font-black text-[#5a4a42] tracking-tight group-hover:text-[#d58f99] transition-colors">{settings.contextLimit || 50}</div>
-                         <div className="text-[9px] text-[#917c71]/60 mt-1 font-medium">Messages</div>
+                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{settings.contextLimit || 50}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Messages</div>
                       </div>
                     </div>
 
                     {/* 1. System Instructions (Jailbreak) */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">System Instructions <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Jailbreak / Core Rules)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">System Instructions <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Jailbreak / Core Rules)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {systemInstructions}
                         </div>
                       </div>
@@ -3483,11 +3483,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 2. Wade's Persona */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Wade's Persona <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Character Card)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Wade's Persona <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Character Card)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {wadePersona}
                         </div>
                       </div>
@@ -3496,11 +3496,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 3. Single Sentence Examples */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Single Sentence Examples <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Style Guide)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Single Sentence Examples <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Style Guide)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {singleExamples}
                         </div>
                       </div>
@@ -3509,11 +3509,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 4. Dialogue Examples */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Dialogue Examples <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Interaction Guide)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Dialogue Examples <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Interaction Guide)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {dialogueExamples}
                         </div>
                       </div>
@@ -3522,11 +3522,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 4.5 Mode Specific Instructions */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Mode Instructions <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Brain X-Ray & Format)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Mode Instructions <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Brain X-Ray & Format)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {modeSpecificInstructions}
                         </div>
                       </div>
@@ -3535,11 +3535,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 5. Luna's Info */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Luna's Info <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(User Context)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Luna's Info <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(User Context)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                        <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {lunaInfo}
                         </div>
                       </div>
@@ -3549,11 +3549,11 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {spiceContent && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 px-1">
-                          <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                          <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Spice It Up <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Session Instructions)</span></h4>
+                          <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                          <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Spice It Up <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Session Instructions)</span></h4>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-[#eae2e8] shadow-sm">
-                          <div className="text-[11px] leading-relaxed font-mono text-[#5a4a42]/80 whitespace-pre-wrap max-h-[200px] overflow-y-auto custom-scrollbar">
+                        <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                          <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[200px] overflow-y-auto custom-scrollbar">
                             {spiceContent}
                           </div>
                         </div>
@@ -3563,8 +3563,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 2. Core Memories */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Long-Term Memory <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">({activeMemories.length} active items)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Long-Term Memory <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">({activeMemories.length} active items)</span></h4>
                       </div>
                       
                       {activeMemories.length > 0 ? (
@@ -3577,24 +3577,24 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                               <div 
                                 key={i} 
                                 onClick={() => toggleMemoryExpand(memId)}
-                                className="bg-white p-4 rounded-xl border border-[#eae2e8] shadow-sm flex flex-col gap-1.5 hover:border-[#d58f99]/30 transition-colors cursor-pointer group select-none"
+                                className="bg-white p-4 rounded-xl border border-wade-border shadow-sm flex flex-col gap-1.5 hover:border-wade-accent/30 transition-colors cursor-pointer group select-none"
                               >
                                 {typeof mem === 'string' ? (
-                                  <div className={`text-[11px] text-[#5a4a42] font-mono leading-relaxed ${isExpanded ? '' : 'line-clamp-4'}`}>
+                                  <div className={`text-[11px] text-wade-text-main font-mono leading-relaxed ${isExpanded ? '' : 'line-clamp-4'}`}>
                                     {mem}
                                   </div>
                                 ) : (
                                   <>
                                     {mem.title && (
                                       <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="text-[9px] font-bold text-white bg-[#d58f99] px-1.5 py-0.5 rounded-md uppercase tracking-wide">{mem.title}</span>
+                                        <span className="text-[9px] font-bold text-white bg-wade-accent px-1.5 py-0.5 rounded-md uppercase tracking-wide">{mem.title}</span>
                                       </div>
                                     )}
-                                    <div className={`text-[11px] text-[#5a4a42] font-mono leading-relaxed opacity-90 ${isExpanded ? '' : 'line-clamp-4'}`}>
+                                    <div className={`text-[11px] text-wade-text-main font-mono leading-relaxed opacity-90 ${isExpanded ? '' : 'line-clamp-4'}`}>
                                       {mem.content}
                                     </div>
                                     {!isExpanded && (
-                                       <div className="text-[9px] text-[#917c71]/40 text-center mt-1 group-hover:text-[#d58f99] transition-colors">
+                                       <div className="text-[9px] text-wade-text-muted/40 text-center mt-1 group-hover:text-wade-accent transition-colors">
                                          Tap to expand
                                        </div>
                                     )}
@@ -3605,8 +3605,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                           })}
                         </div>
                       ) : (
-                        <div className="bg-white p-8 rounded-2xl border border-[#eae2e8] border-dashed text-center">
-                          <p className="text-xs text-[#917c71] italic">No active memories for this session.</p>
+                        <div className="bg-white p-8 rounded-2xl border border-wade-border border-dashed text-center">
+                          <p className="text-xs text-wade-text-muted italic">No active memories for this session.</p>
                         </div>
                       )}
                     </div>
@@ -3614,12 +3614,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     {/* 3. Chat History */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
-                        <div className="w-1 h-1 rounded-full bg-[#d58f99]"></div>
-                        <h4 className="font-bold text-[#5a4a42] text-xs uppercase tracking-widest">Short-Term Memory <span className="text-[#917c71] font-normal normal-case opacity-50 ml-1">(Recent Context)</span></h4>
+                        <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
+                        <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Short-Term Memory <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Recent Context)</span></h4>
                       </div>
-                      <div className="bg-white rounded-2xl border border-[#eae2e8] shadow-sm overflow-hidden">
+                      <div className="bg-white rounded-2xl border border-wade-border shadow-sm overflow-hidden">
                         {historyPayload.length === 0 ? (
-                          <div className="p-8 text-center text-[#917c71] italic text-xs">No history yet. Start talking!</div>
+                          <div className="p-8 text-center text-wade-text-muted italic text-xs">No history yet. Start talking!</div>
                         ) : (
                           <div className="flex flex-col">
                             {historyPayload.map((msg, i) => {
@@ -3628,12 +3628,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                                 <div 
                                   key={i} 
                                   onClick={() => toggleHistoryExpand(i)}
-                                  className={`px-5 py-3 border-b border-[#eae2e8]/50 last:border-0 flex gap-4 cursor-pointer hover:bg-[#fff0f3]/50 transition-colors ${msg.role === 'Luna' ? 'bg-[#fff0f3]/30' : 'bg-white'}`}
+                                  className={`px-5 py-3 border-b border-wade-border/50 last:border-0 flex gap-4 cursor-pointer hover:bg-wade-accent-light/50 transition-colors ${msg.role === 'Luna' ? 'bg-wade-accent-light/30' : 'bg-white'}`}
                                 >
-                                  <div className={`w-12 text-[9px] font-bold uppercase tracking-wider pt-1 shrink-0 ${msg.role === 'Luna' ? 'text-[#d58f99]' : 'text-[#917c71]'}`}>
+                                  <div className={`w-12 text-[9px] font-bold uppercase tracking-wider pt-1 shrink-0 ${msg.role === 'Luna' ? 'text-wade-accent' : 'text-wade-text-muted'}`}>
                                     {msg.role}
                                   </div>
-                                  <div className={`flex-1 text-[11px] font-mono text-[#5a4a42]/80 leading-relaxed whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-1 overflow-hidden text-ellipsis'}`}>
+                                  <div className={`flex-1 text-[11px] font-mono text-wade-text-main/80 leading-relaxed whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-1 overflow-hidden text-ellipsis'}`}>
                                     {msg.content}
                                   </div>
                                 </div>
@@ -3645,16 +3645,16 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     </div>
 
                     {/* Raw JSON */}
-                    <div className="pt-4 border-t border-[#eae2e8]">
+                    <div className="pt-4 border-t border-wade-border">
                       <details className="group">
-                        <summary className="cursor-pointer flex items-center gap-2 text-[#917c71] hover:text-[#d58f99] transition-colors select-none">
-                          <div className="w-4 h-4 rounded bg-[#eae2e8] group-open:bg-[#d58f99] flex items-center justify-center text-white transition-colors">
+                        <summary className="cursor-pointer flex items-center gap-2 text-wade-text-muted hover:text-wade-accent transition-colors select-none">
+                          <div className="w-4 h-4 rounded bg-wade-border group-open:bg-wade-accent flex items-center justify-center text-white transition-colors">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transform group-open:rotate-90 transition-transform"><polyline points="9 18 15 12 9 6"></polyline></svg>
                           </div>
                           <span className="text-[10px] uppercase font-bold tracking-widest">Raw Payload</span>
                         </summary>
-                        <div className="mt-4 bg-[#2d2d2d] rounded-xl p-4 overflow-hidden shadow-inner">
-                          <pre className="text-[10px] font-mono text-[#a6accd] overflow-x-auto custom-scrollbar leading-tight whitespace-pre-wrap">
+                        <div className="mt-4 bg-wade-code-bg rounded-xl p-4 overflow-hidden shadow-inner">
+                          <pre className="text-[10px] font-mono text-wade-code-text overflow-x-auto custom-scrollbar leading-tight whitespace-pre-wrap">
                             {JSON.stringify({ 
                               system_instructions: systemInstructions,
                               wade_persona: wadePersona,

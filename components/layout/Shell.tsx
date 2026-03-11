@@ -135,21 +135,21 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
   return (
     <div 
-      className="fixed inset-0 w-full flex items-center justify-center bg-[#eae2e8] p-0 md:p-6 overflow-hidden"
+      className="fixed inset-0 w-full flex items-center justify-center bg-wade-border p-0 md:p-6 overflow-hidden"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       
-      <div className="w-full h-full max-w-4xl bg-white md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-white ring-0 md:ring-1 ring-[#d58f99]/20 relative">
+      <div className="w-full h-full max-w-4xl bg-white md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-white ring-0 md:ring-1 ring-wade-accent/20 relative">
         
         {/* Navigation Bar */}
-        <nav className={`bg-[#fff0f3] md:w-16 w-full h-[4.5rem] md:h-full ${isNavHidden ? 'hidden md:flex' : 'flex'} md:flex-col flex-row items-center justify-evenly z-30 border-t md:border-t-0 md:border-r border-[#d58f99]/10 order-2 md:order-1 shrink-0 relative animate-fade-in pb-1 md:pb-0`}>
+        <nav className={`bg-wade-accent-light md:w-16 w-full h-[4.5rem] md:h-full ${isNavHidden ? 'hidden md:flex' : 'flex'} md:flex-col flex-row items-center justify-evenly z-30 border-t md:border-t-0 md:border-r border-wade-accent/10 order-2 md:order-1 shrink-0 relative animate-fade-in pb-1 md:pb-0`}>
             
-            <button onClick={() => setTab('home')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'home' ? 'text-[#d58f99] scale-110' : 'text-[#d58f99]/50 hover:text-[#d58f99]/80 scale-90'}`}>
-              <Icons.Home className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'home' ? 'stroke-[2.5px] fill-[#d58f99]/10' : 'stroke-[1.5px]'}`} />
+            <button onClick={() => setTab('home')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'home' ? 'text-wade-accent scale-110' : 'text-wade-accent/50 hover:text-wade-accent/80 scale-90'}`}>
+              <Icons.Home className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'home' ? 'stroke-[2.5px] fill-wade-accent/10' : 'stroke-[1.5px]'}`} />
             </button>
 
-            <button onClick={() => setTab('social')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'social' ? 'text-[#d58f99] scale-110' : 'text-[#d58f99]/50 hover:text-[#d58f99]/80 scale-90'}`}>
-              <Icons.Social className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'social' ? 'stroke-[2.5px] fill-[#d58f99]/10' : 'stroke-[1.5px]'}`} />
+            <button onClick={() => setTab('social')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'social' ? 'text-wade-accent scale-110' : 'text-wade-accent/50 hover:text-wade-accent/80 scale-90'}`}>
+              <Icons.Social className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'social' ? 'stroke-[2.5px] fill-wade-accent/10' : 'stroke-[1.5px]'}`} />
             </button>
 
             {/* PLUS BUTTON & POPUP MENU */}
@@ -165,31 +165,31 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                  className={`fixed z-[100] transition duration-300 ${isMenuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'} ${isDesktop ? 'translate-x-0 -translate-y-1/2' : '-translate-x-1/2 -translate-y-full'}`}
                >
 
-                 <div className="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#d58f99]/20 p-4 md:p-2 rounded-2xl grid grid-cols-4 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[280px] md:min-w-0 justify-items-center">
+                 <div className="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-accent/20 p-4 md:p-2 rounded-2xl grid grid-cols-4 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[280px] md:min-w-0 justify-items-center">
                    
                    <button onClick={() => handleMenuClick('memory')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
-                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><Icons.Brain className="w-5 h-5 stroke-[1.5px]" /></div>
-                      <span className="text-[10px] font-bold text-[#917c71]">Brain</span>
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Brain className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">Brain</span>
                    </button>
 
                    <button onClick={() => handleMenuClick('divination')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
-                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><Icons.Fate className="w-5 h-5 stroke-[1.5px]" /></div>
-                      <span className="text-[10px] font-bold text-[#917c71]">Fate</span>
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Fate className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">Fate</span>
                    </button>
 
                    <button onClick={() => handleMenuClick('favorites')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
-                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><Icons.Star className="w-5 h-5 stroke-[1.5px]" /></div>
-                      <span className="text-[10px] font-bold text-[#917c71]">Favs</span>
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Star className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">Favs</span>
                    </button>
 
                    <button onClick={() => handleMenuClick('settings')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
-                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><Icons.Settings className="w-5 h-5 stroke-[1.5px]" /></div>
-                      <span className="text-[10px] font-bold text-[#917c71]">System</span>
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Settings className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">System</span>
                    </button>
 
                    <button onClick={() => handleMenuClick('wade-picks')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
-                      <div className="p-2.5 bg-[#f9f6f7] group-hover:bg-[#fff0f3] rounded-xl text-[#d58f99] transition-colors"><Icons.Picks className="w-5 h-5 stroke-[1.5px]" /></div>
-                      <span className="text-[10px] font-bold text-[#917c71]">Picks</span>
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Picks className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">Picks</span>
                    </button>
 
                  </div>
@@ -207,23 +207,23 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
               <button 
                 ref={buttonRef}
                 onClick={toggleMenu} 
-                className={`relative z-[55] w-12 h-12 md:w-9 md:h-9 rounded-full bg-[#d58f99] text-white shadow-[0_4px_12px_rgba(213,143,153,0.4)] flex items-center justify-center transition-transform duration-300 ${isMenuOpen ? 'rotate-45 bg-[#c07a84]' : 'rotate-0 hover:scale-105'}`}
+                className={`relative z-[55] w-12 h-12 md:w-9 md:h-9 rounded-full bg-wade-accent text-white shadow-wade-glow flex items-center justify-center transition-transform duration-300 ${isMenuOpen ? 'rotate-45 bg-wade-accent-hover' : 'rotate-0 hover:scale-105'}`}
               >
                 <Icons.Plus className="w-6 h-6 md:w-5 md:h-5 stroke-[2.5px]" />
               </button>
             </div>
 
-            <button onClick={() => setTab('chat')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'chat' ? 'text-[#d58f99] scale-110' : 'text-[#d58f99]/50 hover:text-[#d58f99]/80 scale-90'}`}>
-              <Icons.Chat className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'chat' ? 'stroke-[2.5px] fill-[#d58f99]/10' : 'stroke-[1.5px]'}`} />
+            <button onClick={() => setTab('chat')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'chat' ? 'text-wade-accent scale-110' : 'text-wade-accent/50 hover:text-wade-accent/80 scale-90'}`}>
+              <Icons.Chat className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'chat' ? 'stroke-[2.5px] fill-wade-accent/10' : 'stroke-[1.5px]'}`} />
             </button>
 
-            <button onClick={() => setTab('persona')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'persona' ? 'text-[#d58f99] scale-110' : 'text-[#d58f99]/50 hover:text-[#d58f99]/80 scale-90'}`}>
-              <Icons.User className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'persona' ? 'stroke-[2.5px] fill-[#d58f99]/10' : 'stroke-[1.5px]'}`} />
+            <button onClick={() => setTab('persona')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'persona' ? 'text-wade-accent scale-110' : 'text-wade-accent/50 hover:text-wade-accent/80 scale-90'}`}>
+              <Icons.User className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'persona' ? 'stroke-[2.5px] fill-wade-accent/10' : 'stroke-[1.5px]'}`} />
             </button>
 
           </nav>
 
-        <main className="flex-1 h-full overflow-hidden relative order-1 md:order-2 bg-[#f9f6f7]">
+        <main className="flex-1 h-full overflow-hidden relative order-1 md:order-2 bg-wade-bg-app">
           {children}
         </main>
 

@@ -14,7 +14,19 @@ import { TimeCapsulesView } from './components/views/TimeCapsulesView';
 import { WadesPicksView } from './components/views/WadesPicksView';
 
 const AppContent = () => {
-  const { currentTab } = useStore();
+  const { currentTab, settings } = useStore();
+
+  React.useEffect(() => {
+    const themeMap: Record<string, string> = {
+      '#d58f99': 'default',
+      '#E23636': 'deadpool',
+      '#9D8DF1': 'midnight',
+      '#5B9BB3': 'serenity',
+      '#04BAE8': 'cyberpunk'
+    };
+    const themeName = themeMap[settings.themeColor] || 'default';
+    document.documentElement.setAttribute('data-theme', themeName);
+  }, [settings.themeColor]);
 
   const renderView = () => {
     switch(currentTab) {

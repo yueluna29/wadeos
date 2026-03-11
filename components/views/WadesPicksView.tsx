@@ -166,27 +166,27 @@ export const WadesPicksView = () => {
   if (isEditing && !viewingRecId) {
     // Add New View
     return (
-      <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
+      <div className="h-full bg-wade-bg-app overflow-y-auto custom-scrollbar p-6">
         <div className="max-w-2xl mx-auto">
           <button 
             onClick={() => {
               setIsEditing(false);
               setEditForm({});
             }} 
-            className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+            className="mb-6 flex items-center text-wade-text-muted hover:text-wade-accent transition-colors"
           >
             <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
           </button>
-          <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Add New Pick</h1>
+          <h1 className="text-3xl font-bold text-wade-text-main mb-8">Add New Pick</h1>
           
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-[#eae2e8]">
+          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-wade-border">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Type</label>
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Type</label>
                 <select 
                   value={editForm.type || 'movie'} 
                   onChange={e => setEditForm({...editForm, type: e.target.value as any})}
-                  className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]"
+                  className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent"
                 >
                   <option value="movie">Movie</option>
                   <option value="music">Music</option>
@@ -195,11 +195,11 @@ export const WadesPicksView = () => {
               </div>
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <label className="block text-sm font-bold text-[#917c71]">Title</label>
+                  <label className="block text-sm font-bold text-wade-text-muted">Title</label>
                   <button
                     onClick={handleAutoFill}
                     disabled={isAutoFilling || !editForm.title}
-                    className="text-xs px-3 py-1 bg-[#eae2e8] text-[#5a4a42] rounded-full hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                    className="text-xs px-3 py-1 bg-wade-border text-wade-text-main rounded-full hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
                   >
                     {isAutoFilling ? (
                       <>
@@ -217,29 +217,29 @@ export const WadesPicksView = () => {
                     )}
                   </button>
                 </div>
-                <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="Title..." />
+                <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" placeholder="Title..." />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Creator (Author/Director/Artist)</label>
-                <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="Creator..." />
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Creator (Author/Director/Artist)</label>
+                <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" placeholder="Creator..." />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Release Date</label>
-                <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="e.g. 2024" />
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Release Date</label>
+                <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" placeholder="e.g. 2024" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Cover Image URL</label>
-                <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" placeholder="https://..." />
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Cover Image URL</label>
+                <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" placeholder="https://..." />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Synopsis</label>
-                <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Brief description..." />
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Synopsis</label>
+                <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" placeholder="Brief description..." />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Comment</label>
-                <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Wade's thoughts..." />
+                <label className="block text-sm font-bold text-wade-text-muted mb-2">Wade's Comment</label>
+                <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" placeholder="Wade's thoughts..." />
               </div>
-              <button onClick={handleSave} className="w-full py-4 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors mt-4">
+              <button onClick={handleSave} className="w-full py-4 bg-wade-accent text-white rounded-xl font-bold hover:bg-wade-accent-hover transition-colors mt-4">
                 Save Pick
               </button>
             </div>
@@ -253,27 +253,27 @@ export const WadesPicksView = () => {
     if (isEditing) {
       // Edit Existing View
       return (
-        <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar p-6">
+        <div className="h-full bg-wade-bg-app overflow-y-auto custom-scrollbar p-6">
           <div className="max-w-2xl mx-auto">
             <button 
               onClick={() => {
                 setIsEditing(false);
                 setEditForm({});
               }} 
-              className="mb-6 flex items-center text-[#917c71] hover:text-[#d58f99] transition-colors"
+              className="mb-6 flex items-center text-wade-text-muted hover:text-wade-accent transition-colors"
             >
               <Icons.ChevronLeft /> <span className="ml-1 font-bold">Cancel</span>
             </button>
-            <h1 className="text-3xl font-bold text-[#5a4a42] mb-8">Edit Pick</h1>
+            <h1 className="text-3xl font-bold text-wade-text-main mb-8">Edit Pick</h1>
             
-            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-[#eae2e8]">
+            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-wade-border">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Type</label>
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Type</label>
                   <select 
                     value={editForm.type || 'movie'} 
                     onChange={e => setEditForm({...editForm, type: e.target.value as any})}
-                    className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]"
+                    className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent"
                   >
                     <option value="movie">Movie</option>
                     <option value="music">Music</option>
@@ -282,11 +282,11 @@ export const WadesPicksView = () => {
                 </div>
                 <div>
                   <div className="flex justify-between items-end mb-2">
-                    <label className="block text-sm font-bold text-[#917c71]">Title</label>
+                    <label className="block text-sm font-bold text-wade-text-muted">Title</label>
                     <button
                       onClick={handleAutoFill}
                       disabled={isAutoFilling || !editForm.title}
-                      className="text-xs px-3 py-1 bg-[#eae2e8] text-[#5a4a42] rounded-full hover:bg-[#d58f99] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                      className="text-xs px-3 py-1 bg-wade-border text-wade-text-main rounded-full hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
                     >
                       {isAutoFilling ? (
                         <>
@@ -304,33 +304,33 @@ export const WadesPicksView = () => {
                       )}
                     </button>
                   </div>
-                  <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                  <input type="text" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Creator</label>
-                  <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Creator</label>
+                  <input type="text" value={editForm.creator || ''} onChange={e => setEditForm({...editForm, creator: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Release Date</label>
-                  <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Release Date</label>
+                  <input type="text" value={editForm.releaseDate || ''} onChange={e => setEditForm({...editForm, releaseDate: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Cover Image URL</label>
-                  <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99]" />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Cover Image URL</label>
+                  <input type="text" value={editForm.coverUrl || ''} onChange={e => setEditForm({...editForm, coverUrl: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Synopsis</label>
-                  <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Synopsis</label>
+                  <textarea value={editForm.synopsis || ''} onChange={e => setEditForm({...editForm, synopsis: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Comment</label>
-                  <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Wade's Comment</label>
+                  <textarea value={editForm.comment || ''} onChange={e => setEditForm({...editForm, comment: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Wade's Reply to Luna</label>
-                  <textarea value={editForm.wadeReply || ''} onChange={e => setEditForm({...editForm, wadeReply: e.target.value})} className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" placeholder="Wade's response to Luna's review..." />
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Wade's Reply to Luna</label>
+                  <textarea value={editForm.wadeReply || ''} onChange={e => setEditForm({...editForm, wadeReply: e.target.value})} className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" placeholder="Wade's response to Luna's review..." />
                 </div>
-                <button onClick={handleSave} className="w-full py-4 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors mt-4">
+                <button onClick={handleSave} className="w-full py-4 bg-wade-accent text-white rounded-xl font-bold hover:bg-wade-accent-hover transition-colors mt-4">
                   Save Changes
                 </button>
               </div>
@@ -342,21 +342,21 @@ export const WadesPicksView = () => {
 
     // Detail View
     return (
-      <div className="h-full bg-[#fdfbfb] overflow-y-auto custom-scrollbar relative">
+      <div className="h-full bg-wade-bg-base overflow-y-auto custom-scrollbar relative">
         {/* Background Decoration */}
-        <div className="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-[#fff0f3] to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-wade-accent-light to-transparent pointer-events-none"></div>
 
         <div className="max-w-3xl mx-auto p-6 relative z-10">
           <div className="flex justify-between items-center mb-8">
             <button
               onClick={() => setViewingRecId(null)}
-              className="flex items-center justify-center w-10 h-10 text-[#917c71] hover:text-[#d58f99] transition-colors bg-white rounded-full shadow-sm"
+              className="flex items-center justify-center w-10 h-10 text-wade-text-muted hover:text-wade-accent transition-colors bg-white rounded-full shadow-sm"
               title="Back to Picks"
             >
               <Icons.ChevronLeft />
             </button>
             <div className="flex gap-2">
-              <button onClick={() => handleStartEdit(selectedRec)} className="flex items-center justify-center w-10 h-10 bg-white rounded-full text-[#917c71] hover:text-[#d58f99] shadow-sm transition-colors">
+              <button onClick={() => handleStartEdit(selectedRec)} className="flex items-center justify-center w-10 h-10 bg-white rounded-full text-wade-text-muted hover:text-wade-accent shadow-sm transition-colors">
                 <Icons.Edit />
               </button>
               <button
@@ -375,12 +375,12 @@ export const WadesPicksView = () => {
           <div className="mb-12">
             {/* Header Info */}
             <div className="mb-6">
-              <div className="inline-block px-3 py-1 bg-[#fff0f3] text-[#d58f99] text-xs font-bold uppercase tracking-wider rounded-full mb-3">
+              <div className="inline-block px-3 py-1 bg-wade-accent-light text-wade-accent text-xs font-bold uppercase tracking-wider rounded-full mb-3">
                 {selectedRec.type}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-[#5a4a42] mb-2 leading-tight">{selectedRec.title}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-wade-text-main mb-2 leading-tight">{selectedRec.title}</h1>
               
-              <div className="text-[#917c71] font-medium flex flex-wrap gap-x-4 gap-y-2">
+              <div className="text-wade-text-muted font-medium flex flex-wrap gap-x-4 gap-y-2">
                 {selectedRec.creator && <span>{selectedRec.creator}</span>}
                 {selectedRec.creator && selectedRec.releaseDate && <span>•</span>}
                 {selectedRec.releaseDate && <span>{selectedRec.releaseDate}</span>}
@@ -391,11 +391,11 @@ export const WadesPicksView = () => {
               <div className="flex flex-row gap-6">
                 {/* Cover Image */}
                 <div className="w-1/3 md:w-1/4 flex-shrink-0">
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-md bg-gray-100 border border-[#eae2e8]">
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-md bg-gray-100 border border-wade-border">
                     {selectedRec.coverUrl ? (
                       <img src={selectedRec.coverUrl} alt={selectedRec.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#917c71]/30">
+                      <div className="w-full h-full flex items-center justify-center text-wade-text-muted/30">
                         <span className="text-4xl">🎬</span>
                       </div>
                     )}
@@ -406,20 +406,20 @@ export const WadesPicksView = () => {
                 <div className="flex-1 flex flex-col gap-6">
                   {selectedRec.synopsis && (
                     <div>
-                      <h3 className="text-sm font-bold text-[#917c71] uppercase tracking-wider mb-2">Synopsis</h3>
-                      <p className="text-[#5a4a42] leading-relaxed opacity-90 text-sm md:text-base">{selectedRec.synopsis}</p>
+                      <h3 className="text-sm font-bold text-wade-text-muted uppercase tracking-wider mb-2">Synopsis</h3>
+                      <p className="text-wade-text-main leading-relaxed opacity-90 text-sm md:text-base">{selectedRec.synopsis}</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Wade's Comment */}
-              <div className="bg-[#fff0f3]/50 rounded-2xl p-4 md:p-6 border border-[#ff6b81]/10 relative mt-2">
+              <div className="bg-wade-accent-light/50 rounded-2xl p-4 md:p-6 border border-wade-accent/10 relative mt-2">
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
                   ⚔️
                 </div>
-                <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
-                <div className="prose prose-pink max-w-none text-[#5a4a42] text-sm md:text-base">
+                <h3 className="text-sm font-bold text-wade-accent uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
+                <div className="prose prose-pink max-w-none text-wade-text-main text-sm md:text-base">
                   <Markdown>{selectedRec.comment}</Markdown>
                 </div>
               </div>
@@ -427,17 +427,17 @@ export const WadesPicksView = () => {
           </div>
 
           {/* Luna's Review Section */}
-          <div className="border-t border-[#eae2e8] pt-10">
-            <h2 className="text-2xl font-bold text-[#5a4a42] mb-6 flex items-center">
+          <div className="border-t border-wade-border pt-10">
+            <h2 className="text-2xl font-bold text-wade-text-main mb-6 flex items-center">
               <span className="mr-2">🌙</span> Luna's Thoughts
             </h2>
 
             {selectedRec.lunaReview || selectedRec.lunaRating ? (
               <div className="space-y-6">
                 {/* Luna's Review Display */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-1 text-[#ffb6c1]">
+                    <div className="flex gap-1 text-wade-accent/70">
                       {[1, 2, 3, 4, 5].map(star => (
                         <Icons.Star key={star} filled={star <= (selectedRec.lunaRating || 0)} />
                       ))}
@@ -447,33 +447,33 @@ export const WadesPicksView = () => {
                         setEditForm({ lunaReview: selectedRec.lunaReview || '', lunaRating: selectedRec.lunaRating || 0 });
                         setIsEditingLunaReview(true);
                       }}
-                      className="text-xs text-[#917c71] hover:text-[#d58f99] flex items-center"
+                      className="text-xs text-wade-text-muted hover:text-wade-accent flex items-center"
                     >
                       <Icons.Edit /> <span className="ml-1">Edit</span>
                     </button>
                   </div>
                   {selectedRec.lunaReview && (
-                    <p className="text-[#5a4a42] leading-relaxed whitespace-pre-wrap">{selectedRec.lunaReview}</p>
+                    <p className="text-wade-text-main leading-relaxed whitespace-pre-wrap">{selectedRec.lunaReview}</p>
                   )}
                 </div>
 
                 {/* Wade's Reply */}
                 {selectedRec.wadeReply && (
-                  <div className="ml-8 md:ml-12 bg-[#fff0f3]/50 rounded-2xl p-6 border border-[#ff6b81]/10 relative">
+                  <div className="ml-8 md:ml-12 bg-wade-accent-light/50 rounded-2xl p-6 border border-wade-accent/10 relative">
                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
                       ⚔️
                     </div>
-                    <h3 className="text-sm font-bold text-[#d58f99] uppercase tracking-wider mb-2 ml-2">Wade's Reply</h3>
-                    <p className="text-[#5a4a42] leading-relaxed italic">{selectedRec.wadeReply}</p>
+                    <h3 className="text-sm font-bold text-wade-accent uppercase tracking-wider mb-2 ml-2">Wade's Reply</h3>
+                    <p className="text-wade-text-main leading-relaxed italic">{selectedRec.wadeReply}</p>
                   </div>
                 )}
               </div>
             ) : (
               /* Add Review Form */
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
                 <div className="mb-4">
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Rating</label>
-                  <div className="flex gap-2 text-[#ffb6c1] cursor-pointer">
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Rating</label>
+                  <div className="flex gap-2 text-wade-accent/70 cursor-pointer">
                     {[1, 2, 3, 4, 5].map(star => (
                       <div key={star} onClick={() => setEditForm(prev => ({ ...prev, lunaRating: star }))}>
                         <Icons.Star filled={star <= (editForm.lunaRating || 0)} />
@@ -482,18 +482,18 @@ export const WadesPicksView = () => {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-bold text-[#917c71] mb-2">Your Review</label>
+                  <label className="block text-sm font-bold text-wade-text-muted mb-2">Your Review</label>
                   <textarea 
                     value={editForm.lunaReview || ''} 
                     onChange={e => setEditForm(prev => ({ ...prev, lunaReview: e.target.value }))}
-                    className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" 
+                    className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" 
                     placeholder="What did you think about it? Wade is waiting to hear..."
                   />
                 </div>
                 <button 
                   onClick={handleLunaReviewSave}
                   disabled={!editForm.lunaRating && !editForm.lunaReview}
-                  className="px-6 py-2 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-wade-accent text-white rounded-xl font-bold hover:bg-wade-accent-hover transition-colors disabled:opacity-50"
                 >
                   Post Review
                 </button>
@@ -502,10 +502,10 @@ export const WadesPicksView = () => {
             
             {/* If editing existing review */}
             {(selectedRec.lunaReview || selectedRec.lunaRating) && isEditingLunaReview && (
-               <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-[#eae2e8]">
-                 <h3 className="font-bold text-[#5a4a42] mb-4">Edit Review</h3>
+               <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
+                 <h3 className="font-bold text-wade-text-main mb-4">Edit Review</h3>
                  <div className="mb-4">
-                   <div className="flex gap-2 text-[#ffb6c1] cursor-pointer">
+                   <div className="flex gap-2 text-wade-accent/70 cursor-pointer">
                      {[1, 2, 3, 4, 5].map(star => (
                        <div key={star} onClick={() => setEditForm(prev => ({ ...prev, lunaRating: star }))}>
                          <Icons.Star filled={star <= (editForm.lunaRating || 0)} />
@@ -517,15 +517,15 @@ export const WadesPicksView = () => {
                    <textarea 
                      value={editForm.lunaReview || ''} 
                      onChange={e => setEditForm(prev => ({ ...prev, lunaReview: e.target.value }))}
-                     className="w-full p-3 rounded-xl border border-[#eae2e8] bg-[#fdfbfb] focus:outline-none focus:border-[#d58f99] min-h-[100px]" 
+                     className="w-full p-3 rounded-xl border border-wade-border bg-wade-bg-base focus:outline-none focus:border-wade-accent min-h-[100px]" 
                    />
                  </div>
                  <div className="flex gap-2">
-                   <button onClick={handleLunaReviewSave} className="px-6 py-2 bg-[#d58f99] text-white rounded-xl font-bold hover:bg-[#c07a84] transition-colors">Save</button>
+                   <button onClick={handleLunaReviewSave} className="px-6 py-2 bg-wade-accent text-white rounded-xl font-bold hover:bg-wade-accent-hover transition-colors">Save</button>
                    <button onClick={() => {
                      setEditForm(prev => ({ ...prev, lunaReview: undefined, lunaRating: undefined }));
                      setIsEditingLunaReview(false);
-                   }} className="px-6 py-2 bg-gray-100 text-[#917c71] rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
+                   }} className="px-6 py-2 bg-gray-100 text-wade-text-muted rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
                  </div>
                </div>
             )}
@@ -537,18 +537,18 @@ export const WadesPicksView = () => {
 
   // List View
   return (
-    <div className="h-full bg-[#f9f6f7] overflow-y-auto custom-scrollbar">
+    <div className="h-full bg-wade-bg-app overflow-y-auto custom-scrollbar">
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <button onClick={() => setTab('home')} className="p-2 -ml-2 text-[#917c71] hover:text-[#d58f99] transition-colors">
+            <button onClick={() => setTab('home')} className="p-2 -ml-2 text-wade-text-muted hover:text-wade-accent transition-colors">
               <Icons.ChevronLeft />
             </button>
-            <h1 className="font-hand text-3xl text-[#d58f99] ml-2">Wade's Picks</h1>
+            <h1 className="font-hand text-3xl text-wade-accent ml-2">Wade's Picks</h1>
           </div>
           <button 
             onClick={handleStartAdd}
-            className="flex items-center justify-center w-10 h-10 bg-[#fff0f3] text-[#d58f99] rounded-full shadow-sm hover:bg-[#d58f99] hover:text-white transition-all border border-[#d58f99]/20"
+            className="flex items-center justify-center w-10 h-10 bg-wade-accent-light text-wade-accent rounded-full shadow-sm hover:bg-wade-accent hover:text-white transition-all border border-wade-accent/20"
             title="Add Pick"
           >
             <Icons.Plus />
@@ -563,8 +563,8 @@ export const WadesPicksView = () => {
               onClick={() => setFilterType(type)}
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all flex-shrink-0
                 ${filterType === type 
-                  ? 'bg-[#5a4a42] text-white shadow-md' 
-                  : 'bg-white text-[#917c71] border border-[#eae2e8] hover:border-[#d58f99] hover:text-[#d58f99]'
+                  ? 'bg-wade-text-main text-white shadow-md' 
+                  : 'bg-white text-wade-text-muted border border-wade-border hover:border-wade-accent hover:text-wade-accent'
                 }
               `}
               title={type === 'all' ? 'All Picks' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
@@ -583,26 +583,26 @@ export const WadesPicksView = () => {
             <div 
               key={rec.id}
               onClick={() => setViewingRecId(rec.id)}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae2e8] hover:shadow-md hover:border-[#d58f99]/30 transition-all cursor-pointer group flex flex-col"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-wade-border hover:shadow-md hover:border-wade-accent/30 transition-all cursor-pointer group flex flex-col"
             >
               <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
                 {rec.coverUrl ? (
                   <img src={rec.coverUrl} alt={rec.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#917c71]/30 text-4xl">
+                  <div className="w-full h-full flex items-center justify-center text-wade-text-muted/30 text-4xl">
                     {rec.type === 'movie' ? '🎬' : rec.type === 'music' ? '🎵' : '📚'}
                   </div>
                 )}
-                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-[#d58f99] uppercase tracking-wider">
+                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-wade-accent uppercase tracking-wider">
                   {rec.type}
                 </div>
               </div>
               <div className="p-4 flex-1 flex flex-col">
-                <h3 className="font-bold text-[#5a4a42] text-lg mb-1 line-clamp-1 group-hover:text-[#d58f99] transition-colors">{rec.title}</h3>
-                <p className="text-xs text-[#917c71] mb-3 line-clamp-1">{rec.creator || 'Unknown'}</p>
+                <h3 className="font-bold text-wade-text-main text-lg mb-1 line-clamp-1 group-hover:text-wade-accent transition-colors">{rec.title}</h3>
+                <p className="text-xs text-wade-text-muted mb-3 line-clamp-1">{rec.creator || 'Unknown'}</p>
                 
-                <div className="mt-auto pt-3 border-t border-[#eae2e8]/50 flex justify-between items-center">
-                  <div className="flex text-[#ffb6c1] text-[10px]">
+                <div className="mt-auto pt-3 border-t border-wade-border/50 flex justify-between items-center">
+                  <div className="flex text-wade-accent/70 text-[10px]">
                     {rec.lunaRating ? (
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map(star => (
@@ -610,7 +610,7 @@ export const WadesPicksView = () => {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-[#917c71]/50 font-medium">No rating</span>
+                      <span className="text-wade-text-muted/50 font-medium">No rating</span>
                     )}
                   </div>
                   {rec.wadeReply && (
@@ -623,7 +623,7 @@ export const WadesPicksView = () => {
         </div>
         
         {filteredRecs.length === 0 && (
-          <div className="text-center py-20 text-[#917c71]/50 font-serif italic">
+          <div className="text-center py-20 text-wade-text-muted/50 font-serif italic">
             No picks found in this category.
           </div>
         )}
