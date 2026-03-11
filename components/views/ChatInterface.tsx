@@ -754,7 +754,6 @@ export const ChatInterface: React.FC = () => {
 
   // 👇👇👇 新增：每次切换会话时，自动去数据库里读总结 👇👇👇
   useEffect(() => {
-    hasOpenedKeyboardRef.current = false;
     const loadSummary = async () => {
       setSessionSummary(""); // 切换前先清空，防止串台
       
@@ -916,7 +915,6 @@ export const ChatInterface: React.FC = () => {
   const smsDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const hasOpenedKeyboardRef = useRef(false);
 
   // Audio playback state management
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
@@ -3208,15 +3206,13 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onFocus={() => {
-                      if (!hasOpenedKeyboardRef.current) {
-                        hasOpenedKeyboardRef.current = true;
-                        setTimeout(() => {
-                          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                        }, 300); // Wait for keyboard to fully open
-                      }
+                      setTimeout(() => {
+                        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                      }, 300); // Wait for keyboard to fully open
                     }}
                     placeholder={placeholderText}
                     rows={1}
+                    enterKeyHint="send"
                     className="flex-1 bg-transparent border-none focus:outline-none text-[#5a4a42] placeholder-[#917c71]/50 resize-none overflow-y-auto max-h-32 min-h-[32px] text-sm py-1.5"
                   />
 
