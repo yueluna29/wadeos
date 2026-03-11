@@ -73,6 +73,8 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  const [viewportHeight, setViewportHeight] = useState('100dvh');
+  const [viewportTop, setViewportTop] = useState(0);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const toggleMenu = () => {
@@ -99,9 +101,31 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     const handleResize = () => {
       setIsMenuOpen(false);
       setIsDesktop(window.innerWidth >= 768);
+      if (window.visualViewport) {
+        setViewportHeight(`${window.visualViewport.height}px`);
+        setViewportTop(window.visualViewport.offsetTop);
+        window.scrollTo(0, 0);
+      }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+      // Initial set
+      setViewportHeight(`${window.visualViewport.height}px`);
+      setViewportTop(window.visualViewport.offsetTop);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
   }, []);
   
   const handleMenuClick = (tabId: string) => {
@@ -110,7 +134,10 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
   };
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full flex items-center justify-center bg-[#eae2e8] p-0 md:p-6 transition-all overflow-hidden">
+    <div 
+      className="fixed inset-0 w-full flex items-center justify-center bg-[#eae2e8] p-0 md:p-6 overflow-hidden"
+      style={{ height: viewportHeight, top: viewportTop }}
+    >
       
       <div className="w-full h-full max-w-4xl bg-white md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-white ring-0 md:ring-1 ring-[#d58f99]/20 relative">
         

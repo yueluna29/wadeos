@@ -2260,7 +2260,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
   return (
     <div className="flex flex-col h-full bg-[#f9f6f7] relative">
       {/* Immersive Header */}
-      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center justify-between z-20">
+      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-[#eae2e8] flex items-center justify-between z-20 shrink-0">
         <button onClick={handleBack} className="w-8 h-8 rounded-full bg-[#f9f6f7] flex items-center justify-center text-[#917c71] hover:bg-[#d58f99] hover:text-white transition-colors"><Icons.Back /></button>
 
         {activeMode === 'archive' ? (
