@@ -13,7 +13,7 @@ export const Memos: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Promises / Memos Section */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border-2 border-wade-border">
+        <div className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border-2 border-wade-border">
           <div className="flex items-center gap-2 mb-4">
              <span className="text-2xl">🤙</span>
              <h3 className="font-bold text-wade-text-main text-xl">Promises & Codes</h3>
@@ -35,7 +35,7 @@ export const Memos: React.FC = () => {
         </div>
 
         {/* Favorite Messages Section */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border-2 border-wade-border">
+        <div className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border-2 border-wade-border">
           <div className="flex items-center gap-2 mb-4">
              <span className="text-2xl">❤️</span>
              <h3 className="font-bold text-wade-text-main text-xl">Saved Words</h3>

@@ -158,7 +158,7 @@ export const MemoryBank: React.FC = () => {
         {/* Header Section */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white border border-wade-border flex items-center justify-center text-wade-accent shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-wade-bg-card border border-wade-border flex items-center justify-center text-wade-accent shadow-sm">
               <Icons.Brain />
             </div>
             <div>
@@ -195,7 +195,7 @@ export const MemoryBank: React.FC = () => {
                 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
                 ${selectedTag === null 
                   ? 'bg-wade-accent text-white shadow-md shadow-wade-accent/20' 
-                  : 'bg-white text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
+                  : 'bg-wade-bg-card text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
                 }
               `}
             >
@@ -209,7 +209,7 @@ export const MemoryBank: React.FC = () => {
                   px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
                   ${selectedTag === tag 
                     ? 'bg-wade-accent text-white shadow-md shadow-wade-accent/20' 
-                    : 'bg-white text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
+                    : 'bg-wade-bg-card text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
                   }
                 `}
               >
@@ -233,7 +233,7 @@ export const MemoryBank: React.FC = () => {
                   setTagInput('');
                   setIsModalOpen(true);
                 }}
-                className="col-span-full bg-white/60 rounded-[24px] border-2 border-wade-border border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-wade-accent/40 hover:bg-white transition-all duration-300 h-48"
+                className="col-span-full bg-wade-bg-card/60 rounded-[24px] border-2 border-wade-border border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-wade-accent/40 hover:bg-wade-bg-card transition-all duration-300 h-48"
               >
                 <div className="w-14 h-14 bg-wade-accent-light rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <Icons.Brain />
@@ -250,7 +250,7 @@ export const MemoryBank: React.FC = () => {
                 <div 
                   key={mem.id} 
                   onClick={() => toggleExpanded(mem.id)}
-                  className={`relative overflow-hidden rounded-[24px] bg-white shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-wade-accent-light group transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${expandedMemories.has(mem.id) ? 'ring-1 ring-wade-accent/30' : ''}`}
+                  className={`relative overflow-hidden rounded-[24px] bg-wade-bg-card shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-wade-accent-light group transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${expandedMemories.has(mem.id) ? 'ring-1 ring-wade-accent/30' : ''}`}
                 >
                   <div className="relative p-4 flex h-full">
                     {/* Left Column: Icon + Actions */}
@@ -337,12 +337,12 @@ export const MemoryBank: React.FC = () => {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col">
+            <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col">
               {/* Header */}
               <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0">
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0">
+                    <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0">
                       <div className="text-wade-accent">
                         <Icons.Brain />
                       </div>
@@ -359,7 +359,7 @@ export const MemoryBank: React.FC = () => {
                       setIsModalOpen(false);
                       setEditingId(null);
                     }}
-                    className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors flex-shrink-0"
+                    className="w-8 h-8 rounded-full bg-wade-bg-card/50 hover:bg-wade-bg-card flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors flex-shrink-0"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -405,7 +405,7 @@ export const MemoryBank: React.FC = () => {
                             <button
                               key={tag}
                               onClick={() => addTag(tag, !!editingId)}
-                              className="px-2 py-1 rounded-md bg-white border border-wade-border text-wade-text-muted text-[10px] hover:border-wade-accent hover:text-wade-accent transition-colors"
+                              className="px-2 py-1 rounded-md bg-wade-bg-card border border-wade-border text-wade-text-muted text-[10px] hover:border-wade-accent hover:text-wade-accent transition-colors"
                             >
                               #{tag}
                             </button>
@@ -455,7 +455,7 @@ export const MemoryBank: React.FC = () => {
                     setIsModalOpen(false);
                     setEditingId(null);
                   }}
-                  className="flex-1 px-4 py-3 rounded-xl bg-white border border-wade-border text-wade-text-muted font-bold text-xs hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-3 rounded-xl bg-wade-bg-card border border-wade-border text-wade-text-muted font-bold text-xs hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>

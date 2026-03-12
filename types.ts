@@ -9,6 +9,32 @@ export interface UserPersona {
   avatar?: string;
 }
 
+export interface CustomTheme {
+  accent: string;
+  accentHover: string;
+  accentLight: string;
+  bgBase: string;
+  bgCard: string;
+  bgApp: string;
+  textMain: string;
+  textMuted: string;
+  border: string;
+  borderLight: string;
+  codeBg: string;
+  codeText: string;
+  shadowGlow: string;
+  fontFamily: string;
+  fontSize: string;
+  bubbleLuna: string;
+  bubbleWade: string;
+}
+
+export interface SavedTheme {
+  id: string;
+  title: string;
+  theme: CustomTheme;
+}
+
 export interface ChatSession {
   id: string;
   mode: ChatMode;
@@ -19,6 +45,7 @@ export interface ChatSession {
   customLlmId?: string;
   customPrompt?: string;
   activeMemoryIds?: string[]; // IDs of core memories linked to this session
+  customTheme?: CustomTheme; // NEW: Per-chat custom theme
 }
 
 export interface Message {
@@ -170,6 +197,8 @@ export interface AppSettings {
 
   themeColor: string;
   fontSize: 'small' | 'medium' | 'large';
+  customTheme?: CustomTheme; // NEW: Global custom theme
+  savedThemes?: SavedTheme[]; // NEW: Saved custom themes
   
   // Wade's Side
   systemInstruction: string; // NEW: System level instructions (jailbreak)

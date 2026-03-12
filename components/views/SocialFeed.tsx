@@ -625,7 +625,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         {!isExpanded && content.length > 100 && (
           <button 
             onClick={() => setIsExpanded(true)}
-            className="text-gray-500 text-[14px] hover:text-black absolute bottom-0 right-0 bg-white pl-2"
+            className="text-gray-500 text-[14px] hover:text-black absolute bottom-0 right-0 bg-wade-bg-card pl-2"
           >
             ... more
           </button>
@@ -660,13 +660,13 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prevImage(); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-wade-bg-card/80 text-black hover:bg-wade-bg-card hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
               <Icons.ChevronLeft />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); nextImage(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-wade-bg-card/80 text-black hover:bg-wade-bg-card hover:text-gray-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm backdrop-blur-sm"
             >
               <Icons.ChevronRight />
             </button>
@@ -674,7 +674,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               {images.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/60'}`}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-wade-bg-card w-3' : 'bg-wade-bg-card/60'}`}
                 />
               ))}
             </div>
@@ -715,9 +715,9 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
     const avatar = currentPost.author === 'Luna' ? settings.lunaAvatar : settings.wadeAvatar;
 
     return (
-      <div className="fixed inset-0 z-[200] bg-white flex flex-col font-sans">
+      <div className="fixed inset-0 z-[200] bg-wade-bg-card flex flex-col font-sans">
         {/* Header */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+        <div className="flex-shrink-0 bg-wade-bg-card border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
           <button
             onClick={() => setViewingPostDetail(null)}
             className="text-black hover:opacity-70 transition-opacity"
@@ -736,10 +736,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
           <div className="max-w-xl mx-auto">
             
             {/* Post Header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-white/50 backdrop-blur-sm border-b border-wade-border">
+            <div className="flex items-center justify-between px-5 py-4 bg-wade-bg-card/50 backdrop-blur-sm border-b border-wade-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-sm">
-                  <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                 </div>
                 <span className="font-bold text-wade-text-main text-sm">{authorUsername}</span>
               </div>
@@ -867,7 +867,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         {canGoPrev && (
           <button
             onClick={goToPrev}
-            className="fixed left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center text-black hover:bg-white transition-colors z-10"
+            className="fixed left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-wade-bg-card/80 shadow-md flex items-center justify-center text-black hover:bg-wade-bg-card transition-colors z-10"
           >
             <Icons.ChevronLeft />
           </button>
@@ -875,7 +875,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         {canGoNext && (
           <button
             onClick={goToNext}
-            className="fixed right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 shadow-md flex items-center justify-center text-black hover:bg-white transition-colors z-10"
+            className="fixed right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-wade-bg-card/80 shadow-md flex items-center justify-center text-black hover:bg-wade-bg-card transition-colors z-10"
           >
             <Icons.ChevronRight />
           </button>
@@ -917,10 +917,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               <div className="flex items-center justify-between mb-4">
                 <div className="relative">
                   <div className={`w-[86px] h-[86px] rounded-full p-[3px] bg-gradient-to-tr ${isWade ? 'from-wade-accent to-wade-accent-hover' : 'from-wade-border to-wade-accent'} flex-shrink-0 shadow-md`}>
-                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                   </div>
                   {!isWade && (
-                    <div className="absolute bottom-0 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
+                    <div className="absolute bottom-0 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-wade-bg-card shadow-sm">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </div>
                   )}
@@ -1038,7 +1038,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                     {post.images && post.images.length > 0 ? (
                       <img src={post.images[0]} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
                     ) : (
-                      <div className="w-full h-full p-2 flex items-center justify-center bg-white text-black text-[10px] text-center overflow-hidden group-hover:bg-gray-50 transition-colors">
+                      <div className="w-full h-full p-2 flex items-center justify-center bg-wade-bg-card text-black text-[10px] text-center overflow-hidden group-hover:bg-gray-50 transition-colors">
                         <span className="line-clamp-4 leading-relaxed">{post.content}</span>
                       </div>
                     )}
@@ -1088,23 +1088,23 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
             <div className="bg-wade-bg-base border-b border-wade-border px-4 pt-4 pb-6 mb-4">
               <div className="flex gap-4 overflow-x-auto hide-scrollbar max-w-xl mx-auto px-1">
                 <button onClick={() => setShowDiaryTypeModal(true)} className="flex flex-col items-center gap-2 flex-shrink-0 group relative transition-transform hover:scale-105">
-                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-white shadow-md border border-wade-border">
+                  <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-wade-bg-card shadow-md border border-wade-border">
                     <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border border-wade-bg-base" />
                   </div>
-                  <div className="absolute bottom-6 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-sm">
+                  <div className="absolute bottom-6 right-0 bg-wade-accent text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-wade-bg-card shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   </div>
                   <span className="text-[11px] font-medium text-wade-text-muted">New Memory</span>
                 </button>
                 <button onClick={() => setViewingProfile('Luna')} className="flex flex-col items-center gap-2 flex-shrink-0 group transition-transform hover:scale-105">
                   <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-md">
-                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                    <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                   </div>
                   <span className="text-[11px] font-bold text-wade-text-main">luna_moonlight</span>
                 </button>
                 <button onClick={() => setViewingProfile('Wade')} className="flex flex-col items-center gap-2 flex-shrink-0 group transition-transform hover:scale-105">
                   <div className="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-md">
-                    <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                    <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                   </div>
                   <span className="text-[11px] font-bold text-wade-text-main">wade_wilson_dp</span>
                 </button>
@@ -1115,7 +1115,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
       {showDiaryTypeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-wade-bg-base w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
-            <div className="border-b border-wade-border p-5 text-center relative bg-white/50">
+            <div className="border-b border-wade-border p-5 text-center relative bg-wade-bg-card/50">
               <h3 className="font-bold text-wade-text-main text-lg">Create New Post</h3>
               <button
                 onClick={() => setShowDiaryTypeModal(false)}
@@ -1132,10 +1132,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   setShowDiaryTypeModal(false);
                   setIsCreating(true);
                 }}
-                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
+                className="flex items-center gap-4 p-4 hover:bg-wade-bg-card hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
               >
                 <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-wade-border to-wade-accent shadow-sm group-hover:scale-105 transition-transform">
-                  <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  <img src={settings.lunaAvatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                 </div>
                 <div>
                   <span className="block font-bold text-wade-text-main group-hover:text-wade-accent transition-colors">Luna's Post</span>
@@ -1150,10 +1150,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   setShowWadeDatePicker(true);
                   setWadeDiaryMode('deep');
                 }}
-                className="flex items-center gap-4 p-4 hover:bg-white hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
+                className="flex items-center gap-4 p-4 hover:bg-wade-bg-card hover:shadow-sm transition-all rounded-2xl text-left group border border-transparent hover:border-wade-border"
               >
                 <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-wade-accent to-wade-accent-hover shadow-sm group-hover:scale-105 transition-transform">
-                  <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                  <img src={settings.wadeAvatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                 </div>
                 <div>
                   <span className="block font-bold text-wade-text-main group-hover:text-wade-accent transition-colors">Wade's Post</span>
@@ -1170,7 +1170,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-wade-bg-base w-full max-w-md rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
             {/* Header */}
-            <div className="border-b border-wade-border p-5 text-center relative bg-white/50">
+            <div className="border-b border-wade-border p-5 text-center relative bg-wade-bg-card/50">
               <h3 className="font-bold text-wade-text-main text-lg">
                 {wadeDiaryStep === 'mode' && "Select Source"}
                 {wadeDiaryStep === 'date' && (wadeDiaryMode === 'archive' ? "Select Archive" : "Select Date")}
@@ -1404,7 +1404,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       >
                         <div className={`
                           w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors
-                          ${wadeDiarySelectedMessages.has(m.id) ? 'bg-[#0095f6] border-[#0095f6] text-white' : 'border-gray-300 bg-white'}
+                          ${wadeDiarySelectedMessages.has(m.id) ? 'bg-[#0095f6] border-[#0095f6] text-white' : 'border-gray-300 bg-wade-bg-card'}
                         `}>
                           {wadeDiarySelectedMessages.has(m.id) && <Icons.Check />}
                         </div>
@@ -1437,7 +1437,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-wade-bg-base w-full max-w-lg rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
             
-            <div className="border-b border-wade-border p-5 text-center relative flex justify-between items-center bg-white/50">
+            <div className="border-b border-wade-border p-5 text-center relative flex justify-between items-center bg-wade-bg-card/50">
               <button
                 onClick={() => {
                   setIsCreating(false);
@@ -1538,15 +1538,15 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
           const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 2);
 
           return (
-            <div key={post.id} className="bg-white border-b-[12px] border-[#f0f2f5] pb-2 mb-0 font-sans">
+            <div key={post.id} className="bg-wade-bg-card border-b-[12px] border-[#f0f2f5] pb-2 mb-0 font-sans">
               {/* Post Header */}
-              <div className="flex items-center justify-between px-5 py-4 bg-white/50 backdrop-blur-sm">
+              <div className="flex items-center justify-between px-5 py-4 bg-wade-bg-card/50 backdrop-blur-sm">
                 <div 
                   className="flex items-center gap-3 cursor-pointer group"
                   onClick={() => setViewingProfile(isWade ? 'Wade' : 'Luna')}
                 >
                   <div className={`w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr ${isWade ? 'from-wade-accent to-wade-accent-hover' : 'from-wade-border to-wade-accent'} shadow-sm group-hover:scale-105 transition-transform`}>
-                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-white" />
+                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
                   </div>
                   <div className="flex flex-col justify-center">
                     <span className="text-[14px] font-bold text-wade-text-main leading-tight group-hover:text-wade-accent transition-colors">{authorUsername}</span>
@@ -1566,7 +1566,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                         className="fixed inset-0 z-40" 
                         onClick={() => setOpenMenuPostId(null)} 
                       />
-                      <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                      <div className="absolute right-0 top-full mt-1 w-32 bg-wade-bg-card rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
                         <button
                           onClick={() => {
                             handleEditPost(post);
@@ -1603,7 +1603,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
               )}
 
               {/* Action Buttons */}
-              <div className="px-5 py-3 flex justify-between items-center bg-white/50 backdrop-blur-sm">
+              <div className="px-5 py-3 flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-sm">
                 <div className="flex gap-5 items-center">
                   <button 
                     onClick={() => handleLike(post.id)}
@@ -1752,14 +1752,14 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
               {/* Add Comment Input */}
               {activePostId === post.id && (
-                  <div className="px-3 py-2 bg-white animate-fade-in relative border-t border-gray-100">
+                  <div className="px-3 py-2 bg-wade-bg-card animate-fade-in relative border-t border-gray-100">
                       {replyingTo && replyingTo.postId === post.id && (
                           <div className="flex justify-between items-center bg-gray-50 px-3 py-2 mb-2 rounded-lg text-xs text-gray-500 border border-gray-200">
                               <span className="truncate pr-4">Replying to <span className="font-semibold">{replyingTo.author}</span>: {replyingTo.text}</span>
                               <button onClick={() => setReplyingTo(null)} className="hover:text-red-500 p-1 shrink-0">✕</button>
                           </div>
                       )}
-                      <div className="flex items-center gap-2 bg-white">
+                      <div className="flex items-center gap-2 bg-wade-bg-card">
                           <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                             <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
                           </div>
@@ -1815,7 +1815,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       index: (zoomedImage.index - 1 + zoomedImage.images.length) % zoomedImage.images.length
                     });
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10"
                 >
                   <Icons.ChevronLeft />
                 </button>
@@ -1827,16 +1827,16 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       index: (zoomedImage.index + 1) % zoomedImage.images.length
                     });
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10"
                 >
                   <Icons.ChevronRight />
                 </button>
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-wade-bg-card/10">
                   {zoomedImage.images.map((_, idx) => (
                     <div
                       key={idx}
                       className={`h-2 rounded-full transition-all duration-300 ${
-                        idx === zoomedImage.index ? 'bg-white w-6' : 'bg-white/40 w-2 hover:bg-white/60 cursor-pointer'
+                        idx === zoomedImage.index ? 'bg-wade-bg-card w-6' : 'bg-wade-bg-card/40 w-2 hover:bg-wade-bg-card/60 cursor-pointer'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1850,7 +1850,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
             <button
               onClick={() => setZoomedImage(null)}
-              className="absolute -top-4 -right-4 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all backdrop-blur-md border border-white/10 shadow-lg"
+              className="absolute -top-4 -right-4 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10 shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>

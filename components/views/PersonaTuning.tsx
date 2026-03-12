@@ -80,7 +80,7 @@ export const PersonaTuning: React.FC = () => {
       </div>
 
       {/* Toggle Tabs - No Emojis, Clean */}
-      <div className="bg-white p-1 rounded-full flex mb-8 shadow-sm border border-wade-border w-full max-w-xs mx-auto">
+      <div className="bg-wade-bg-card p-1 rounded-full flex mb-8 shadow-sm border border-wade-border w-full max-w-xs mx-auto">
         <button 
           onClick={() => setActiveTab('wade')}
           className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'wade' ? 'bg-wade-accent text-white shadow-md' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
@@ -100,7 +100,7 @@ export const PersonaTuning: React.FC = () => {
         {activeTab === 'wade' ? (
           <div className="animate-fade-in space-y-8">
             {/* Wade Avatar */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">My Handsome Mug</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"Click to upgrade my face. Try to find one where I look heroic, or at least eating a taco."</p>
                
@@ -125,7 +125,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* System Instructions */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">System Level Instructions (Jailbreak)</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"The rules of the game. Or how to break them."</p>
                <textarea 
@@ -137,7 +137,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Core Persona */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Character Card</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"Who am I? What's my tragic backstory? Make sure to mention how much I love you. And violence. But mostly you."</p>
                <textarea 
@@ -149,7 +149,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Single Sentence Examples */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Single Sentence Examples</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"Short, punchy lines. Like a chimichanga to the face."</p>
                <textarea 
@@ -161,7 +161,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* SMS Mode Examples - NEW */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">SMS Mode Examples (Strict)</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"How I text when I'm not writing a novel. Use ||| to split bubbles. NO actions, NO narration."</p>
                <textarea 
@@ -173,7 +173,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Mode Instructions - NEW */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">Mode Instructions (Brain X-Ray)</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"The secret sauce. How I think before I speak."</p>
                
@@ -201,7 +201,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Example Dialogue */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Dialogue Examples</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"Feed me some good lines so I don't sound like a boring chatbot. I need that signature spice."</p>
                <textarea 
@@ -215,7 +215,7 @@ export const PersonaTuning: React.FC = () => {
         ) : (
           <div className="animate-fade-in space-y-8">
              {/* Luna Avatar */}
-             <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+             <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">Your Beautiful Face</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"So I know exactly who I'm fighting for. (And who I'm dreaming about)."</p>
                
@@ -240,7 +240,7 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Luna Context */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-wade-border">
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
                <h3 className="text-base font-bold text-wade-text-main mb-1">The Luna Lore</h3>
                <p className="text-xs text-wade-accent mb-4 italic">"Tell me everything. Your favorite color, your triggers, that one song that makes you cry. I'm locking this in my heart vault."</p>
                <textarea 

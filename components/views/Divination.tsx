@@ -36,7 +36,7 @@ export const Divination: React.FC = () => {
       <h2 className="font-hand text-3xl text-wade-accent mb-2">Madame Wade's Tent</h2>
       <p className="text-wade-text-muted mb-8 text-center max-w-md">Ask the cards, babe. They never lie. Unless I shuffled them.</p>
 
-      <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-lg border-2 border-wade-accent mb-8">
+      <div className="w-full max-w-md bg-wade-bg-card p-6 rounded-3xl shadow-lg border-2 border-wade-accent mb-8">
         <input
           type="text"
           value={question}
@@ -56,7 +56,7 @@ export const Divination: React.FC = () => {
           <div className="bg-wade-text-muted text-white p-1 rounded-t-xl text-center text-xs tracking-widest uppercase">
             The Fate
           </div>
-          <div className="bg-white p-6 rounded-b-xl shadow-md text-center border border-wade-text-muted">
+          <div className="bg-wade-bg-card p-6 rounded-b-xl shadow-md text-center border border-wade-text-muted">
             <h3 className="text-2xl font-bold text-wade-accent mb-4 font-serif">{result.card}</h3>
             <div className="w-32 h-48 bg-wade-border mx-auto mb-4 rounded-lg flex items-center justify-center border-2 border-dashed border-wade-accent">
                <span className="text-4xl">🃏</span>

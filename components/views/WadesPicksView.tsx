@@ -179,7 +179,7 @@ export const WadesPicksView = () => {
           </button>
           <h1 className="text-3xl font-bold text-wade-text-main mb-8">Add New Pick</h1>
           
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-wade-border">
+          <div className="bg-wade-bg-card rounded-[32px] p-6 shadow-sm border border-wade-border">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-wade-text-muted mb-2">Type</label>
@@ -266,7 +266,7 @@ export const WadesPicksView = () => {
             </button>
             <h1 className="text-3xl font-bold text-wade-text-main mb-8">Edit Pick</h1>
             
-            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-wade-border">
+            <div className="bg-wade-bg-card rounded-[32px] p-6 shadow-sm border border-wade-border">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-wade-text-muted mb-2">Type</label>
@@ -350,18 +350,18 @@ export const WadesPicksView = () => {
           <div className="flex justify-between items-center mb-8">
             <button
               onClick={() => setViewingRecId(null)}
-              className="flex items-center justify-center w-10 h-10 text-wade-text-muted hover:text-wade-accent transition-colors bg-white rounded-full shadow-sm"
+              className="flex items-center justify-center w-10 h-10 text-wade-text-muted hover:text-wade-accent transition-colors bg-wade-bg-card rounded-full shadow-sm"
               title="Back to Picks"
             >
               <Icons.ChevronLeft />
             </button>
             <div className="flex gap-2">
-              <button onClick={() => handleStartEdit(selectedRec)} className="flex items-center justify-center w-10 h-10 bg-white rounded-full text-wade-text-muted hover:text-wade-accent shadow-sm transition-colors">
+              <button onClick={() => handleStartEdit(selectedRec)} className="flex items-center justify-center w-10 h-10 bg-wade-bg-card rounded-full text-wade-text-muted hover:text-wade-accent shadow-sm transition-colors">
                 <Icons.Edit />
               </button>
               <button
                 onClick={() => handleDeleteClick(selectedRec.id)}
-                className={`flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm transition-colors ${
+                className={`flex items-center justify-center w-10 h-10 bg-wade-bg-card rounded-full shadow-sm transition-colors ${
                   deleteConfirmId === selectedRec.id
                     ? 'text-green-500 hover:text-green-600'
                     : 'text-red-400 hover:text-red-500'
@@ -415,7 +415,7 @@ export const WadesPicksView = () => {
 
               {/* Wade's Comment */}
               <div className="bg-wade-accent-light/50 rounded-2xl p-4 md:p-6 border border-wade-accent/10 relative mt-2">
-                <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm text-xl">
                   ⚔️
                 </div>
                 <h3 className="text-sm font-bold text-wade-accent uppercase tracking-wider mb-2 ml-2">Wade Says</h3>
@@ -435,7 +435,7 @@ export const WadesPicksView = () => {
             {selectedRec.lunaReview || selectedRec.lunaRating ? (
               <div className="space-y-6">
                 {/* Luna's Review Display */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
+                <div className="bg-wade-bg-card rounded-2xl p-6 shadow-sm border border-wade-border">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex gap-1 text-wade-accent/70">
                       {[1, 2, 3, 4, 5].map(star => (
@@ -460,7 +460,7 @@ export const WadesPicksView = () => {
                 {/* Wade's Reply */}
                 {selectedRec.wadeReply && (
                   <div className="ml-8 md:ml-12 bg-wade-accent-light/50 rounded-2xl p-6 border border-wade-accent/10 relative">
-                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-xl">
+                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm text-xl">
                       ⚔️
                     </div>
                     <h3 className="text-sm font-bold text-wade-accent uppercase tracking-wider mb-2 ml-2">Wade's Reply</h3>
@@ -470,7 +470,7 @@ export const WadesPicksView = () => {
               </div>
             ) : (
               /* Add Review Form */
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
+              <div className="bg-wade-bg-card rounded-2xl p-6 shadow-sm border border-wade-border">
                 <div className="mb-4">
                   <label className="block text-sm font-bold text-wade-text-muted mb-2">Rating</label>
                   <div className="flex gap-2 text-wade-accent/70 cursor-pointer">
@@ -502,7 +502,7 @@ export const WadesPicksView = () => {
             
             {/* If editing existing review */}
             {(selectedRec.lunaReview || selectedRec.lunaRating) && isEditingLunaReview && (
-               <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-wade-border">
+               <div className="mt-6 bg-wade-bg-card rounded-2xl p-6 shadow-sm border border-wade-border">
                  <h3 className="font-bold text-wade-text-main mb-4">Edit Review</h3>
                  <div className="mb-4">
                    <div className="flex gap-2 text-wade-accent/70 cursor-pointer">
@@ -564,7 +564,7 @@ export const WadesPicksView = () => {
               className={`flex items-center justify-center w-12 h-12 rounded-full transition-all flex-shrink-0
                 ${filterType === type 
                   ? 'bg-wade-text-main text-white shadow-md' 
-                  : 'bg-white text-wade-text-muted border border-wade-border hover:border-wade-accent hover:text-wade-accent'
+                  : 'bg-wade-bg-card text-wade-text-muted border border-wade-border hover:border-wade-accent hover:text-wade-accent'
                 }
               `}
               title={type === 'all' ? 'All Picks' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
@@ -583,7 +583,7 @@ export const WadesPicksView = () => {
             <div 
               key={rec.id}
               onClick={() => setViewingRecId(rec.id)}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-wade-border hover:shadow-md hover:border-wade-accent/30 transition-all cursor-pointer group flex flex-col"
+              className="bg-wade-bg-card rounded-2xl overflow-hidden shadow-sm border border-wade-border hover:shadow-md hover:border-wade-accent/30 transition-all cursor-pointer group flex flex-col"
             >
               <div className="aspect-[3/4] bg-gray-100 relative overflow-hidden">
                 {rec.coverUrl ? (
@@ -593,7 +593,7 @@ export const WadesPicksView = () => {
                     {rec.type === 'movie' ? '🎬' : rec.type === 'music' ? '🎵' : '📚'}
                   </div>
                 )}
-                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-wade-accent uppercase tracking-wider">
+                <div className="absolute top-2 right-2 bg-wade-bg-card/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-wade-accent uppercase tracking-wider">
                   {rec.type}
                 </div>
               </div>

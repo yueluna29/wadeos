@@ -103,12 +103,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
            throw new Error(`Settings Sync: ${sError.message}`);
         }
         if (sData) {
+          let parsedTheme = sData.custom_theme ? (typeof sData.custom_theme === 'string' ? JSON.parse(sData.custom_theme) : sData.custom_theme) : null;
+          let activeTheme = settings.customTheme;
+          let savedThemes = settings.savedThemes;
+          if (parsedTheme) {
+            if ('active' in parsedTheme || 'saved' in parsedTheme) {
+              activeTheme = parsedTheme.active;
+              savedThemes = parsedTheme.saved || [];
+            } else if (Object.keys(parsedTheme).length === 0) {
+              activeTheme = undefined;
+              savedThemes = [];
+            } else {
+              activeTheme = parsedTheme;
+            }
+          }
+
           const remoteSettings: AppSettings = {
             activeLlmId: sData.active_llm_id || settings.activeLlmId,
             activeTtsId: sData.active_tts_id || settings.activeTtsId,
             homeLlmId: sData.home_llm_id || settings.homeLlmId, // NEW
             themeColor: settings.themeColor, 
             fontSize: settings.fontSize,
+            customTheme: activeTheme,
+            savedThemes: savedThemes,
             systemInstruction: sData.system_instruction || settings.systemInstruction,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
             wadeSingleExamples: sData.wade_single_examples || settings.wadeSingleExamples,
@@ -198,7 +215,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             // Check both DB (if exists) and LocalStorage
             isPinned: (s.is_pinned ?? s.pinned ?? false) || localPinnedIds.includes(s.id),
             customLlmId: s.custom_llm_id,
-            customPrompt: s.custom_prompt
+            customPrompt: s.custom_prompt,
+            customTheme: s.custom_theme ? (typeof s.custom_theme === 'string' ? JSON.parse(s.custom_theme) : s.custom_theme) : undefined
           }));
 
           // Client-side sort: Pinned first, then Updated At
@@ -521,7 +539,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         luna_avatar: newSettings.lunaAvatar,
         active_llm_id: newSettings.activeLlmId,
         active_tts_id: newSettings.activeTtsId,
-        home_llm_id: newSettings.homeLlmId // NEW
+        home_llm_id: newSettings.homeLlmId, // NEW
+        custom_theme: {
+          active: newSettings.customTheme,
+          saved: newSettings.savedThemes
+        }
       });
     } catch (err) {
       console.error("Sync failed", err);
@@ -717,6 +739,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.isPinned !== undefined) dbUpdates.is_pinned = updates.isPinned;
     if (updates.activeMemoryIds !== undefined) dbUpdates.active_memory_ids = updates.activeMemoryIds;
+    if (updates.customTheme !== undefined) dbUpdates.custom_theme = updates.customTheme;
     if (Object.keys(dbUpdates).length > 0) {
       dbUpdates.updated_at = new Date().toISOString();
       const { error } = await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);

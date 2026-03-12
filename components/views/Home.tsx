@@ -121,7 +121,7 @@ export const Home: React.FC = () => {
       <CouplesCounter />
 
       {/* Wade's Status Card */}
-      <section className="bg-white rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden group">
+      <section className="bg-wade-bg-card rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 z-0"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
@@ -251,8 +251,8 @@ export const Home: React.FC = () => {
                      }}
                      className={`h-40 rounded-[24px] relative group cursor-pointer transition-all hover:-translate-y-1 shadow-sm hover:shadow-md border ${visibilityClass}
                        ${isUnlocked 
-                         ? 'bg-white border-wade-accent/30' 
-                         : 'bg-white border-wade-border'
+                         ? 'bg-wade-bg-card border-wade-accent/30' 
+                         : 'bg-wade-bg-card border-wade-border'
                        }
                      `}
                    >
@@ -307,7 +307,7 @@ export const Home: React.FC = () => {
               <div 
                 key={rec.id} 
                 onClick={() => setTab('wade-picks')} 
-                className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group ${index >= 2 ? 'hidden lg:flex' : ''}`}
+                className={`bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex gap-4 transition-transform hover:-translate-y-1 cursor-pointer group ${index >= 2 ? 'hidden lg:flex' : ''}`}
               >
                 {rec.coverUrl ? (
                   <img src={rec.coverUrl} className="w-16 h-24 object-cover rounded-lg bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow shrink-0" alt={rec.title} referrerPolicy="no-referrer" />

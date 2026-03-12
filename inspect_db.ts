@@ -7,22 +7,13 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function inspect() {
-  console.log("Fetching one session to inspect keys...");
+  console.log("Fetching tables...");
   const { data, error } = await supabase
-    .from('chat_sessions')
+    .from('app_settings')
     .select('*')
     .limit(1);
-
-  if (error) {
-    console.error("Error:", error);
-  } else {
-    if (data && data.length > 0) {
-      console.log("Keys found:", Object.keys(data[0]));
-    } else {
-      console.log("No sessions found, cannot inspect keys.");
-      // Try inserting a dummy to see what fails? No, that's risky.
-    }
-  }
+    
+  // Let's try to insert a dummy row into a new table or something? No, we can't.
 }
 
 inspect();

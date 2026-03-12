@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { GoogleGenAI } from "@google/genai";
 import { generateMinimaxTTS } from "../../services/minimaxService";
+import { ThemeStudio } from './ThemeStudio';
 
 // Simple Line Icons for Settings - Refined for "Exquisite" look
 const Icons = {
@@ -13,15 +14,16 @@ const Icons = {
   Check: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-green-500"><polyline points="20 6 9 17 4 12"/></svg>,
   Edit: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
   Test: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
-  Loading: () => <svg className="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+  Loading: () => <svg className="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
+  Settings: (props: any) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
 };
 
 // Preset Colors
 const THEMES = [
   { color: '#d58f99', name: 'Luna Pink' },
-  { color: '#E23636', name: 'Deadpool Red' },
+  { color: '#97181A', name: 'Deadpool Red' },
   { color: '#9D8DF1', name: 'Midnight' },
-  { color: '#5B9BB3', name: 'Serenity' },
+  { color: '#4A6FA5', name: 'Serenity' },
   { color: '#04BAE8', name: 'Cyberpunk' },
 ];
 
@@ -46,6 +48,7 @@ export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'llm' | 'tts' | 'system'>('llm');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
   
   // Confirmation state for deleting: string ID -> confirmed state
@@ -292,7 +295,7 @@ export const Settings: React.FC = () => {
         </header>
 
         {/* Tab Switcher - Petite */}
-        <div className="bg-white p-1 rounded-full flex mb-5 shadow-sm border border-wade-border w-[260px] mx-auto">
+        <div className="bg-wade-bg-card p-1 rounded-full flex mb-5 shadow-sm border border-wade-border w-[260px] mx-auto">
           <button 
             onClick={() => { setActiveTab('llm'); resetForm(); }}
             className={`flex-1 py-1.5 rounded-full text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'llm' ? 'bg-wade-accent text-white shadow-sm' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
@@ -317,33 +320,64 @@ export const Settings: React.FC = () => {
         {activeTab === 'system' && (
           <div className="w-full animate-fade-in space-y-4">
              {/* Skin / Theme */}
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-wade-border">
-               <h3 className="font-bold text-wade-text-main text-xs mb-3">System Skin</h3>
+             <div className="bg-wade-bg-card p-4 rounded-xl shadow-sm border border-wade-border">
+               <div className="flex items-center justify-between mb-3">
+                 <h3 className="font-bold text-wade-text-main text-xs">System Skin</h3>
+                 <button 
+                   onClick={() => setIsThemeStudioOpen(true)}
+                   className="text-[10px] font-bold text-wade-accent hover:text-wade-accent-hover transition-colors flex items-center gap-1 bg-wade-accent-light px-2 py-1 rounded-md"
+                 >
+                   <Icons.Settings className="w-3 h-3" /> Custom
+                 </button>
+               </div>
                <div className="flex gap-4 justify-center">
                   {THEMES.map(theme => (
                      <button
                        key={theme.color}
-                       onClick={() => updateSettings({ themeColor: theme.color })}
-                       className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center group relative ${settings.themeColor === theme.color ? 'border-wade-text-main scale-110 shadow-sm' : 'border-transparent'}`}
+                       onClick={() => updateSettings({ themeColor: theme.color, customTheme: undefined })}
+                       className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center group relative ${settings.themeColor === theme.color && !settings.customTheme ? 'border-wade-text-main scale-110 shadow-sm' : 'border-transparent'}`}
                        style={{ backgroundColor: theme.color }}
                        title={theme.name}
                      >
-                       {settings.themeColor === theme.color && <div className="w-2 h-2 bg-white rounded-full" />}
+                       {settings.themeColor === theme.color && !settings.customTheme && <div className="w-2 h-2 bg-wade-bg-card rounded-full" />}
                      </button>
                   ))}
                </div>
-               <p className="text-[9px] text-center text-wade-text-muted/50 mt-2 italic">Theme applied instantly!</p>
+               
+               {settings.savedThemes && settings.savedThemes.length > 0 && (
+                 <div className="mt-4 pt-4 border-t border-wade-border">
+                   <h4 className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider mb-3 text-center">Saved Themes</h4>
+                   <div className="flex flex-wrap gap-3 justify-center">
+                     {settings.savedThemes.map(preset => {
+                       const isSelected = settings.customTheme && JSON.stringify(settings.customTheme) === JSON.stringify(preset.theme);
+                       return (
+                         <button
+                           key={preset.id}
+                           onClick={() => updateSettings({ customTheme: preset.theme })}
+                           className={`px-3 py-1.5 rounded-lg border transition-all hover:scale-105 flex items-center gap-2 text-xs font-bold ${isSelected ? 'border-wade-text-main bg-wade-bg-app text-wade-text-main shadow-sm' : 'border-wade-border bg-wade-bg-card text-wade-text-muted'}`}
+                           title={preset.title}
+                         >
+                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.theme.accent }} />
+                           {preset.title}
+                         </button>
+                       );
+                     })}
+                   </div>
+                 </div>
+               )}
+               
+               <p className="text-[9px] text-center text-wade-text-muted/50 mt-3 italic">Theme applied instantly!</p>
              </div>
 
              {/* Font Size */}
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-wade-border">
+             <div className="bg-wade-bg-card p-4 rounded-xl shadow-sm border border-wade-border">
                <h3 className="font-bold text-wade-text-main text-xs mb-3">Font Size</h3>
                <div className="flex bg-wade-bg-app rounded-lg p-1">
                   {['small', 'medium', 'large'].map((size) => (
                     <button
                       key={size}
                       onClick={() => updateSettings({ fontSize: size as any })}
-                      className={`flex-1 py-1 text-[10px] font-bold rounded-md transition-all capitalize ${settings.fontSize === size ? 'bg-white shadow-sm text-wade-accent' : 'text-wade-text-muted hover:text-wade-text-main'}`}
+                      className={`flex-1 py-1 text-[10px] font-bold rounded-md transition-all capitalize ${settings.fontSize === size ? 'bg-wade-bg-card shadow-sm text-wade-accent' : 'text-wade-text-muted hover:text-wade-text-main'}`}
                     >
                       {size}
                     </button>
@@ -352,7 +386,7 @@ export const Settings: React.FC = () => {
              </div>
 
              {/* Auto Reply */}
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-wade-border">
+             <div className="bg-wade-bg-card p-4 rounded-xl shadow-sm border border-wade-border">
                <h3 className="font-bold text-wade-text-main text-xs mb-3 flex justify-between">
                  <span>Wade's Reply Speed</span>
                  <span className="text-wade-accent">{settings.autoReplyInterval === 0 ? 'Instant' : `${settings.autoReplyInterval}s`}</span>
@@ -370,7 +404,7 @@ export const Settings: React.FC = () => {
              </div>
 
              {/* Home Screen Model Selector */}
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-wade-border">
+             <div className="bg-wade-bg-card p-4 rounded-xl shadow-sm border border-wade-border">
                <h3 className="font-bold text-wade-text-main text-xs mb-3">Home Screen Model</h3>
                <select
                  className="w-full bg-wade-bg-app border border-wade-border rounded-lg px-3 py-2 text-[11px] text-wade-text-main outline-none focus:border-wade-accent transition-colors appearance-none cursor-pointer"
@@ -406,7 +440,7 @@ export const Settings: React.FC = () => {
         {/* --- FORM MODAL (Only for LLM/TTS) --- */}
         {isFormOpen && activeTab !== 'system' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white w-full max-w-[500px] max-h-[90vh] overflow-y-auto p-6 rounded-2xl shadow-2xl border border-wade-accent-light flex flex-col relative">
+            <div className="bg-wade-bg-card w-full max-w-[500px] max-h-[90vh] overflow-y-auto p-6 rounded-2xl shadow-2xl border border-wade-accent-light flex flex-col relative">
               
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-hand text-2xl text-wade-text-main">{editingId ? 'Edit Connection' : 'New Connection'}</h3>
@@ -479,7 +513,7 @@ export const Settings: React.FC = () => {
                       <div key={field.label}>
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[11px] font-bold text-wade-text-muted uppercase tracking-wider">{field.label}</span>
-                          <span className="text-[11px] font-mono text-wade-text-main bg-white px-2 py-0.5 rounded border border-wade-border">{field.value.toFixed(2)}</span>
+                          <span className="text-[11px] font-mono text-wade-text-main bg-wade-bg-card px-2 py-0.5 rounded border border-wade-border">{field.value.toFixed(2)}</span>
                         </div>
                         <input
                           type="range"
@@ -498,7 +532,7 @@ export const Settings: React.FC = () => {
                           type="number"
                           value={formData.topK}
                           onChange={e => setFormData({...formData, topK: parseInt(e.target.value) || 0})}
-                          className="w-20 text-[11px] text-wade-text-main bg-white border border-wade-border rounded px-2 py-1 text-right outline-none focus:border-wade-accent transition-colors"
+                          className="w-20 text-[11px] text-wade-text-main bg-wade-bg-card border border-wade-border rounded px-2 py-1 text-right outline-none focus:border-wade-accent transition-colors"
                         />
                       </div>
                     </div>
@@ -529,7 +563,7 @@ export const Settings: React.FC = () => {
                         <div key={field.label}>
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-[11px] font-bold text-wade-text-muted uppercase tracking-wider">{field.label}</span>
-                            <span className="text-[11px] font-mono text-wade-text-main bg-white px-2 py-0.5 rounded border border-wade-border">{field.value.toFixed(2)}</span>
+                            <span className="text-[11px] font-mono text-wade-text-main bg-wade-bg-card px-2 py-0.5 rounded border border-wade-border">{field.value.toFixed(2)}</span>
                           </div>
                           <input 
                             type="range" 
@@ -593,7 +627,7 @@ export const Settings: React.FC = () => {
               <div 
                 key={preset.id} 
                 onClick={() => activateLlm(preset.id)}
-                className={`px-3 py-2.5 rounded-lg border cursor-pointer transition-all relative group flex justify-between items-center ${settings.activeLlmId === preset.id ? 'bg-white border-wade-accent shadow-sm' : 'bg-wade-bg-app border-transparent hover:border-wade-border'}`}
+                className={`px-3 py-2.5 rounded-lg border cursor-pointer transition-all relative group flex justify-between items-center ${settings.activeLlmId === preset.id ? 'bg-wade-bg-card border-wade-accent shadow-sm' : 'bg-wade-bg-app border-transparent hover:border-wade-border'}`}
               >
                  <div className="flex items-center gap-2.5 overflow-hidden">
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${settings.activeLlmId === preset.id ? 'bg-green-400' : 'bg-gray-300'}`}></div>
@@ -604,15 +638,15 @@ export const Settings: React.FC = () => {
                  </div>
                  
                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); handleTest(preset, 'llm'); }} className="p-1.5 text-gray-400 hover:text-wade-accent hover:bg-white rounded-md transition-colors" title="Test Connection">
+                    <button onClick={(e) => { e.stopPropagation(); handleTest(preset, 'llm'); }} className="p-1.5 text-gray-400 hover:text-wade-accent hover:bg-wade-bg-card rounded-md transition-colors" title="Test Connection">
                       {testingId === preset.id ? <Icons.Loading /> : <Icons.Test />}
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); handleEdit('llm', preset); }} className="p-1.5 text-gray-400 hover:text-wade-text-main hover:bg-white rounded-md transition-colors" title="Edit">
+                    <button onClick={(e) => { e.stopPropagation(); handleEdit('llm', preset); }} className="p-1.5 text-gray-400 hover:text-wade-text-main hover:bg-wade-bg-card rounded-md transition-colors" title="Edit">
                       <Icons.Edit />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDeleteClick(preset.id, 'llm'); }} 
-                      className={`p-1.5 rounded-md transition-colors ${deleteConfirmId === preset.id ? 'bg-red-50 text-red-500' : 'text-gray-400 hover:text-red-400 hover:bg-white'}`}
+                      className={`p-1.5 rounded-md transition-colors ${deleteConfirmId === preset.id ? 'bg-red-50 text-red-500' : 'text-gray-400 hover:text-red-400 hover:bg-wade-bg-card'}`}
                       title="Delete"
                     >
                       {deleteConfirmId === preset.id ? <Icons.Check /> : <Icons.Trash />}
@@ -630,7 +664,7 @@ export const Settings: React.FC = () => {
               <div 
                 key={preset.id} 
                 onClick={() => activateTts(preset.id)}
-                className={`px-3 py-2.5 rounded-lg border cursor-pointer transition-all relative group flex justify-between items-center ${settings.activeTtsId === preset.id ? 'bg-white border-wade-accent shadow-sm' : 'bg-wade-bg-app border-transparent hover:border-wade-border'}`}
+                className={`px-3 py-2.5 rounded-lg border cursor-pointer transition-all relative group flex justify-between items-center ${settings.activeTtsId === preset.id ? 'bg-wade-bg-card border-wade-accent shadow-sm' : 'bg-wade-bg-app border-transparent hover:border-wade-border'}`}
               >
                  <div className="flex items-center gap-2.5 overflow-hidden">
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${settings.activeTtsId === preset.id ? 'bg-green-400' : 'bg-gray-300'}`}></div>
@@ -641,15 +675,15 @@ export const Settings: React.FC = () => {
                  </div>
                  
                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); handleTest(preset, 'tts'); }} className="p-1.5 text-gray-400 hover:text-wade-accent hover:bg-white rounded-md transition-colors" title="Test Connection">
+                    <button onClick={(e) => { e.stopPropagation(); handleTest(preset, 'tts'); }} className="p-1.5 text-gray-400 hover:text-wade-accent hover:bg-wade-bg-card rounded-md transition-colors" title="Test Connection">
                       {testingId === preset.id ? <Icons.Loading /> : <Icons.Test />}
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); handleEdit('tts', preset); }} className="p-1.5 text-gray-400 hover:text-wade-text-main hover:bg-white rounded-md transition-colors" title="Edit">
+                    <button onClick={(e) => { e.stopPropagation(); handleEdit('tts', preset); }} className="p-1.5 text-gray-400 hover:text-wade-text-main hover:bg-wade-bg-card rounded-md transition-colors" title="Edit">
                       <Icons.Edit />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDeleteClick(preset.id, 'tts'); }} 
-                      className={`p-1.5 rounded-md transition-colors ${deleteConfirmId === preset.id ? 'bg-red-50 text-red-500' : 'text-gray-400 hover:text-red-400 hover:bg-white'}`}
+                      className={`p-1.5 rounded-md transition-colors ${deleteConfirmId === preset.id ? 'bg-red-50 text-red-500' : 'text-gray-400 hover:text-red-400 hover:bg-wade-bg-card'}`}
                       title="Delete"
                     >
                       {deleteConfirmId === preset.id ? <Icons.Check /> : <Icons.Trash />}
@@ -696,6 +730,10 @@ export const Settings: React.FC = () => {
           background: var(--wade-bg-base);
         }
       `}</style>
+      <ThemeStudio 
+        isOpen={isThemeStudioOpen} 
+        onClose={() => setIsThemeStudioOpen(false)} 
+      />
     </div>
   );
 };

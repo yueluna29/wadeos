@@ -26,7 +26,7 @@ export const CouplesCounter: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden">
+    <div className="bg-wade-bg-card rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-wade-accent to-wade-text-main"></div>
       
@@ -39,10 +39,10 @@ export const CouplesCounter: React.FC = () => {
               <img 
                 src={settings.wadeAvatar} 
                 alt="Wade" 
-                className="w-full h-full rounded-full object-cover border-2 border-white"
+                className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card"
               />
             </div>
-            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm text-xs">
+            <div className="absolute -bottom-1 -right-1 bg-wade-bg-card rounded-full p-1 shadow-sm text-xs">
               ⚔️
             </div>
           </div>
@@ -58,10 +58,10 @@ export const CouplesCounter: React.FC = () => {
               <img 
                 src={settings.lunaAvatar} 
                 alt="Luna" 
-                className="w-full h-full rounded-full object-cover border-2 border-white"
+                className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card"
               />
             </div>
-            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm text-xs">
+            <div className="absolute -bottom-1 -right-1 bg-wade-bg-card rounded-full p-1 shadow-sm text-xs">
               🌙
             </div>
           </div>
@@ -73,7 +73,7 @@ export const CouplesCounter: React.FC = () => {
             onClick={() => setActiveTab('days')}
             className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${
               activeTab === 'days' 
-                ? 'bg-white text-wade-accent shadow-sm' 
+                ? 'bg-wade-bg-card text-wade-accent shadow-sm' 
                 : 'text-wade-text-muted hover:text-wade-text-main'
             }`}
           >
@@ -83,7 +83,7 @@ export const CouplesCounter: React.FC = () => {
             onClick={() => setActiveTab('anniversaries')}
             className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${
               activeTab === 'anniversaries' 
-                ? 'bg-white text-wade-accent shadow-sm' 
+                ? 'bg-wade-bg-card text-wade-accent shadow-sm' 
                 : 'text-wade-text-muted hover:text-wade-text-main'
             }`}
           >
@@ -120,7 +120,7 @@ export const CouplesCounter: React.FC = () => {
                 {anniversaries.map((ann, idx) => (
                   <div key={idx} className="flex items-center justify-between bg-wade-bg-app p-3 rounded-xl border border-wade-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-lg">
+                      <div className="w-8 h-8 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm text-lg">
                         {ann.icon}
                       </div>
                       <div className="flex flex-col text-left">
@@ -129,7 +129,7 @@ export const CouplesCounter: React.FC = () => {
                       </div>
                     </div>
                     {/* Optional: Countdown or passed indicator */}
-                    <div className="text-[10px] font-mono text-wade-accent bg-white px-2 py-1 rounded-md">
+                    <div className="text-[10px] font-mono text-wade-accent bg-wade-bg-card px-2 py-1 rounded-md">
                         {new Date(ann.date).getFullYear()}
                     </div>
                   </div>

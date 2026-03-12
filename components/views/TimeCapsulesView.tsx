@@ -289,7 +289,7 @@ export const TimeCapsulesView = () => {
           {/* Action Buttons (Top Right) */}
           <div className="flex items-center gap-3 pointer-events-auto">
              {/* Listen Button */}
-             <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full p-1 border border-wade-border shadow-sm">
+             <div className="flex items-center gap-2 bg-wade-bg-card/90 backdrop-blur-md rounded-full p-1 border border-wade-border shadow-sm">
                 <button
                   onClick={() => handleListenClick(false)}
                   disabled={isLoadingAudio}
@@ -334,7 +334,7 @@ export const TimeCapsulesView = () => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pt-24 pb-12 px-4">
-           <div className="max-w-md mx-auto bg-white rounded-[32px] shadow-sm border border-wade-accent-light p-8 relative overflow-hidden min-h-[60vh]">
+           <div className="max-w-md mx-auto bg-wade-bg-card rounded-[32px] shadow-sm border border-wade-accent-light p-8 relative overflow-hidden min-h-[60vh]">
               {/* Decorative Elements */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-wade-accent-light to-transparent rounded-bl-[100px] -mr-10 -mt-10 opacity-60 pointer-events-none"></div>
               
@@ -423,7 +423,7 @@ export const TimeCapsulesView = () => {
         </div>
 
         {/* Compact Grid Calendar */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-wade-border/60 mb-6 overflow-hidden flex-shrink-0">
+        <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border/60 mb-6 overflow-hidden flex-shrink-0">
           <div className="px-4 py-3 flex items-center justify-between border-b border-wade-border/40 bg-wade-accent-light/30">
             <h2 className="text-base font-bold text-wade-text-main">
               {monthNames[currentDate.getMonth()]} <span className="text-wade-accent">{currentDate.getFullYear()}</span>
@@ -491,7 +491,7 @@ export const TimeCapsulesView = () => {
                   </h3>
                 </div>
               </div>
-              <div className="bg-white px-3 py-1.5 rounded-xl shadow-sm border border-wade-border flex items-center gap-2">
+              <div className="bg-wade-bg-card px-3 py-1.5 rounded-xl shadow-sm border border-wade-border flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-wade-accent"></span>
                 <span className="text-xs font-bold text-wade-text-muted">
                   {selectedDayCapsules.length} Letters
@@ -511,7 +511,7 @@ export const TimeCapsulesView = () => {
                     });
                     setShowAddModal(true);
                   }}
-                  className="bg-white/60 rounded-[24px] border-2 border-wade-border border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-wade-accent/40 hover:bg-white transition-all duration-300 h-48"
+                  className="bg-wade-bg-card/60 rounded-[24px] border-2 border-wade-border border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-wade-accent/40 hover:bg-wade-bg-card transition-all duration-300 h-48"
                 >
                   <div className="w-14 h-14 bg-wade-accent-light rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 text-wade-accent">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -543,7 +543,7 @@ export const TimeCapsulesView = () => {
                             className={`
                             relative overflow-hidden rounded-[24px] transition-all duration-300 group-hover:-translate-y-1 h-full
                             ${isAvailable 
-                              ? 'bg-white shadow-[0_10px_40px_-10px_rgba(213,143,153,0.2)] cursor-pointer border border-wade-accent-light' 
+                              ? 'bg-wade-bg-card shadow-[0_10px_40px_-10px_rgba(213,143,153,0.2)] cursor-pointer border border-wade-accent-light' 
                               : 'bg-wade-bg-app border border-wade-border cursor-not-allowed'
                             }
                           `}>
@@ -562,7 +562,7 @@ export const TimeCapsulesView = () => {
                                   w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm flex-shrink-0 transition-transform duration-300 group-hover:scale-105
                                   ${isAvailable 
                                     ? 'bg-gradient-to-br from-wade-accent to-wade-border-light text-white shadow-md shadow-wade-accent/20' 
-                                    : 'bg-white text-wade-text-muted border border-wade-border'
+                                    : 'bg-wade-bg-card text-wade-text-muted border border-wade-border'
                                   }
                                 `}>
                                   {isAvailable ? '💌' : '🔒'}
@@ -626,7 +626,7 @@ export const TimeCapsulesView = () => {
                                         });
                                         setShowAddModal(true);
                                       }}
-                                      className="w-7 h-7 rounded-full bg-white border border-wade-border text-wade-text-muted flex items-center justify-center hover:text-wade-accent hover:border-wade-accent transition-colors"
+                                      className="w-7 h-7 rounded-full bg-wade-bg-card border border-wade-border text-wade-text-muted flex items-center justify-center hover:text-wade-accent hover:border-wade-accent transition-colors"
                                    >
                                      <Icons.Edit className="w-3.5 h-3.5" />
                                    </button>
@@ -659,12 +659,12 @@ export const TimeCapsulesView = () => {
         {/* Add Capsule Modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border">
+            <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border">
               {/* Header */}
               <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-sm">
+                    <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center mr-3 shadow-sm">
                       <svg className="w-5 h-5 text-wade-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
@@ -676,7 +676,7 @@ export const TimeCapsulesView = () => {
                       setShowAddModal(false);
                       setEditingCapsule(null);
                     }}
-                    className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
+                    className="w-8 h-8 rounded-full bg-wade-bg-card/50 hover:bg-wade-bg-card flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -755,7 +755,7 @@ export const TimeCapsulesView = () => {
                       setEditingViewedCapsule(false);
                     }
                   }}
-                  className="flex-1 px-4 py-3 rounded-xl bg-white border border-wade-border text-wade-text-muted font-bold text-sm hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-3 rounded-xl bg-wade-bg-card border border-wade-border text-wade-text-muted font-bold text-sm hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>

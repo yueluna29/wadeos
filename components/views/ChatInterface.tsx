@@ -6,6 +6,8 @@ import { generateMinimaxTTS } from '../../services/minimaxService';
 import { Message, ChatMode, ArchiveMessage, ChatArchive } from '../../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ThemeStudio } from './ThemeStudio';
+import { supabase } from '../../services/supabase';
 
 // Simple Icons
 const Icons = {
@@ -24,6 +26,7 @@ const Icons = {
   More: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>,
   Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
   Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>,
+  Settings: (props: any) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
   Down: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
   Up: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
   Branch: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>,
@@ -233,7 +236,7 @@ const SessionItem = ({
   return (
     <div
       {...longPressHandlers}
-      className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
+      className={`bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -339,7 +342,7 @@ const ArchiveItem = ({
   return (
     <div
       {...longPressHandlers}
-      className={`bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
+      className={`bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -407,7 +410,7 @@ const MessageBubble = ({
           att.type === 'image' ? (
              <img key={i} src={`data:${att.mimeType};base64,${att.content}`} className="max-w-full rounded-lg max-h-[200px] object-cover" />
           ) : (
-             <div key={i} className="flex items-center gap-2 p-2 bg-white/90 rounded-lg border border-gray-200 shadow-sm">
+             <div key={i} className="flex items-center gap-2 p-2 bg-wade-bg-card/90 rounded-lg border border-gray-200 shadow-sm">
                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
                <span className="text-xs truncate max-w-[150px] text-gray-700">{att.name}</span>
              </div>
@@ -479,7 +482,7 @@ const MessageBubble = ({
             </div>
           </div>
         )}
-        <div className={`mt-2 px-4 py-2 rounded-2xl ${isSMS ? 'bg-white text-wade-text-main border border-wade-border rounded-bl-none shadow-sm ml-0' : 'bg-white border border-wade-border rounded-tl-none shadow-sm'} flex items-center gap-3`}>
+        <div className={`mt-2 px-4 py-2 rounded-2xl ${isSMS ? 'bg-wade-bg-card text-wade-text-main border border-wade-border rounded-bl-none shadow-sm ml-0' : 'bg-wade-bg-card border border-wade-border rounded-tl-none shadow-sm'} flex items-center gap-3`}>
           <div className="flex gap-1.5">
             <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce"></div>
             <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-75"></div>
@@ -497,7 +500,7 @@ const MessageBubble = ({
   if (isSMS) {
     const bubbleClasses = isLuna
       ? "bg-wade-accent text-white rounded-2xl rounded-br-none shadow-sm"
-      : "bg-white text-wade-text-main border border-wade-border rounded-2xl rounded-bl-none shadow-sm";
+      : "bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-bl-none shadow-sm";
 
     return (
       <div className={`flex flex-col group ${isLuna ? 'items-end' : 'items-start'} relative`}>
@@ -608,7 +611,7 @@ const MessageBubble = ({
         <div
           {...longPressHandlers}
           style={{ WebkitTouchCallout: 'none' }}
-          className="w-full mt-2 bg-white text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
+          className="w-full mt-2 bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
         >
           {/* THINKING HEADER (If available) */}
           {thinkingContent && (
@@ -774,6 +777,7 @@ export const ChatInterface: React.FC = () => {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
   const [showLlmSelector, setShowLlmSelector] = useState(false);
+  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
   const [showMemorySelector, setShowMemorySelector] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
@@ -1875,7 +1879,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
           <p className="text-wade-text-muted text-sm opacity-80">Choose your frequency, babe.</p>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
             <div className="relative z-10 flex items-center gap-4">
               <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
@@ -1884,7 +1888,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               <div><h3 className="font-bold text-wade-text-main text-lg">Deep Chat</h3><p className="text-wade-text-muted text-xs mt-1">Soul-to-soul connection.</p></div>
             </div>
           </button>
-          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10">
               <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
                 <Icons.Smartphone />
@@ -1892,7 +1896,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               <h3 className="font-bold text-wade-text-main">SMS Mode</h3>
             </div>
           </button>
-          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-white p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10">
               <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors">
                 <Icons.Feather />
@@ -1901,7 +1905,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             </div>
           </button>
           {/* ARCHIVE BUTTON - NEW */}
-          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-wade-border/50 p-4 rounded-3xl shadow-inner border border-wade-border text-left hover:bg-white hover:border-wade-accent transition-all hover:-translate-y-1">
+          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-wade-border/50 p-4 rounded-3xl shadow-inner border border-wade-border text-left hover:bg-wade-bg-card hover:border-wade-accent transition-all hover:-translate-y-1">
             <div className="relative z-10 flex items-center gap-3 justify-center">
               <svg className="w-5 h-5 text-wade-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
               <span className="font-bold text-wade-text-muted text-sm uppercase tracking-widest">Archives</span>
@@ -1916,7 +1920,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
     return (
       <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
         <div className="w-full max-w-md mx-auto flex justify-between items-center px-6 pt-6 pb-4 shrink-0">
-          <button onClick={handleBack} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"><Icons.Back /></button>
+          <button onClick={handleBack} className="w-8 h-8 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"><Icons.Back /></button>
           <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
           
           {activeMode === 'archive' ? (
@@ -1998,7 +2002,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       ) : (
             modeSessions.length === 0 ? (
               <div className="opacity-60 grayscale select-none pointer-events-none">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center">
+                <div className="bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center">
                   <div className="flex-1 min-w-0"><h3 className="font-bold text-wade-text-main text-sm truncate">Sample Conversation</h3><p className="text-[10px] text-wade-text-muted mt-1">Just now • 12:00 PM</p></div>
                 </div>
                 <div className="text-center text-wade-text-muted text-xs mt-4">No active threads. Start a new one above!</div>
@@ -2066,7 +2070,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   setArchiveDeleteConfirm(false);
                 }}
               />
-              <div className="relative w-full max-w-4xl mx-auto bg-white rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
+              <div className="relative w-full max-w-4xl mx-auto bg-wade-bg-card rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-wade-border rounded-full opacity-50" />
                 
                 <div className="grid grid-cols-4 gap-4 justify-items-center">
@@ -2211,7 +2215,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative">
       {/* Immersive Header */}
-      <div className="w-full p-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+      <div className="w-full p-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
         <button onClick={handleBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Back /></button>
 
         {activeMode === 'archive' ? (
@@ -2227,7 +2231,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 src={settings.wadeAvatar}
                 className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-md flex-shrink-0"
               />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-wade-bg-card rounded-full"></div>
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5">
@@ -2283,7 +2287,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
-          <div className="absolute top-16 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-xl shadow-xl border border-wade-border/50 py-1.5 px-1 min-w-fit animate-fade-in">
+          <div className="absolute top-16 right-4 z-50 bg-wade-bg-card/80 backdrop-blur-xl rounded-xl shadow-xl border border-wade-border/50 py-1.5 px-1 min-w-fit animate-fade-in">
             <button
               onClick={() => {
                 if (activeSessionId) {
@@ -2291,7 +2295,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   setShowMenu(false);
                 }
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Pin /></div>
               <span>
@@ -2304,7 +2308,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               onClick={() => {
                 setShowLlmSelector(!showLlmSelector);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Hexagon /></div>
               <span>Brain Transplant</span>
@@ -2314,7 +2318,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 setShowMemorySelector(true);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Brain /></div>
               <span>Trigger Flashbacks</span>
@@ -2326,17 +2330,27 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                 const currentSession = sessions.find(s => s.id === activeSessionId);
                 setCustomPromptText(currentSession?.customPrompt || '');
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Fire /></div>
               <span>Add Special Sauce</span>
             </button>
             <button
               onClick={() => {
+                setIsThemeStudioOpen(true);
+                setShowMenu(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+            >
+              <div className="w-5 flex justify-center"><Icons.Settings className="w-4 h-4" /></div>
+              <span>Chat Theme</span>
+            </button>
+            <button
+              onClick={() => {
                 setShowDebug(true);
                 setShowMenu(false);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap"
             >
               <div className="w-5 flex justify-center"><Icons.Bug /></div>
               <span>X-Ray Vision</span>
@@ -2346,6 +2360,12 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       )}
 
       {/* Neural Net Selector (Replaces LLM Selector) */}
+      <ThemeStudio 
+        isOpen={isThemeStudioOpen} 
+        onClose={() => setIsThemeStudioOpen(false)} 
+        sessionId={activeSessionId || undefined}
+      />
+
       {showLlmSelector && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" 
@@ -2359,7 +2379,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             {llmSelectorMode === 'list' ? (
               <>
                 {/* 1. Header Section (List Mode) */}
-                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                       <Icons.Hexagon size={14} />
@@ -2403,8 +2423,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                             }}
                             className={`relative group p-4 rounded-2xl border text-left transition-all duration-300 ease-out flex flex-col gap-3
                               ${isActive 
-                                ? 'bg-white border-wade-accent shadow-md scale-[1.02]' 
-                                : 'bg-white border-wade-border hover:border-wade-accent/50 hover:shadow-sm'
+                                ? 'bg-wade-bg-card border-wade-accent shadow-md scale-[1.02]' 
+                                : 'bg-wade-bg-card border-wade-border hover:border-wade-accent/50 hover:shadow-sm'
                               }
                             `}
                           >
@@ -2467,7 +2487,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             ) : (
               <>
                 {/* 1. Header Section (Add Mode) */}
-                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
                   <div className="flex items-center gap-3">
                     <button 
                       onClick={() => setLlmSelectorMode('list')}
@@ -2498,7 +2518,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Provider</label>
                       <select
-                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors appearance-none"
+                        className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors appearance-none"
                         value={newPresetForm.provider}
                         onChange={e => handleProviderChange(e.target.value)}
                       >
@@ -2512,7 +2532,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Name</label>
                       <input 
-                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
+                        className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         placeholder="e.g. My Custom Brain" 
                         value={newPresetForm.name} 
                         onChange={e => setNewPresetForm({...newPresetForm, name: e.target.value})} 
@@ -2523,7 +2543,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Model ID</label>
                       <input
-                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40"
+                        className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40"
                         placeholder={newPresetForm.provider === 'OpenRouter' ? 'e.g. google/gemini-flash-1.5' : 'e.g. gemini-3-flash'}
                         value={newPresetForm.model}
                         onChange={e => setNewPresetForm({...newPresetForm, model: e.target.value})}
@@ -2534,7 +2554,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">API Key</label>
                       <input 
-                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
+                        className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         type="password" 
                         placeholder="sk-..." 
                         value={newPresetForm.apiKey} 
@@ -2546,7 +2566,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Base URL (Optional)</label>
                       <input 
-                        className="w-full bg-white border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
+                        className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors placeholder-wade-text-muted/40" 
                         placeholder="https://api.example.com/v1" 
                         value={newPresetForm.baseUrl} 
                         onChange={e => setNewPresetForm({...newPresetForm, baseUrl: e.target.value})} 
@@ -2563,7 +2583,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                       setLlmSelectorMode('list');
                       setNewPresetForm({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '' });
                     }} 
-                    className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-4 py-2 transition-colors rounded-lg hover:bg-white border border-transparent hover:border-wade-border"
+                    className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-4 py-2 transition-colors rounded-lg hover:bg-wade-bg-card border border-transparent hover:border-wade-border"
                   >
                     Cancel
                   </button>
@@ -2584,7 +2604,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {showSearch && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-20 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in"
+          className="absolute top-20 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in"
         >
           <div className="flex items-center gap-2">
             <button
@@ -2725,7 +2745,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         {
           isTyping && activeMode !== 'sms' && (
             <div className="flex justify-start items-end gap-2 mt-4 ml-1 animate-fade-in">
-              <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-wade-border max-w-[80%]">
+              <div className="bg-wade-bg-card px-4 py-3 rounded-2xl rounded-tl-none shadow-sm border border-wade-border max-w-[80%]">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
                     <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce"></div>
@@ -2752,7 +2772,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setIsEditing(false)}>
                 <div className="bg-wade-bg-base w-[90%] max-w-lg h-[50vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
                   {/* Header */}
-                  <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                  <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                         <Icons.Edit size={14} />
@@ -2775,7 +2795,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full h-full bg-white rounded-2xl p-4 border border-wade-border focus:border-wade-accent outline-none text-wade-text-main text-xs resize-none shadow-sm font-mono leading-relaxed"
+                      className="w-full h-full bg-wade-bg-card rounded-2xl p-4 border border-wade-border focus:border-wade-accent outline-none text-wade-text-main text-xs resize-none shadow-sm font-mono leading-relaxed"
                       placeholder="Type your new reality here..."
                     />
                   </div>
@@ -2784,7 +2804,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-4">
                     <button 
                       onClick={() => setIsEditing(false)} 
-                      className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-white border border-transparent hover:border-wade-border transition-all"
+                      className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-wade-bg-card border border-transparent hover:border-wade-border transition-all"
                     >
                       Cancel
                     </button>
@@ -2799,7 +2819,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               </div>
             ) : (
               <div
-                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
+                className="fixed bottom-0 left-0 right-0 z-50 bg-wade-bg-card rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
                 onClick={() => isDeleteConfirming && setIsDeleteConfirming(false)}
               >
                 <div className="p-1.5 flex justify-center"><div className="w-10 h-1 bg-wade-border rounded-full"></div></div>
@@ -2904,7 +2924,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.TextSelect size={14} />
@@ -2924,7 +2944,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
 
             {/* Content */}
             <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base select-text cursor-text flex-1">
-              <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-sm text-wade-text-main text-xs leading-relaxed font-mono whitespace-pre-wrap h-full overflow-y-auto">
+              <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-sm text-wade-text-main text-xs leading-relaxed font-mono whitespace-pre-wrap h-full overflow-y-auto">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {textSelectionMsg.text}
                 </ReactMarkdown>
@@ -2935,7 +2955,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-4">
               <button 
                 onClick={() => setTextSelectionMsg(null)} 
-                className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-white border border-transparent hover:border-wade-border transition-all"
+                className="w-32 py-2.5 rounded-xl text-xs font-bold text-wade-text-muted hover:text-wade-text-main hover:bg-wade-bg-card border border-transparent hover:border-wade-border transition-all"
               >
                 Close
               </button>
@@ -2959,7 +2979,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
         showMap && (
           <>
             <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowMap(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70vh] overflow-hidden animate-slide-up">
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-wade-bg-card/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70vh] overflow-hidden animate-slide-up">
               <div className="p-4 border-b border-wade-border/50 flex items-center justify-between">
                 <h3 className="font-bold text-wade-text-main text-sm">Conversation GPS</h3>
                 <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
@@ -2975,7 +2995,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         onClick={() => scrollToMessage(msg.id)}
                         className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${isLuna
                           ? 'bg-wade-accent/20 border border-wade-accent/30 max-w-[85%]'
-                          : 'bg-white border border-wade-border w-full'
+                          : 'bg-wade-bg-card border border-wade-border w-full'
                           }`}
                       >
                         <p className={`text-xs truncate ${isLuna ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>
@@ -3003,7 +3023,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10 flex-shrink-0">
+              <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                     <Icons.Fire />
@@ -3024,7 +3044,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               {/* Content */}
               <div className="p-6 flex-1 flex flex-col bg-wade-bg-base overflow-hidden">
                 <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                  <div className="bg-white p-1 rounded-2xl border border-wade-border shadow-sm focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 transition-all flex-1 flex flex-col min-h-0">
+                  <div className="bg-wade-bg-card p-1 rounded-2xl border border-wade-border shadow-sm focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 transition-all flex-1 flex flex-col min-h-0">
                     <textarea
                       value={customPromptText}
                       onChange={(e) => setCustomPromptText(e.target.value)}
@@ -3042,7 +3062,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
               <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-6 flex-shrink-0">
                 <button 
                   onClick={() => setShowPromptEditor(false)} 
-                  className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-6 py-2 transition-colors rounded-xl hover:bg-white border border-transparent hover:border-wade-border"
+                  className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-6 py-2 transition-colors rounded-xl hover:bg-wade-bg-card border border-transparent hover:border-wade-border"
                 >
                   Abort Mission
                 </button>
@@ -3066,7 +3086,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {/* Input Area - Hidden in Archive Mode */}
       {
         activeMode !== 'archive' && (
-          <div className="p-3 pb-6 md:pb-3 bg-white border-t border-wade-border z-30 shrink-0">
+          <div className="p-3 pb-6 md:pb-3 bg-wade-bg-card border-t border-wade-border z-30 shrink-0">
             <div className="max-w-4xl mx-auto">
               <div className="bg-wade-bg-app border border-wade-border rounded-3xl px-2 py-2 focus-within:border-wade-accent shadow-inner flex flex-col gap-2 transition-colors">
                 {/* Attachment Preview Inside Input */}
@@ -3077,7 +3097,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         {att.type === 'image' ? (
                           <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-wade-border" />
                         ) : (
-                          <div className="h-16 w-16 bg-white rounded-lg border border-wade-border flex flex-col items-center justify-center p-1">
+                          <div className="h-16 w-16 bg-wade-bg-card rounded-lg border border-wade-border flex flex-col items-center justify-center p-1">
                             <Icons.File />
                             <span className="text-[8px] truncate w-full text-center mt-1 text-wade-text-main">{att.name}</span>
                           </div>
@@ -3098,7 +3118,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                   <div className="relative shrink-0">
                     <button
                       onClick={() => setShowUploadMenu(!showUploadMenu)}
-                      className="w-8 h-8 rounded-full bg-white border border-wade-border flex items-center justify-center hover:bg-wade-accent hover:text-white transition-colors text-wade-text-muted shadow-sm"
+                      className="w-8 h-8 rounded-full bg-wade-bg-card border border-wade-border flex items-center justify-center hover:bg-wade-accent hover:text-white transition-colors text-wade-text-muted shadow-sm"
                     >
                       <Icons.PlusThin size={16} />
                     </button>
@@ -3126,7 +3146,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                           className="fixed inset-0 z-40"
                           onClick={() => setShowUploadMenu(false)}
                         />
-                        <div className="absolute bottom-full left-0 mb-2 w-32 bg-white/90 backdrop-blur-md border border-wade-border rounded-xl shadow-lg z-50 overflow-hidden">
+                        <div className="absolute bottom-full left-0 mb-2 w-32 bg-wade-bg-card/90 backdrop-blur-md border border-wade-border rounded-xl shadow-lg z-50 overflow-hidden">
                           <button
                             onClick={() => {
                               imageInputRef.current?.click();
@@ -3184,7 +3204,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
       {showMemorySelector && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
           <div className="bg-wade-bg-base w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[80vh] border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.Brain size={14} />
@@ -3209,7 +3229,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${
                       selectedMemoryTag === null
                         ? 'bg-wade-accent text-white border-wade-accent'
-                        : 'bg-white text-wade-text-muted border-wade-border hover:border-wade-accent'
+                        : 'bg-wade-bg-card text-wade-text-muted border-wade-border hover:border-wade-accent'
                     }`}
                   >
                     All
@@ -3221,7 +3241,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                       className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${
                         selectedMemoryTag === tag
                           ? 'bg-wade-accent text-white border-wade-accent'
-                          : 'bg-white text-wade-text-muted border-wade-border hover:border-wade-accent'
+                          : 'bg-wade-bg-card text-wade-text-muted border-wade-border hover:border-wade-accent'
                       }`}
                     >
                       #{tag}
@@ -3271,8 +3291,8 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         }}
                         className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 group ${
                           isSessionActive 
-                            ? 'bg-white border-wade-accent shadow-sm' 
-                            : 'bg-white border-wade-border hover:border-wade-accent/50'
+                            ? 'bg-wade-bg-card border-wade-accent shadow-sm' 
+                            : 'bg-wade-bg-card border-wade-border hover:border-wade-accent/50'
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
@@ -3321,7 +3341,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
                   <Icons.Bug size={14} />
@@ -3439,28 +3459,28 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       
                       {/* 👇 新增：当前模型卡片 (粉色高亮) 👇 */}
-                      <div className="bg-white p-4 rounded-2xl border border-wade-accent shadow-[0_2px_10px_-4px_rgba(213,143,153,0.2)] flex flex-col items-center justify-center text-center group transition-colors">
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-accent shadow-[0_2px_10px_-4px_rgba(213,143,153,0.2)] flex flex-col items-center justify-center text-center group transition-colors">
                          <div className="text-wade-accent font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Brain</div>
                          <div className="text-sm font-black text-wade-text-main tracking-tight line-clamp-1 px-1">{currentModelName}</div>
                          <div className="text-[9px] text-wade-text-muted/60 mt-1 font-mono uppercase">{currentProvider}</div>
                       </div>
 
                       {/* 原有的卡片 (Token) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
                          <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
                          <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{estTokens}</div>
                          <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Est. Tokens</div>
                       </div>
 
                       {/* 原有的卡片 (Memories) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
                          <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
                          <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{activeMemories.length}</div>
                          <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Injected Items</div>
                       </div>
 
                       {/* 原有的卡片 (Limit) - 保持不变 */}
-                      <div className="bg-white p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] flex flex-col items-center justify-center text-center group hover:border-wade-accent/30 transition-colors">
                          <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
                          <div className="text-2xl font-black text-wade-text-main tracking-tight group-hover:text-wade-accent transition-colors">{settings.contextLimit || 50}</div>
                          <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Messages</div>
@@ -3473,7 +3493,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">System Instructions <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Jailbreak / Core Rules)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {systemInstructions}
                         </div>
@@ -3486,7 +3506,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Wade's Persona <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Character Card)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {wadePersona}
                         </div>
@@ -3499,7 +3519,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Single Sentence Examples <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Style Guide)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {singleExamples}
                         </div>
@@ -3512,7 +3532,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Dialogue Examples <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Interaction Guide)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {dialogueExamples}
                         </div>
@@ -3525,7 +3545,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Mode Instructions <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Brain X-Ray & Format)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {modeSpecificInstructions}
                         </div>
@@ -3538,7 +3558,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Luna's Info <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(User Context)</span></h4>
                       </div>
-                      <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                      <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                         <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[150px] overflow-y-auto custom-scrollbar">
                           {lunaInfo}
                         </div>
@@ -3552,7 +3572,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                           <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                           <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Spice It Up <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Session Instructions)</span></h4>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-wade-border shadow-sm">
+                        <div className="bg-wade-bg-card p-5 rounded-2xl border border-wade-border shadow-sm">
                           <div className="text-[11px] leading-relaxed font-mono text-wade-text-main/80 whitespace-pre-wrap max-h-[200px] overflow-y-auto custom-scrollbar">
                             {spiceContent}
                           </div>
@@ -3577,7 +3597,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                               <div 
                                 key={i} 
                                 onClick={() => toggleMemoryExpand(memId)}
-                                className="bg-white p-4 rounded-xl border border-wade-border shadow-sm flex flex-col gap-1.5 hover:border-wade-accent/30 transition-colors cursor-pointer group select-none"
+                                className="bg-wade-bg-card p-4 rounded-xl border border-wade-border shadow-sm flex flex-col gap-1.5 hover:border-wade-accent/30 transition-colors cursor-pointer group select-none"
                               >
                                 {typeof mem === 'string' ? (
                                   <div className={`text-[11px] text-wade-text-main font-mono leading-relaxed ${isExpanded ? '' : 'line-clamp-4'}`}>
@@ -3605,7 +3625,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                           })}
                         </div>
                       ) : (
-                        <div className="bg-white p-8 rounded-2xl border border-wade-border border-dashed text-center">
+                        <div className="bg-wade-bg-card p-8 rounded-2xl border border-wade-border border-dashed text-center">
                           <p className="text-xs text-wade-text-muted italic">No active memories for this session.</p>
                         </div>
                       )}
@@ -3617,7 +3637,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                         <div className="w-1 h-1 rounded-full bg-wade-accent"></div>
                         <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Short-Term Memory <span className="text-wade-text-muted font-normal normal-case opacity-50 ml-1">(Recent Context)</span></h4>
                       </div>
-                      <div className="bg-white rounded-2xl border border-wade-border shadow-sm overflow-hidden">
+                      <div className="bg-wade-bg-card rounded-2xl border border-wade-border shadow-sm overflow-hidden">
                         {historyPayload.length === 0 ? (
                           <div className="p-8 text-center text-wade-text-muted italic text-xs">No history yet. Start talking!</div>
                         ) : (
@@ -3628,7 +3648,7 @@ const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) =
                                 <div 
                                   key={i} 
                                   onClick={() => toggleHistoryExpand(i)}
-                                  className={`px-5 py-3 border-b border-wade-border/50 last:border-0 flex gap-4 cursor-pointer hover:bg-wade-accent-light/50 transition-colors ${msg.role === 'Luna' ? 'bg-wade-accent-light/30' : 'bg-white'}`}
+                                  className={`px-5 py-3 border-b border-wade-border/50 last:border-0 flex gap-4 cursor-pointer hover:bg-wade-accent-light/50 transition-colors ${msg.role === 'Luna' ? 'bg-wade-accent-light/30' : 'bg-wade-bg-card'}`}
                                 >
                                   <div className={`w-12 text-[9px] font-bold uppercase tracking-wider pt-1 shrink-0 ${msg.role === 'Luna' ? 'text-wade-accent' : 'text-wade-text-muted'}`}>
                                     {msg.role}
