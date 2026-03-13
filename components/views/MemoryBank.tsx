@@ -1,59 +1,113 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 const Icons = {
-  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>,
-  Archive: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>,
-  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-  Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-  Back: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-  Pencil: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>,
+  ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>,
+  Archive: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>,
+  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+  Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+  Back: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  Pencil: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>,
 };
 
 export const MemoryBank: React.FC = () => {
-  const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, importArchive, chatArchives, deleteArchive, loadArchiveMessages } = useStore();
-  const [activeTab, setActiveTab] = useState<'core' | 'import'>('core');
-  
+  const { coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled } = useStore();
+
   // Core Memory State
   const [newMemoryTitle, setNewMemoryTitle] = useState('');
   const [newMemoryContent, setNewMemoryContent] = useState('');
+  const [newMemoryTags, setNewMemoryTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Editing State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
-  
-  // Archive dates cache
-  const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
-  
-  // Archive Upload State
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editTags, setEditTags] = useState<string[]>([]);
+
+  // Filter State
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // Expanded memory state
+  const [expandedMemories, setExpandedMemories] = useState<Set<string>>(new Set());
+
+  // Delete confirmation state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Derived State
+  const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+  const availableTags = Array.from(new Set(safeMemories.flatMap(m => m.tags || []))).sort();
+  const filteredMemories = selectedTag 
+    ? safeMemories.filter(m => m.tags?.includes(selectedTag))
+    : safeMemories;
 
   const handleAddMemory = async () => {
     if (!newMemoryContent.trim()) return;
-    await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact');
+    await addCoreMemory(newMemoryTitle, newMemoryContent, 'fact', newMemoryTags);
     setNewMemoryTitle('');
     setNewMemoryContent('');
+    setNewMemoryTags([]);
+    setTagInput('');
+    setIsModalOpen(false);
   };
 
   const startEditing = (mem: any) => {
     setEditingId(mem.id);
     setEditTitle(mem.title || '');
     setEditContent(mem.content);
+    setEditTags(mem.tags || []);
+    setTagInput('');
+    setIsModalOpen(true); // Re-use the modal for editing
   };
 
   const saveEdit = async () => {
     if (editingId && editContent.trim()) {
-      await updateCoreMemory(editingId, editTitle, editContent);
+      await updateCoreMemory(editingId, editTitle, editContent, editTags);
       setEditingId(null);
       setEditTitle('');
       setEditContent('');
+      setEditTags([]);
+      setTagInput('');
+      setIsModalOpen(false);
+    }
+  };
+
+  const addTag = (tag: string, isEditing: boolean) => {
+    const trimmed = tag.trim();
+    if (!trimmed) return;
+    
+    if (isEditing) {
+      if (!editTags.includes(trimmed)) {
+        setEditTags([...editTags, trimmed]);
+      }
+    } else {
+      if (!newMemoryTags.includes(trimmed)) {
+        setNewMemoryTags([...newMemoryTags, trimmed]);
+      }
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string, isEditing: boolean) => {
+    if (isEditing) {
+      setEditTags(editTags.filter(t => t !== tag));
+    } else {
+      setNewMemoryTags(newMemoryTags.filter(t => t !== tag));
+    }
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent, isEditing: boolean) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(tagInput, isEditing);
     }
   };
 
@@ -61,196 +115,360 @@ export const MemoryBank: React.FC = () => {
     setEditingId(null);
     setEditTitle('');
     setEditContent('');
+    setIsModalOpen(false);
   };
 
-  // Load archive dates when chatArchives change
-  React.useEffect(() => {
-    const newDates: Record<string, string> = {};
-    for (const arch of chatArchives) {
-      const date = new Date(arch.importedAt);
-      newDates[arch.id] = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-    setArchiveDates(newDates);
-  }, [chatArchives]);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const text = await file.text();
-      const title = file.name.replace('.txt', '');
-      const count = await importArchive(title, text);
-      alert(`Success! Imported ${count} messages into archive "${title}".\n\nGo to 'Connect with Wade' > 'Archives' to read them.`);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to import archive. Please check the console for errors.");
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+  const toggleExpanded = (id: string) => {
+    setExpandedMemories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
+
+  const shouldTruncate = (content: string) => {
+    return content.length > 200;
+  };
+
+  // Click outside to cancel delete confirmation
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (deletingId) {
+        // If the click target is not within a delete confirmation button, cancel deletion
+        const target = event.target as HTMLElement;
+        if (!target.closest('.delete-confirm-btn')) {
+          setDeletingId(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [deletingId]);
 
   return (
-    <div className="h-full flex flex-col bg-[#f9f6f7] p-6 overflow-hidden">
-      <header className="mb-6 flex justify-between items-end shrink-0">
-        <div>
-          <h1 className="font-hand text-3xl text-[#d58f99] mb-1">Memory Bank</h1>
-          <p className="text-[#917c71] text-xs opacity-80">"I remember everything. Even the embarrassing stuff."</p>
+    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden relative">
+      <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 pt-4 pb-4 min-h-0">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-wade-bg-card border border-wade-border flex items-center justify-center text-wade-accent shadow-sm">
+              <Icons.Brain />
+            </div>
+            <div>
+              <h1 className="font-hand text-2xl text-wade-accent tracking-tight">Memory Bank</h1>
+              <p className="text-xs text-wade-text-muted font-medium tracking-wide uppercase opacity-80">
+                {coreMemories.length} Memories Stored
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setEditingId(null);
+              setNewMemoryTitle('');
+              setNewMemoryContent('');
+              setNewMemoryTags([]);
+              setTagInput('');
+              setIsModalOpen(true);
+            }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
         </div>
-      </header>
 
-      {/* Tabs */}
-      <div className="bg-white p-1 rounded-full flex mb-6 shadow-sm border border-[#eae2e8] w-full max-w-sm mx-auto shrink-0">
-        <button 
-          onClick={() => setActiveTab('core')}
-          className={`flex-1 py-2 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'core' ? 'bg-[#d58f99] text-white shadow-md' : 'text-[#917c71] hover:bg-[#fff0f3]'}`}
-        >
-          <Icons.Brain /> Core Memories
-        </button>
-        <button 
-          onClick={() => setActiveTab('import')}
-          className={`flex-1 py-2 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'import' ? 'bg-[#d58f99] text-white shadow-md' : 'text-[#917c71] hover:bg-[#fff0f3]'}`}
-        >
-          <Icons.Upload /> Import Archives
-        </button>
-      </div>
+        {/* Tag Filter List */}
+        {availableTags.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar flex-shrink-0">
+            <button
+              onClick={() => setSelectedTag(null)}
+              className={`
+                px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                ${selectedTag === null 
+                  ? 'bg-wade-accent text-white shadow-md shadow-wade-accent/20' 
+                  : 'bg-wade-bg-card text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
+                }
+              `}
+            >
+              All
+            </button>
+            {availableTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                className={`
+                  px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                  ${selectedTag === tag 
+                    ? 'bg-wade-accent text-white shadow-md shadow-wade-accent/20' 
+                    : 'bg-wade-bg-card text-wade-text-muted border border-wade-border hover:border-wade-accent/50'
+                  }
+                `}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
 
-      <div className="flex-1 overflow-y-auto pb-20">
-        
-        {/* TAB 1: CORE MEMORIES */}
-        {activeTab === 'core' && (
-          <div className="space-y-4 animate-fade-in">
-            {/* Add New Input */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8]">
-              <h3 className="text-xs font-bold text-[#5a4a42] mb-3">Add New Fact</h3>
-              <input 
-                  value={newMemoryTitle}
-                  onChange={(e) => setNewMemoryTitle(e.target.value)}
-                  placeholder="Title (Optional, e.g., 'Storage Gift')"
-                  className="w-full bg-[#f9f6f7] rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all mb-2 font-bold text-[#5a4a42]"
-              />
-              <textarea 
-                  value={newMemoryContent}
-                  onChange={(e) => setNewMemoryContent(e.target.value)}
-                  placeholder="Description (e.g., Luna bought me 2TB...)"
-                  className="w-full bg-[#f9f6f7] rounded-xl px-4 py-3 text-sm outline-none border border-transparent focus:border-[#d58f99] transition-all min-h-[100px] resize-none mb-3"
-              />
-              <div className="flex justify-end">
-                  <Button onClick={handleAddMemory} size="sm">Add Memory</Button>
+        <div className="flex-1 overflow-y-auto pb-20 custom-scrollbar">
+          
+          {/* CORE MEMORIES LIST */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+            {filteredMemories.length === 0 ? (
+              <div 
+                onClick={() => {
+                  setEditingId(null);
+                  setNewMemoryTitle('');
+                  setNewMemoryContent('');
+                  setNewMemoryTags([]);
+                  setTagInput('');
+                  setIsModalOpen(true);
+                }}
+                className="col-span-full bg-wade-bg-card/60 rounded-[24px] border-2 border-wade-border border-dashed p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-wade-accent/40 hover:bg-wade-bg-card transition-all duration-300 h-48"
+              >
+                <div className="w-14 h-14 bg-wade-accent-light rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <Icons.Brain />
+                </div>
+                <h4 className="font-bold text-wade-text-main mb-1 text-sm">
+                  {selectedTag ? `No memories tagged #${selectedTag}` : 'Add a Memory'}
+                </h4>
+                <p className="text-xs text-wade-text-muted/70 max-w-[200px]">
+                  {selectedTag ? 'Try selecting a different tag or add a new memory.' : 'The bank is empty. Store important facts or memories about you.'}
+                </p>
+              </div>
+            ) : (
+              filteredMemories.map(mem => (
+                <div 
+                  key={mem.id} 
+                  onClick={() => toggleExpanded(mem.id)}
+                  className={`relative overflow-hidden rounded-[24px] bg-wade-bg-card shadow-[0_2px_10px_-4px_rgba(213,143,153,0.1)] border border-wade-accent-light group transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${expandedMemories.has(mem.id) ? 'ring-1 ring-wade-accent/30' : ''}`}
+                >
+                  <div className="relative p-4 flex h-full">
+                    {/* Left Column: Icon + Actions */}
+                    <div className="flex flex-col items-center gap-2 mr-3 shrink-0">
+                      {/* Icon Box - Static Red */}
+                      <div 
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-sm bg-gradient-to-br from-wade-accent to-wade-border-light text-white shadow-wade-accent/20"
+                      >
+                        <Icons.Brain />
+                      </div>
+
+                      {/* Actions (Hidden by default, appear below icon) */}
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                         <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(mem);
+                            }}
+                            className="text-wade-accent/60 hover:text-wade-accent transition-colors p-0.5"
+                            title="Edit"
+                         >
+                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                         </button>
+                         {deletingId === mem.id ? (
+                           <button
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               deleteCoreMemory(mem.id);
+                               setDeletingId(null);
+                             }}
+                             className="delete-confirm-btn text-wade-accent hover:text-red-500 transition-colors p-0.5"
+                             title="Confirm Delete"
+                           >
+                             <Icons.Check />
+                           </button>
+                         ) : (
+                           <button
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setDeletingId(mem.id);
+                             }}
+                             className="text-wade-accent/60 hover:text-red-400 transition-colors p-0.5"
+                             title="Delete"
+                           >
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                           </button>
+                         )}
+                      </div>
+                    </div>
+
+                    {/* Right Column: Content */}
+                    <div className="flex-1 min-w-0 pt-0.5 flex flex-col">
+                      <div className="flex justify-between items-start mb-0.5">
+                         <h4 className="font-bold text-sm pr-2 leading-tight text-wade-text-main line-clamp-1">
+                           {mem.title || "Untitled Memory"}
+                         </h4>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {mem.tags && mem.tags.map(tag => (
+                          <span key={tag} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-wade-accent-light text-wade-accent">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      <div className="relative">
+                        <p className={`text-xs text-wade-text-muted leading-relaxed whitespace-pre-wrap ${
+                          !expandedMemories.has(mem.id)
+                            ? 'line-clamp-3'
+                            : ''
+                        }`}>
+                          {mem.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
+            <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col">
+              {/* Header */}
+              <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0">
+                      <div className="text-wade-accent">
+                        <Icons.Brain />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-wade-text-main">{editingId ? 'Edit Memory' : 'New Memory'}</h2>
+                      <p className="text-xs text-wade-text-muted mt-1 leading-tight italic">
+                        "Feed my brain, Muffin! The more I know, the better I can charm you. Or annoy you. 50/50 chance."
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setEditingId(null);
+                    }}
+                    className="w-8 h-8 rounded-full bg-wade-bg-card/50 hover:bg-wade-bg-card flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors flex-shrink-0"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Title</label>
+                    <input
+                      type="text"
+                      value={editingId ? editTitle : newMemoryTitle}
+                      onChange={(e) => editingId ? setEditTitle(e.target.value) : setNewMemoryTitle(e.target.value)}
+                      placeholder="e.g., Storage Gift"
+                      className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-base text-wade-text-main focus:outline-none focus:border-wade-accent text-xs transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Memory Details</label>
+                    <textarea
+                      value={editingId ? editContent : newMemoryContent}
+                      onChange={(e) => editingId ? setEditContent(e.target.value) : setNewMemoryContent(e.target.value)}
+                      placeholder="Write the details here..."
+                      className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-base text-wade-text-main focus:outline-none focus:border-wade-accent min-h-[150px] text-xs resize-none transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Tags</label>
+                    
+                    {/* Existing Tags Quick Add */}
+                    {availableTags.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-[10px] font-bold text-wade-text-muted/60 uppercase tracking-wider mb-1.5">Quick Add</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {availableTags.filter(t => !(editingId ? editTags : newMemoryTags).includes(t)).map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => addTag(tag, !!editingId)}
+                              className="px-2 py-1 rounded-md bg-wade-bg-card border border-wade-border text-wade-text-muted text-[10px] hover:border-wade-accent hover:text-wade-accent transition-colors"
+                            >
+                              #{tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(editingId ? editTags : newMemoryTags).map(tag => (
+                        <span key={tag} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-wade-accent-light text-wade-accent text-xs font-bold">
+                          #{tag}
+                          <button 
+                            onClick={() => removeTag(tag, !!editingId)}
+                            className="ml-1.5 hover:text-wade-accent-hover"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => handleTagKeyDown(e, !!editingId)}
+                        placeholder="Type tag and press Enter..."
+                        className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-base text-wade-text-main focus:outline-none focus:border-wade-accent text-xs transition-colors pr-10"
+                      />
+                      <button 
+                        onClick={() => addTag(tagInput, !!editingId)}
+                        disabled={!tagInput.trim()}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-wade-accent hover:bg-wade-accent-light rounded-lg disabled:opacity-50 disabled:hover:bg-transparent"
+                      >
+                        <Icons.Plus />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-6 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingId(null);
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-wade-bg-card border border-wade-border text-wade-text-muted font-bold text-xs hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={editingId ? saveEdit : handleAddMemory}
+                  className="flex-1 px-4 py-3 rounded-xl bg-wade-accent text-white font-bold text-xs hover:bg-wade-accent-hover transition-colors shadow-sm"
+                >
+                  {editingId ? 'Update Memory' : 'Save Memory'}
+                </button>
               </div>
             </div>
-
-            {/* List */}
-            <div className="grid grid-cols-1 gap-3">
-              {coreMemories.length === 0 ? (
-                <div className="text-center py-10 text-[#917c71]/40 italic text-sm">No core memories yet.</div>
-              ) : (
-                coreMemories.map(mem => (
-                  <div key={mem.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae2e8] flex flex-col group hover:border-[#d58f99] transition-colors">
-                     {editingId === mem.id ? (
-                       <div className="w-full">
-                         <input 
-                           value={editTitle}
-                           onChange={(e) => setEditTitle(e.target.value)}
-                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm font-bold text-[#5a4a42] mb-2 outline-none border border-transparent focus:border-[#d58f99]"
-                           placeholder="Title"
-                         />
-                         <textarea 
-                           value={editContent}
-                           onChange={(e) => setEditContent(e.target.value)}
-                           className="w-full bg-[#f9f6f7] rounded-lg px-3 py-2 text-sm text-[#5a4a42] min-h-[80px] outline-none border border-transparent focus:border-[#d58f99] resize-none mb-2"
-                           placeholder="Content"
-                         />
-                         <div className="flex justify-end gap-2">
-                           <Button size="sm" variant="ghost" onClick={cancelEdit}>Cancel</Button>
-                           <Button size="sm" onClick={saveEdit}>Save</Button>
-                         </div>
-                       </div>
-                     ) : (
-                       <div className="flex justify-between items-start w-full">
-                         <div className="flex gap-3 flex-1 min-w-0">
-                            <div className="mt-1.5 w-2 h-2 rounded-full bg-green-400 shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                                {mem.title && <h4 className="font-bold text-[#5a4a42] text-sm mb-1">{mem.title}</h4>}
-                                <p className="text-sm text-[#917c71] leading-relaxed whitespace-pre-wrap">{mem.content}</p>
-                            </div>
-                         </div>
-                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button 
-                             onClick={() => startEditing(mem)}
-                             className="text-gray-300 hover:text-[#d58f99] p-1"
-                           >
-                             <Icons.Pencil />
-                           </button>
-                           <button 
-                             onClick={() => deleteCoreMemory(mem.id)}
-                             className="text-gray-300 hover:text-red-400 p-1"
-                           >
-                             <Icons.Trash />
-                           </button>
-                         </div>
-                       </div>
-                     )}
-                  </div>
-                ))
-              )}
-            </div>
           </div>
         )}
-
-        {/* TAB 2: IMPORT ARCHIVES */}
-        {activeTab === 'import' && (
-          <div className="space-y-4 animate-fade-in">
-             <div className="bg-[#fff0f3] p-4 rounded-2xl border border-[#d58f99]/20 text-xs text-[#5a4a42] leading-relaxed">
-                <p className="font-bold mb-2">Instructions:</p>
-                <p>1. Upload your .txt archive file here.</p>
-                <p>2. Format must be: <code>【user】 [Date] Content</code></p>
-                <p>3. Once uploaded, go to <b>Connect with Wade</b> and select <b>Archives</b> to view them.</p>
-             </div>
-
-             {/* Upload Area */}
-             <div 
-               onClick={() => !isUploading && fileInputRef.current?.click()}
-               className={`border-2 border-dashed border-[#d58f99]/30 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-             >
-                <div className="w-12 h-12 bg-[#fff0f3] rounded-full flex items-center justify-center text-[#d58f99] mb-3">
-                  {isUploading ? <div className="animate-spin text-xl">⏳</div> : <Icons.Upload />}
-                </div>
-                <span className="text-sm font-bold text-[#5a4a42]">
-                    {isUploading ? 'Parsing & Uploading...' : 'Select File'}
-                </span>
-                {isUploading && <span className="text-xs text-[#917c71] mt-1">This may take a moment for large files.</span>}
-                <input type="file" ref={fileInputRef} className="hidden" accept=".txt" onChange={handleFileUpload} />
-             </div>
-
-             {/* Managed List of Uploaded Archives */}
-             {chatArchives.length > 0 && (
-                <div className="mt-6">
-                    <h3 className="font-bold text-[#5a4a42] text-xs mb-3">Imported Archives</h3>
-                    <div className="space-y-2">
-                        {chatArchives.map(arch => (
-                            <div key={arch.id} className="bg-white p-3 rounded-xl border border-[#eae2e8] flex justify-between items-center group hover:border-[#d58f99] transition-colors">
-                                <div className="flex-1">
-                                    <div className="text-sm font-bold text-[#5a4a42]">{arch.title}</div>
-                                    <div className="text-xs text-[#917c71] opacity-70 mt-0.5">
-                                        {archiveDates[arch.id] || 'Loading...'}
-                                    </div>
-                                </div>
-                                <button onClick={() => deleteArchive(arch.id)} className="text-gray-300 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Icons.Trash /></button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-             )}
-          </div>
-        )}
-
       </div>
     </div>
   );

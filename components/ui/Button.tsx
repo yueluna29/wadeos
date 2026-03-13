@@ -15,10 +15,10 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyle = "font-nunito font-bold transition-all duration-200 rounded-full flex items-center justify-center gap-2";
   
   const variants = {
-    primary: "bg-[#d58f99] text-white hover:bg-[#c07a84] shadow-md hover:shadow-lg",
-    secondary: "bg-[#917c71] text-white hover:bg-[#7a665c] shadow-md",
-    outline: "border-2 border-[#d58f99] text-[#d58f99] hover:bg-[#d58f99] hover:text-white",
-    ghost: "text-[#917c71] hover:bg-[#eae2e8]"
+    primary: "bg-wade-accent text-white hover:bg-wade-accent-hover shadow-md hover:shadow-lg",
+    secondary: "bg-wade-text-muted text-white hover:bg-wade-text-muted shadow-md",
+    outline: "border-2 border-wade-accent text-wade-accent hover:bg-wade-accent hover:text-white",
+    ghost: "text-wade-text-muted hover:bg-wade-border"
   };
 
   const sizes = {

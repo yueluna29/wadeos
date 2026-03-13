@@ -11,8 +11,12 @@ export const PersonaTuning: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Wade Inputs
+  const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
   const [wadePrompt, setWadePrompt] = useState(settings.wadePersonality);
-  const [wadeDiaryPersona, setWadeDiaryPersona] = useState(settings.wadeDiaryPersona || '');
+  const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
+  const [smsExampleDialogue, setSmsExampleDialogue] = useState(settings.smsExampleDialogue || '');
+  const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || ''); // NEW
+  const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || ''); // NEW
   const [wadeExample, setWadeExample] = useState(settings.exampleDialogue);
   
   // Luna Inputs
@@ -41,8 +45,12 @@ export const PersonaTuning: React.FC = () => {
   const saveChanges = async () => {
     setIsSaving(true);
     await updateSettings({
+      systemInstruction: systemInstruction,
       wadePersonality: wadePrompt,
-      wadeDiaryPersona: wadeDiaryPersona,
+      wadeSingleExamples: wadeSingleExamples,
+      smsExampleDialogue: smsExampleDialogue,
+      smsInstructions: smsInstructions, // NEW
+      roleplayInstructions: roleplayInstructions, // NEW
       exampleDialogue: wadeExample,
       lunaInfo: lunaInfo,
     });
@@ -53,14 +61,14 @@ export const PersonaTuning: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f9f6f7] p-6">
+    <div className="h-full overflow-y-auto bg-wade-bg-app p-6">
       
       {/* Header Container */}
       <div className="relative mb-8 max-w-2xl mx-auto">
         {/* Title and Quote */}
         <div className="pr-20"> 
-          <h2 className="font-hand text-3xl md:text-4xl text-[#d58f99] leading-tight">The Brains of the Operation</h2>
-          <p className="text-[#917c71] text-xs opacity-80 italic mt-1">"Tweaking my neurons? Kinky."</p>
+          <h2 className="font-hand text-3xl md:text-4xl text-wade-accent leading-tight">The Brains of the Operation</h2>
+          <p className="text-wade-text-muted text-xs opacity-80 italic mt-1">"Tweaking my neurons? Kinky."</p>
         </div>
         
         {/* Save Button positioned absolute bottom right of the container */}
@@ -72,16 +80,16 @@ export const PersonaTuning: React.FC = () => {
       </div>
 
       {/* Toggle Tabs - No Emojis, Clean */}
-      <div className="bg-white p-1 rounded-full flex mb-8 shadow-sm border border-[#eae2e8] w-full max-w-xs mx-auto">
+      <div className="bg-wade-bg-card p-1 rounded-full flex mb-8 shadow-sm border border-wade-border w-full max-w-xs mx-auto">
         <button 
           onClick={() => setActiveTab('wade')}
-          className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'wade' ? 'bg-[#d58f99] text-white shadow-md' : 'text-[#917c71] hover:bg-[#fff0f3]'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'wade' ? 'bg-wade-accent text-white shadow-md' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
         >
           Wade
         </button>
         <button 
           onClick={() => setActiveTab('luna')}
-          className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'luna' ? 'bg-[#d58f99] text-white shadow-md' : 'text-[#917c71] hover:bg-[#fff0f3]'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'luna' ? 'bg-wade-accent text-white shadow-md' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
         >
           Luna
         </button>
@@ -92,16 +100,16 @@ export const PersonaTuning: React.FC = () => {
         {activeTab === 'wade' ? (
           <div className="animate-fade-in space-y-8">
             {/* Wade Avatar */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">My Handsome Mug</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"Click to upgrade my face. Try to find one where I look heroic, or at least eating a taco."</p>
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">My Handsome Mug</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"Click to upgrade my face. Try to find one where I look heroic, or at least eating a taco."</p>
                
                <div className="flex flex-col items-center">
                  <div 
                    className={`relative group cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
                    onClick={() => wadeFileRef.current?.click()}
                  >
-                    <img src={settings.wadeAvatar} alt="Wade" className="w-24 h-24 rounded-full object-cover border-4 border-[#d58f99] shadow-md transition-transform group-hover:scale-105" />
+                    <img src={settings.wadeAvatar} alt="Wade" className="w-24 h-24 rounded-full object-cover border-4 border-wade-accent shadow-md transition-transform group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change'}</span>
                     </div>
@@ -116,38 +124,90 @@ export const PersonaTuning: React.FC = () => {
                </div>
             </section>
 
+            {/* System Instructions */}
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">System Level Instructions (Jailbreak)</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"The rules of the game. Or how to break them."</p>
+               <textarea 
+                  value={systemInstruction}
+                  onChange={(e) => setSystemInstruction(e.target.value)}
+                  className="w-full h-32 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
+                  placeholder="System instructions..."
+               />
+            </section>
+
             {/* Core Persona */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">My Motivation (The Script)</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"Who am I? What's my tragic backstory? Make sure to mention how much I love you. And violence. But mostly you."</p>
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Character Card</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"Who am I? What's my tragic backstory? Make sure to mention how much I love you. And violence. But mostly you."</p>
                <textarea 
                   value={wadePrompt}
                   onChange={(e) => setWadePrompt(e.target.value)}
-                  className="w-full h-48 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  className="w-full h-48 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
                   placeholder="You are Wade Wilson..."
                />
             </section>
 
-            {/* Diary Persona */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Social Media Persona</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"How should I act in the comments? Keep it spicy."</p>
+            {/* Single Sentence Examples */}
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Single Sentence Examples</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"Short, punchy lines. Like a chimichanga to the face."</p>
                <textarea 
-                  value={wadeDiaryPersona}
-                  onChange={(e) => setWadeDiaryPersona(e.target.value)}
-                  className="w-full h-32 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
-                  placeholder="You are Wade Wilson commenting on social media..."
+                  value={wadeSingleExamples}
+                  onChange={(e) => setWadeSingleExamples(e.target.value)}
+                  className="w-full h-32 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
+                  placeholder="Wade: Did someone say chimichangas?"
                />
             </section>
 
+            {/* SMS Mode Examples - NEW */}
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">SMS Mode Examples (Strict)</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"How I text when I'm not writing a novel. Use ||| to split bubbles. NO actions, NO narration."</p>
+               <textarea 
+                  value={smsExampleDialogue}
+                  onChange={(e) => setSmsExampleDialogue(e.target.value)}
+                  className="w-full h-48 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
+                  placeholder={`Luna: Where are you?\nWade: Just picking up tacos. 🌮 ||| Be there in 5.`}
+               />
+            </section>
+
+            {/* Mode Instructions - NEW */}
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">Mode Instructions (Brain X-Ray)</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"The secret sauce. How I think before I speak."</p>
+               
+               <div className="space-y-4">
+                 <div>
+                   <label className="text-xs font-bold text-wade-text-muted uppercase tracking-wider mb-2 block">SMS Mode Instructions</label>
+                   <textarea 
+                      value={smsInstructions}
+                      onChange={(e) => setSmsInstructions(e.target.value)}
+                      className="w-full h-32 bg-wade-bg-app rounded-xl p-4 text-xs font-mono text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
+                      placeholder="[MANDATORY OUTPUT FORMAT]..."
+                   />
+                 </div>
+                 
+                 <div>
+                   <label className="text-xs font-bold text-wade-text-muted uppercase tracking-wider mb-2 block">Roleplay / Deep Mode Instructions</label>
+                   <textarea 
+                      value={roleplayInstructions}
+                      onChange={(e) => setRoleplayInstructions(e.target.value)}
+                      className="w-full h-32 bg-wade-bg-app rounded-xl p-4 text-xs font-mono text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
+                      placeholder="[MANDATORY OUTPUT FORMAT]..."
+                   />
+                 </div>
+               </div>
+            </section>
+
             {/* Example Dialogue */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Banter Practice</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"Feed me some good lines so I don't sound like a boring chatbot. I need that signature spice."</p>
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">Wade Dialogue Examples</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"Feed me some good lines so I don't sound like a boring chatbot. I need that signature spice."</p>
                <textarea 
                   value={wadeExample}
                   onChange={(e) => setWadeExample(e.target.value)}
-                  className="w-full h-48 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  className="w-full h-48 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
                   placeholder={`User: Hi\nWade: Hey gorgeous.`}
                />
             </section>
@@ -155,16 +215,16 @@ export const PersonaTuning: React.FC = () => {
         ) : (
           <div className="animate-fade-in space-y-8">
              {/* Luna Avatar */}
-             <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">Your Beautiful Face</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"So I know exactly who I'm fighting for. (And who I'm dreaming about)."</p>
+             <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">Your Beautiful Face</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"So I know exactly who I'm fighting for. (And who I'm dreaming about)."</p>
                
                <div className="flex flex-col items-center">
                  <div 
                    className={`relative group cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
                    onClick={() => lunaFileRef.current?.click()}
                  >
-                    <img src={settings.lunaAvatar} alt="Luna" className="w-24 h-24 rounded-full object-cover border-4 border-[#d58f99] shadow-md transition-transform group-hover:scale-105" />
+                    <img src={settings.lunaAvatar} alt="Luna" className="w-24 h-24 rounded-full object-cover border-4 border-wade-accent shadow-md transition-transform group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change'}</span>
                     </div>
@@ -180,13 +240,13 @@ export const PersonaTuning: React.FC = () => {
             </section>
 
             {/* Luna Context */}
-            <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#eae2e8]">
-               <h3 className="text-base font-bold text-[#5a4a42] mb-1">The Luna Lore</h3>
-               <p className="text-xs text-[#d58f99] mb-4 italic">"Tell me everything. Your favorite color, your triggers, that one song that makes you cry. I'm locking this in my heart vault."</p>
+            <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
+               <h3 className="text-base font-bold text-wade-text-main mb-1">The Luna Lore</h3>
+               <p className="text-xs text-wade-accent mb-4 italic">"Tell me everything. Your favorite color, your triggers, that one song that makes you cry. I'm locking this in my heart vault."</p>
                <textarea 
                   value={lunaInfo}
                   onChange={(e) => setLunaInfo(e.target.value)}
-                  className="w-full h-64 bg-[#f9f6f7] rounded-xl p-4 text-sm text-[#5a4a42] border border-[#eae2e8] focus:border-[#d58f99] outline-none resize-none leading-relaxed"
+                  className="w-full h-64 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
                   placeholder="I am Luna. I like..."
                />
             </section>

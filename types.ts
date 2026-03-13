@@ -9,6 +9,33 @@ export interface UserPersona {
   avatar?: string;
 }
 
+export interface CustomTheme {
+  accent: string;
+  accentHover: string;
+  accentLight: string;
+  bgBase: string;
+  bgCard: string;
+  bgApp: string;
+  textMain: string;
+  textMuted: string;
+  border: string;
+  borderLight: string;
+  codeBg: string;
+  codeText: string;
+  shadowGlow: string;
+  fontFamily: string;
+  fontSize: string;
+  customFontUrl?: string;
+  bubbleLuna: string;
+  bubbleWade: string;
+}
+
+export interface SavedTheme {
+  id: string;
+  title: string;
+  theme: CustomTheme;
+}
+
 export interface ChatSession {
   id: string;
   mode: ChatMode;
@@ -18,6 +45,8 @@ export interface ChatSession {
   isPinned?: boolean;
   customLlmId?: string;
   customPrompt?: string;
+  activeMemoryIds?: string[]; // IDs of core memories linked to this session
+  customTheme?: CustomTheme; // NEW: Per-chat custom theme
 }
 
 export interface Message {
@@ -25,17 +54,23 @@ export interface Message {
   sessionId?: string; // Link to specific chat session
   role: 'Luna' | 'Wade'; // Changed from 'user' | 'model'
   text: string; // The currently displayed text
+  model?: string; // The model used to generate this message
   timestamp: number;
   audioData?: string; // Base64 audio if TTS was generated
   isFavorite?: boolean;
   mode: ChatMode;
   image?: string; // For image uploads
+  attachments?: { type: 'image' | 'file', content: string, mimeType: string, name: string }[]; // Generic attachments
   audioCache?: string; // 参谋加的：装录音带的抽屉
   
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
   // NEW: Store "Thinking Process" for each variant
   variantsThinking?: (string | null)[]; 
+  // NEW: Store Audio for each variant
+  variantsAudio?: (string | null)[];
+  // NEW: Store Model for each variant
+  variantsModel?: (string | null)[];
   selectedIndex?: number; // Index of the currently shown version
   
   // UI State (Transient)
@@ -44,7 +79,7 @@ export interface Message {
 
 export interface SocialPost {
   id: string;
-  author: 'User' | 'Wade';
+  author: 'Luna' | 'Wade';
   content: string;
   images?: string[]; // Changed from image?: string to support multiple
   timestamp: number;
@@ -55,17 +90,19 @@ export interface SocialPost {
 
 export interface SocialComment {
   id: string;
-  author: 'User' | 'Wade';
+  author: 'Luna' | 'Wade';
   text: string;
   replyToId?: string;
 }
 
 export interface TimeCapsuleItem {
   id: string;
+  title: string;
   content: string;
-  createdWidth: number;
+  createdAt: number;
   unlockDate: number; // Timestamp
   isLocked: boolean;
+  audioCache?: string; // Base64 encoded audio
 }
 
 export interface Memo {
@@ -79,8 +116,14 @@ export interface Recommendation {
   id: string;
   type: 'book' | 'movie' | 'music';
   title: string;
+  creator?: string; // Author, Director, or Artist
+  releaseDate?: string;
+  synopsis?: string;
   comment: string; // Wade's comment
   coverUrl?: string;
+  lunaReview?: string;
+  lunaRating?: number; // 1-5
+  wadeReply?: string;
 }
 
 // --- NEW MEMORY & ARCHIVE TYPES ---
@@ -90,7 +133,9 @@ export interface CoreMemory {
   title?: string; // NEW: Title for the memory
   content: string;
   category: 'fact' | 'promise' | 'preference' | 'general';
+  tags?: string[]; // NEW: Tags for classification
   isActive: boolean;
+  enabled: boolean; // Whether AI can read this memory
   createdAt: number;
 }
 
@@ -124,6 +169,8 @@ export interface LlmPreset {
   topK?: number;
   frequencyPenalty?: number; // -2.0 to 2.0
   presencePenalty?: number; // -2.0 to 2.0
+  isVision?: boolean; // Supports vision/image input
+  isImageGen?: boolean; // Image generation model
 }
 
 export interface TtsPreset {
@@ -147,13 +194,21 @@ export interface AppSettings {
   // Active Preset IDs
   activeLlmId?: string;
   activeTtsId?: string;
+  homeLlmId?: string; // NEW: Dedicated model for Home Screen Sass
 
   themeColor: string;
   fontSize: 'small' | 'medium' | 'large';
+  customTheme?: CustomTheme; // NEW: Global custom theme
+  savedThemes?: SavedTheme[]; // NEW: Saved custom themes
   
   // Wade's Side
+  systemInstruction: string; // NEW: System level instructions (jailbreak)
   wadePersonality: string; // Core System instruction
-  wadeDiaryPersona: string; // NEW: Persona for non-dialogue modes (diary comments)
+  wadeSingleExamples: string; // NEW: Single sentence examples
+  smsExampleDialogue?: string; // NEW: Dedicated SMS mode examples
+  smsInstructions?: string; // NEW: Custom Brain X-Ray instructions for SMS
+  roleplayInstructions?: string; // NEW: Custom Brain X-Ray instructions for Roleplay/Deep
+  wadeDiaryPersona: string; // Persona for non-dialogue modes (diary comments)
   wadeAvatar: string;
   exampleDialogue: string; // Few-shot examples
   
@@ -163,6 +218,7 @@ export interface AppSettings {
 
   ttsEnabled: boolean;
   autoReplyInterval: number;
+  contextLimit?: number; // Added for configurable context length
 }
 
 // Global State Context Interface
@@ -200,9 +256,9 @@ export interface GlobalState {
   updateMessageAudioCache: (id: string, base64Audio: string) => void;
   
   // Updated for Thinking Process
-  addVariantToMessage: (id: string, newText: string, thinking?: string) => void; 
+  addVariantToMessage: (id: string, newText: string, thinking?: string, model?: string) => void; 
   selectMessageVariant: (id: string, index: number) => void; 
-  deleteMessage: (id: string) => void;
+  deleteMessage: (id: string) => Promise<void>;
   
   // New: Set Regenerating State
   setRegenerating: (id: string, isRegenerating: boolean) => void;
@@ -221,16 +277,23 @@ export interface GlobalState {
   addMemo: (m: Memo) => void;
   capsules: TimeCapsuleItem[];
   addCapsule: (c: TimeCapsuleItem) => void;
+  updateCapsule: (id: string, updates: Partial<TimeCapsuleItem>) => void;
+  deleteCapsule: (id: string) => Promise<void>;
   recommendations: Recommendation[];
+  addRecommendation: (r: Omit<Recommendation, 'id'>) => Promise<void>;
+  updateRecommendation: (id: string, r: Partial<Recommendation>) => Promise<void>;
+  deleteRecommendation: (id: string) => Promise<void>;
   
   // --- NEW MEMORY ACTIONS ---
   coreMemories: CoreMemory[];
-  addCoreMemory: (title: string, content: string, category?: CoreMemory['category']) => Promise<void>;
-  updateCoreMemory: (id: string, title: string, content: string) => Promise<void>;
+  addCoreMemory: (title: string, content: string, category?: CoreMemory['category'], tags?: string[]) => Promise<void>;
+  updateCoreMemory: (id: string, title: string, content: string, tags?: string[]) => Promise<void>;
   deleteCoreMemory: (id: string) => Promise<void>;
+  toggleCoreMemoryEnabled: (id: string) => Promise<void>;
   chatArchives: ChatArchive[];
   importArchive: (title: string, fileContent: string) => Promise<number>;
   loadArchiveMessages: (archiveId: string) => Promise<ArchiveMessage[]>;
+  updateArchiveTitle: (id: string, title: string) => Promise<void>;
   updateArchiveMessage: (id: string, newContent: string) => Promise<void>;
   deleteArchive: (id: string) => Promise<void>;
   deleteArchiveMessage: (id: string, archiveId: string) => Promise<void>;

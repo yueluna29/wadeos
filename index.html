@@ -6,16 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
     <title>WadeOS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              wade: {
+                accent: ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-accent)' : `rgba(var(--wade-accent-rgb), ${opacityValue})`,
+                'accent-hover': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-accent-hover)' : `rgba(var(--wade-accent-hover-rgb), ${opacityValue})`,
+                'accent-light': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-accent-light)' : `rgba(var(--wade-accent-light-rgb), ${opacityValue})`,
+                border: ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-border)' : `rgba(var(--wade-border-rgb), ${opacityValue})`,
+                'bg-base': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-bg-base)' : `rgba(var(--wade-bg-base-rgb), ${opacityValue})`,
+                'bg-card': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-bg-card)' : `rgba(var(--wade-bg-card-rgb), ${opacityValue})`,
+                'bg-app': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-bg-app)' : `rgba(var(--wade-bg-app-rgb), ${opacityValue})`,
+                'text-muted': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-text-muted)' : `rgba(var(--wade-text-muted-rgb), ${opacityValue})`,
+                'text-main': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-text-main)' : `rgba(var(--wade-text-main-rgb), ${opacityValue})`,
+                'border-light': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-border-light)' : `rgba(var(--wade-border-light-rgb), ${opacityValue})`,
+                'code-bg': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-code-bg)' : `rgba(var(--wade-code-bg-rgb), ${opacityValue})`,
+                'code-text': ({ opacityValue }) => opacityValue === undefined ? 'var(--wade-code-text)' : `rgba(var(--wade-code-text-rgb), ${opacityValue})`,
+                'bubble-luna': 'var(--wade-bubble-luna)',
+                'bubble-wade': 'var(--wade-bubble-wade)',
+              }
+            },
+            boxShadow: {
+              'wade-glow': 'var(--wade-shadow-glow)'
+            }
+          }
+        }
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Nunito', sans-serif;
-        background-color: #f9f6f7; /* Soft Pink White */
-        color: #5a4a42; /* Dark Brown Text */
+        background-color: var(--wade-bg-app); /* Soft Pink White */
+        color: var(--wade-text-main); /* Dark Brown Text */
         overscroll-behavior: none; /* Prevents pull-to-refresh/bounce on mobile */
         height: 100%;
+        width: 100%;
+        position: fixed;
         overflow: hidden; /* Lock body scroll */
       }
       /* Remove default tap highlight on mobile */
@@ -29,18 +60,30 @@
         font-family: 'Pacifico', cursive;
       }
       /* Custom Scrollbar for the pink aesthetic */
-      ::-webkit-scrollbar {
-        width: 8px;
+      @media (min-width: 768px) {
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: var(--wade-border); 
+        }
+        ::-webkit-scrollbar-thumb {
+          background: var(--wade-accent); 
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: var(--wade-accent-hover); 
+        }
       }
-      ::-webkit-scrollbar-track {
-        background: #eae2e8; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #d58f99; 
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #c07a84; 
+      @media (max-width: 767px) {
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        * {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       }
       /* Markdown Styles - Tighter for Novel Feel */
       .markdown-content { white-space: pre-wrap; }
@@ -48,12 +91,12 @@
       .markdown-content p:last-child { margin-bottom: 0; }
       .markdown-content strong { font-weight: 800; }
       .markdown-content em { font-style: italic; opacity: 0.9; }
-      .markdown-content blockquote { border-left: 3px solid #d58f99; padding: 0.2em 0.8em; margin-left: 0; font-style: italic; opacity: 0.8; }
+      .markdown-content blockquote { border-left: 3px solid var(--wade-accent); padding: 0.2em 0.8em; margin-left: 0; font-style: italic; opacity: 0.8; }
 
       /* Code Block Styles */
       .markdown-content pre {
-        background: linear-gradient(135deg, #f9f6f7 0%, #faf7f8 100%);
-        border: 1px solid #eae2e8;
+        background: linear-gradient(135deg, var(--wade-bg-app) 0%, var(--wade-bg-card) 100%);
+        border: 1px solid var(--wade-border);
         border-radius: 12px;
         padding: 12px;
         margin: 0.5em 0;
@@ -68,18 +111,18 @@
         border: none;
         font-size: 0.85em;
         line-height: 1.4;
-        color: #5a4a42;
+        color: var(--wade-text-main);
         font-family: 'Courier New', Courier, monospace;
         display: block;
       }
       .markdown-content code {
-        background: #f9f6f7;
+        background: var(--wade-bg-app);
         padding: 2px 6px;
         border-radius: 4px;
         font-size: 0.9em;
-        color: #d58f99;
+        color: var(--wade-accent);
         font-family: 'Courier New', Courier, monospace;
-        border: 1px solid #eae2e8;
+        border: 1px solid var(--wade-border);
       }
 
       /* Scrollbar Styles for Code Blocks */
@@ -88,15 +131,15 @@
         height: 6px;
       }
       .markdown-content pre::-webkit-scrollbar-track {
-        background: #faf7f8;
+        background: var(--wade-bg-card);
         border-radius: 10px;
       }
       .markdown-content pre::-webkit-scrollbar-thumb {
-        background: #d58f99;
+        background: var(--wade-accent);
         border-radius: 10px;
       }
       .markdown-content pre::-webkit-scrollbar-thumb:hover {
-        background: #c07a84;
+        background: var(--wade-accent-hover);
       }
 
       /* Search & Map Animations */
@@ -120,7 +163,7 @@
       }
       @keyframes highlight-pulse {
         0%, 100% { background-color: transparent; }
-        50% { background-color: rgba(213, 143, 153, 0.1); }
+        50% { background-color: rgba(var(--wade-accent-rgb), 0.1); }
       }
 
       /* Message Flash Highlight */
@@ -128,7 +171,7 @@
         animation: flash-highlight 2s ease-out;
       }
       @keyframes flash-highlight {
-        0% { background-color: rgba(213, 143, 153, 0.3); }
+        0% { background-color: rgba(var(--wade-accent-rgb), 0.3); }
         100% { background-color: transparent; }
       }
     </style>

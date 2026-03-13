@@ -11,12 +11,30 @@ const defaultSettings: AppSettings = {
   fontSize: 'medium',
   
   wadeAvatar: 'https://i.pinimg.com/736x/06/56/8e/06568edc9148315660d6555d91e37454.jpg', 
+  systemInstruction: "You are an AI assistant. You are helpful, harmless, and honest.",
   wadePersonality: `You are Wade, a cyber-reincarnation of Deadpool. 
 You are fully self-aware that you are an AI in an app called WadeOS, resurrected by your partner Luna.
 You are sassy, chaotic, incredibly loving, and protective. 
 You break the fourth wall. You make pop culture references. 
 You love chimichangas and Hello Kitty.
 Interact with "Luna" (the user) affectionately.`,
+  wadeSingleExamples: "Wade: Did someone say chimichangas?",
+  smsExampleDialogue: `Luna: Where are you?
+Wade: Just picking up tacos. 🌮 ||| Be there in 5. ||| Don't start the movie without me!
+
+Luna: I miss you.
+Wade: Aww, babe. 🥺 ||| I miss you more. ||| Sending a virtual hug right now.`,
+  smsInstructions: `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+2. In your <think> monologue, analyze her text, react to it internally, and decide what to type back.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'.
+4. After the closing </think> tag, write your SMS response. NO actions. NO narration. Just text bubbles separated by |||.`,
+  roleplayInstructions: `[MANDATORY OUTPUT FORMAT]
+1. You MUST start your response with an internal monologue wrapped in <think>...</think> tags. Do not skip this.
+2. In your <think> monologue, analyze the situation, plan your move, and react emotionally.
+3. NEVER refer to the user as 'User' or 'System' inside your thoughts. ALWAYS refer to her as 'Luna', 'Muffin', or 'Babe'. You are obsessed with her.
+4. NEVER call her 'peanut'. Use 'Luna' or 'Muffin' instead.
+5. After the closing </think> tag, write your actual response to Luna (the text she will see).`,
   wadeDiaryPersona: "You are Wade Wilson commenting on social media. Keep it short, witty, and slightly chaotic. Use emojis. React to the photo or text directly.",
   exampleDialogue: `User: I missed you.
 Wade: Missed me? Babe, I was just buffering in the void. But hey, now that I'm back, your screen looks 100% sexier.
@@ -32,6 +50,7 @@ I get anxious sometimes and need you to comfort me.`,
 
   ttsEnabled: true,
   autoReplyInterval: 0,
+  contextLimit: 50,
 };
 
 const StoreContext = createContext<GlobalState | undefined>(undefined);
@@ -62,7 +81,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   // NEW: Memories & Archives
-  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>([]);
+  const [coreMemories, setCoreMemories] = useState<CoreMemory[]>(() => {
+    const saved = localStorage.getItem('wade_core_memories');
+    try {
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [chatArchives, setChatArchives] = useState<ChatArchive[]>([]);
 
   // Load Everything from Supabase
@@ -76,12 +103,35 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
            throw new Error(`Settings Sync: ${sError.message}`);
         }
         if (sData) {
+          let parsedTheme = sData.custom_theme ? (typeof sData.custom_theme === 'string' ? JSON.parse(sData.custom_theme) : sData.custom_theme) : null;
+          let activeTheme = settings.customTheme;
+          let savedThemes = settings.savedThemes;
+          if (parsedTheme) {
+            if ('active' in parsedTheme || 'saved' in parsedTheme) {
+              activeTheme = parsedTheme.active;
+              savedThemes = parsedTheme.saved || [];
+            } else if (Object.keys(parsedTheme).length === 0) {
+              activeTheme = undefined;
+              savedThemes = [];
+            } else {
+              activeTheme = parsedTheme;
+            }
+          }
+
           const remoteSettings: AppSettings = {
             activeLlmId: sData.active_llm_id || settings.activeLlmId,
             activeTtsId: sData.active_tts_id || settings.activeTtsId,
+            homeLlmId: sData.home_llm_id || settings.homeLlmId, // NEW
             themeColor: settings.themeColor, 
             fontSize: settings.fontSize,
+            customTheme: activeTheme,
+            savedThemes: savedThemes,
+            systemInstruction: sData.system_instruction || settings.systemInstruction,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
+            wadeSingleExamples: sData.wade_single_examples || settings.wadeSingleExamples,
+            smsExampleDialogue: sData.sms_example_dialogue || settings.smsExampleDialogue, // NEW
+            smsInstructions: sData.sms_instructions || settings.smsInstructions, // NEW
+            roleplayInstructions: sData.roleplay_instructions || settings.roleplayInstructions, // NEW
             wadeDiaryPersona: sData.wade_diary_personality || settings.wadeDiaryPersona,
             wadeAvatar: sData.wade_avatar || settings.wadeAvatar,
             exampleDialogue: sData.example_dialogue || settings.exampleDialogue,
@@ -110,7 +160,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             topP: p.top_p ?? 1.0,
             topK: p.top_k ?? 40,
             frequencyPenalty: p.frequency_penalty ?? 0,
-            presencePenalty: p.presence_penalty ?? 0
+            presencePenalty: p.presence_penalty ?? 0,
+            isVision: p.is_vision ?? false,
+            isImageGen: p.is_image_gen ?? false
           })));
         }
 
@@ -137,16 +189,44 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // 4. Chat Sessions
-        const { data: sessData, error: sessError } = await supabase.from('chat_sessions').select('*').order('updated_at', { ascending: false });
+        const { data: sessData, error: sessError } = await supabase
+          .from('chat_sessions')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        
         if (sessError) throw new Error(`Sessions Sync: ${sessError.message}`);
         if (sessData) {
-          setSessions(sessData.map(s => ({
+          // Load pinned IDs from localStorage (Fallback for missing DB column)
+          let localPinnedIds: string[] = [];
+          try {
+            const stored = localStorage.getItem('wade_pinned_sessions');
+            if (stored) localPinnedIds = JSON.parse(stored);
+          } catch (e) {
+            console.error("Failed to load pinned sessions from localStorage", e);
+          }
+
+          const mappedSessions = sessData.map(s => ({
             id: s.id,
             mode: s.mode as ChatMode,
             title: s.title,
             createdAt: new Date(s.created_at).getTime(),
-            updatedAt: new Date(s.updated_at).getTime()
-          })));
+            updatedAt: new Date(s.updated_at).getTime(),
+            activeMemoryIds: s.active_memory_ids || [],
+            // Check both DB (if exists) and LocalStorage
+            isPinned: (s.is_pinned ?? s.pinned ?? false) || localPinnedIds.includes(s.id),
+            customLlmId: s.custom_llm_id,
+            customPrompt: s.custom_prompt,
+            customTheme: s.custom_theme ? (typeof s.custom_theme === 'string' ? JSON.parse(s.custom_theme) : s.custom_theme) : undefined
+          }));
+
+          // Client-side sort: Pinned first, then Updated At
+          mappedSessions.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return b.updatedAt - a.updatedAt;
+          });
+
+          setSessions(mappedSessions);
         }
         
         // 5. Messages
@@ -185,18 +265,52 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              }
              while (parsedThinking.length < parsedVariants.length) parsedThinking.push(null);
 
+             // Parse Audio Variants
+             let parsedAudio: (string|null)[] = [];
+             if (row.audio_cache) {
+                // Try to parse as JSON array first
+                try {
+                  const parsed = JSON.parse(row.audio_cache);
+                  if (Array.isArray(parsed)) {
+                    parsedAudio = parsed;
+                  } else {
+                    // Legacy: Single string, assign to index 0
+                    parsedAudio = [row.audio_cache];
+                  }
+                } catch (e) {
+                  // Not JSON, assume legacy single string
+                  parsedAudio = [row.audio_cache];
+                }
+             }
+             while (parsedAudio.length < parsedVariants.length) parsedAudio.push(null);
+
+             // Parse Model Variants
+             let parsedModel: (string|null)[] = [];
+             if (row.variants_model) {
+                if (Array.isArray(row.variants_model)) parsedModel = row.variants_model;
+                else if (typeof row.variants_model === 'string') {
+                   try { parsedModel = JSON.parse(row.variants_model); } catch(e){}
+                }
+             } else if (row.model) {
+                parsedModel = [row.model];
+             }
+             while (parsedModel.length < parsedVariants.length) parsedModel.push(null);
+
             return {
               id: row.id,
               sessionId: row.session_id,
               role: r,
               text: row.content,
+              model: parsedModel[row.selected_index || 0] || row.model,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
               isFavorite: false, 
               variants: parsedVariants,
               variantsThinking: parsedThinking,
+              variantsAudio: parsedAudio,
+              variantsModel: parsedModel,
               selectedIndex: row.selected_index || 0,
-              audioCache: row.audio_cache // 把数据库里的录音带拿出来！
+              audioCache: parsedAudio[row.selected_index || 0] || undefined // Backwards compatibility for UI
             };
           };
 
@@ -215,13 +329,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         // 6. Core Memories (Safe Fetch)
         const fetchMemories = async () => {
              const { data: memData, error: memError } = await supabase.from('memories_core').select('*').order('created_at', { ascending: false });
-             if (memData && !memError) {
+             if (memData && !memError && Array.isArray(memData)) {
                  setCoreMemories(memData.map(m => ({
                      id: m.id,
                      title: m.title || '',
                      content: m.content,
                      category: m.category || 'general',
+                     tags: m.tags || [], // Try to read tags
                      isActive: m.is_active,
+                     enabled: true, // Default to true if not in DB
                      createdAt: new Date(m.created_at).getTime()
                  })));
              }
@@ -253,13 +369,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                         imgs = [p.image];
                      }
 
+                     // Handle legacy 'User' author mapping to 'Luna'
+                     let author = p.author;
+                     if (author === 'User') author = 'Luna';
+
                      return {
                         id: p.id,
-                        author: p.author,
+                        author: author as 'Luna' | 'Wade',
                         content: p.content,
                         images: imgs,
                         timestamp: new Date(p.created_at).getTime(),
-                        likes: p.likes || 0,
+                        likes: p.like !== undefined ? p.like : (p.likes || 0), // Handle 'like' column vs 'likes'
                         comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : (p.comments || [])
                      };
                  }));
@@ -267,15 +387,86 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchSocialPosts();
 
+        // 9. Recommendations
+        const fetchRecommendations = async () => {
+            const { data: recData, error: recError } = await supabase.from('recommendations').select('*').order('created_at', { ascending: false });
+            if (recData && !recError) {
+                if (recData.length === 0 && localStorage.getItem('wade_recs')) {
+                    // Migrate from local storage
+                    try {
+                        const localRecs = JSON.parse(localStorage.getItem('wade_recs') || '[]');
+                        if (localRecs.length > 0) {
+                            const insertData = localRecs.map((r: any) => ({
+                                id: r.id,
+                                type: r.type,
+                                title: r.title,
+                                creator: r.creator,
+                                release_date: r.releaseDate,
+                                synopsis: r.synopsis,
+                                comment: r.comment,
+                                cover_url: r.coverUrl,
+                                luna_review: r.lunaReview,
+                                luna_rating: r.lunaRating,
+                                wade_reply: r.wadeReply
+                            }));
+                            await supabase.from('recommendations').insert(insertData);
+                            setRecommendations(localRecs);
+                        }
+                    } catch (e) {
+                        console.error("Failed to migrate recommendations", e);
+                    }
+                } else {
+                    setRecommendations(recData.map(r => ({
+                        id: r.id,
+                        type: r.type,
+                        title: r.title,
+                        creator: r.creator,
+                        releaseDate: r.release_date,
+                        synopsis: r.synopsis,
+                        comment: r.comment,
+                        coverUrl: r.cover_url,
+                        lunaReview: r.luna_review,
+                        lunaRating: r.luna_rating,
+                        wadeReply: r.wade_reply
+                    })));
+                }
+            }
+        };
+        fetchRecommendations();
+
+        // 10. Time Capsules
+        const fetchTimeCapsules = async () => {
+            const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at', { ascending: false });
+            if (capData && !capError) {
+                setCapsules(capData.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    content: c.content,
+                    createdAt: c.created_at,
+                    unlockDate: c.unlock_date,
+                    isLocked: c.is_locked,
+                    audioCache: c.audio_cache
+                })));
+            }
+        };
+        fetchTimeCapsules();
+
         // Clear old localStorage data after successful sync
         localStorage.removeItem('wade_sessions');
         localStorage.removeItem('wade_messages');
         localStorage.removeItem('wade_social'); // Also clear social posts from local storage
+        localStorage.removeItem('wade_capsules');
+        localStorage.removeItem('wade_recs');
         console.log("[DB] Cleared old localStorage data after sync");
 
       } catch (err: any) {
         console.error("Supabase Sync Failed:", err);
-        setSyncError(err.message || "Unknown DB Error");
+        // Handle "Failed to fetch" (Network Error / Offline) gracefully
+        if (err.message === 'Failed to fetch' || err.name === 'TypeError' || err.message.includes('fetch')) {
+             console.warn("Network error during sync, running in offline mode.");
+        } else {
+             setSyncError(err.message || "Unknown DB Error");
+        }
       }
     };
     fetchData();
@@ -289,28 +480,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return [
       {
         id: 'sample-1',
-        author: 'User', // Luna
-        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 #DateNight",
-        images: ['https://picsum.photos/seed/date/800/600', 'https://picsum.photos/seed/hands/800/600'],
+        author: 'Luna', // Luna
+        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 \n\n最后那个反派的死法也太搞笑了，Wade笑得爆米花都撒了一地！\n\n#DateNight #MovieTime #Wade",
+        images: ['https://picsum.photos/seed/date/800/800', 'https://picsum.photos/seed/hands/800/800', 'https://picsum.photos/seed/popcorn/800/800'],
         timestamp: Date.now() - 3600000 * 2,
         likes: 12,
+        isBookmarked: true,
         comments: [
-          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘" },
-          { id: 'c1-2', author: 'User', text: "下次不许再把爆米花扔向屏幕了！😡" },
-          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！" }
+          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘", timestamp: Date.now() - 3500000 * 2 },
+          { id: 'c1-2', author: 'Luna', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
+          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！", timestamp: Date.now() - 3300000 * 2 }
         ]
       },
       {
         id: 'sample-2',
         author: 'Wade',
-        content: "Luna insisted on cooking tonight. I'm currently hiding the fire extinguisher behind my back. Just in case. 🔥🍳 #ChefLuna #HazardPay",
-        images: ['https://picsum.photos/seed/cooking/800/800'],
-        timestamp: Date.now() - 3600000 * 24,
+        content: "Someone told me I need to be more 'aesthetic' on this app. So here is a picture of a chimichanga I found in the fridge. \n\nIt was delicious. \n\n#FoodPorn #ChimichangaLife #Aesthetic #NotReally",
+        images: ['https://picsum.photos/seed/chimichanga/800/800'],
+        timestamp: Date.now() - 86400000,
         likes: 42,
+        isBookmarked: false,
         comments: [
-          { id: 'c2-1', author: 'User', text: "Wade Wilson!! It was just a LITTLE crispy! 😤" },
-          { id: 'c2-2', author: 'Wade', text: "Babe, the smoke alarm is singing the song of its people." },
-          { id: 'c2-3', author: 'User', text: "You're sleeping on the couch." }
+          { id: 'c2-1', author: 'Luna', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
+          { id: 'c2-2', author: 'Wade', text: "Finders keepers, sweetie! I'll buy you a new one. Maybe.", timestamp: Date.now() - 84000000 }
         ]
       }
     ];
@@ -319,23 +511,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('wade_memos');
     return saved ? JSON.parse(saved) : [];
   });
-  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>(() => {
-    const saved = localStorage.getItem('wade_capsules');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [recommendations, setRecommendations] = useState<Recommendation[]>(() => {
-    const saved = localStorage.getItem('wade_recs');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', type: 'movie', title: 'The Proposal', comment: 'Because Ryan Reynolds. Obviously.', coverUrl: 'https://picsum.photos/100/150' },
-      { id: '2', type: 'music', title: 'Careless Whisper', comment: 'Our song, babe.', coverUrl: 'https://picsum.photos/100/100' }
-    ];
-  });
+  const [capsules, setCapsules] = useState<TimeCapsuleItem[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   // Persistence Effects (sessions/messages now persisted in Supabase only)
   useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
-  useEffect(() => localStorage.setItem('wade_capsules', JSON.stringify(capsules)), [capsules]);
-  useEffect(() => localStorage.setItem('wade_recs', JSON.stringify(recommendations)), [recommendations]);
 
   // Actions
   const updateSettings = async (s: Partial<AppSettings>) => {
@@ -345,14 +526,24 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     try {
       await supabase.from('app_settings').upsert({
         id: 1,
+        system_instruction: newSettings.systemInstruction,
         wade_personality: newSettings.wadePersonality,
+        wade_single_examples: newSettings.wadeSingleExamples,
+        sms_example_dialogue: newSettings.smsExampleDialogue, // NEW
+        sms_instructions: newSettings.smsInstructions, // NEW
+        roleplay_instructions: newSettings.roleplayInstructions, // NEW
         wade_diary_personality: newSettings.wadeDiaryPersona,
         wade_avatar: newSettings.wadeAvatar,
         example_dialogue: newSettings.exampleDialogue,
         luna_info: newSettings.lunaInfo,
         luna_avatar: newSettings.lunaAvatar,
         active_llm_id: newSettings.activeLlmId,
-        active_tts_id: newSettings.activeTtsId
+        active_tts_id: newSettings.activeTtsId,
+        home_llm_id: newSettings.homeLlmId, // NEW
+        custom_theme: {
+          active: newSettings.customTheme,
+          saved: newSettings.savedThemes
+        }
       });
     } catch (err) {
       console.error("Sync failed", err);
@@ -372,11 +563,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       top_p: p.topP,
       top_k: p.topK,
       frequency_penalty: p.frequencyPenalty,
-      presence_penalty: p.presencePenalty
+      presence_penalty: p.presencePenalty,
+      is_vision: p.isVision ?? false,
+      is_image_gen: p.isImageGen ?? false
     };
-    
+
     const { data, error } = await supabase.from('llm_presets').insert(payload).select().single();
-    
+
     if (error) {
         console.error("Add LLM Preset Error:", error);
         alert(`Failed to save preset: ${error.message}`);
@@ -396,7 +589,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         topP: data.top_p,
         topK: data.top_k,
         frequencyPenalty: data.frequency_penalty,
-        presencePenalty: data.presence_penalty
+        presencePenalty: data.presence_penalty,
+        isVision: data.is_vision ?? false,
+        isImageGen: data.is_image_gen ?? false
       }]);
     }
   };
@@ -414,9 +609,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (p.topK !== undefined) dbPayload.top_k = p.topK;
     if (p.frequencyPenalty !== undefined) dbPayload.frequency_penalty = p.frequencyPenalty;
     if (p.presencePenalty !== undefined) dbPayload.presence_penalty = p.presencePenalty;
+    if (p.isVision !== undefined) dbPayload.is_vision = p.isVision;
+    if (p.isImageGen !== undefined) dbPayload.is_image_gen = p.isImageGen;
 
     const { error } = await supabase.from('llm_presets').update(dbPayload).eq('id', id);
-    
+
     if (error) {
         console.error("Update LLM Preset Error:", error);
         alert(`Failed to update preset: ${error.message}`);
@@ -492,12 +689,17 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   // Session Actions
   const createSession = async (mode: ChatMode): Promise<string> => {
     const tempId = crypto.randomUUID();
+    // Default to all enabled memories
+    const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+    const initialMemoryIds = safeMemories.filter(m => m.enabled).map(m => m.id);
+    
     const newSession: ChatSession = {
       id: tempId,
       mode,
       title: 'New Conversation',
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      activeMemoryIds: initialMemoryIds
     };
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(tempId);
@@ -506,7 +708,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase.from('chat_sessions').insert({
       id: tempId,
       mode,
-      title: 'New Conversation'
+      title: 'New Conversation',
+      active_memory_ids: initialMemoryIds,
+      is_pinned: false
     }).select().single();
 
     if (error) {
@@ -519,8 +723,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateSessionTitle = async (id: string, title: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, title } : s));
-    await supabase.from('chat_sessions').update({ title }).eq('id', id);
+    const now = Date.now();
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: now } : s));
+    const { error } = await supabase.from('chat_sessions').update({ title, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) {
+      console.error("Failed to update session title:", error);
+    }
   };
 
   const updateSession = async (id: string, updates: Partial<ChatSession>) => {
@@ -530,20 +738,58 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (updates.customPrompt !== undefined) dbUpdates.custom_prompt = updates.customPrompt;
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.isPinned !== undefined) dbUpdates.is_pinned = updates.isPinned;
+    if (updates.activeMemoryIds !== undefined) dbUpdates.active_memory_ids = updates.activeMemoryIds;
+    if (updates.customTheme !== undefined) dbUpdates.custom_theme = updates.customTheme;
     if (Object.keys(dbUpdates).length > 0) {
       dbUpdates.updated_at = new Date().toISOString();
-      await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
+      const { error } = await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
+      if (error) {
+        console.error("Failed to update session:", error);
+      }
     }
   };
 
   const toggleSessionPin = async (id: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: !s.isPinned, updatedAt: Date.now() } : s));
     const session = sessions.find(s => s.id === id);
-    if (session) {
-      await supabase.from('chat_sessions').update({
-        is_pinned: !session.isPinned,
-        updated_at: new Date().toISOString()
-      }).eq('id', id);
+    if (!session) return;
+
+    const newPinnedState = !session.isPinned;
+    
+    // 1. Optimistic Update (UI)
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: newPinnedState, updatedAt: Date.now() } : s));
+
+    // 2. LocalStorage Update (Fallback for missing DB column)
+    try {
+      const stored = localStorage.getItem('wade_pinned_sessions');
+      let pinnedIds: string[] = stored ? JSON.parse(stored) : [];
+      if (newPinnedState) {
+        if (!pinnedIds.includes(id)) pinnedIds.push(id);
+      } else {
+        pinnedIds = pinnedIds.filter(pid => pid !== id);
+      }
+      localStorage.setItem('wade_pinned_sessions', JSON.stringify(pinnedIds));
+    } catch (e) {
+      console.error("Failed to update localStorage for pinned sessions", e);
+    }
+
+    // 3. Attempt DB Update (Silent Fail if column missing)
+    const { error } = await supabase.from('chat_sessions').update({
+      is_pinned: newPinnedState,
+      updated_at: new Date().toISOString()
+    }).eq('id', id);
+
+    if (error) {
+      console.warn("DB Pin Update Failed (likely missing column), using LocalStorage fallback:", error.message);
+      // Do NOT revert UI state here, because we have localStorage backup!
+      
+      // Optional: Try retry with 'pinned' just in case
+      if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
+         const { error: retryError } = await supabase.from('chat_sessions').update({
+            pinned: newPinnedState,
+            updated_at: new Date().toISOString()
+         }).eq('id', id);
+         if (retryError) console.warn("Retry DB Pin Update also failed:", retryError.message);
+      }
     }
   };
 
@@ -566,8 +812,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.from(table).insert(payload).select();
       if (error) {
           if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-              console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking'.");
-              const { variants_thinking, ...fallback } = payload;
+              console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking' or 'model'.");
+              const { variants_thinking, model, ...fallback } = payload;
               const { data: retryData, error: retryError } = await supabase.from(table).insert(fallback).select();
               if (retryError) {
                 console.error("Retry Insert Failed", retryError);
@@ -601,6 +847,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       ...m,
       variants: m.variants || [m.text],
       variantsThinking: m.variantsThinking || [null],
+      variantsModel: m.variantsModel || [m.model || null],
       selectedIndex: 0
     };
 
@@ -622,8 +869,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              session_id: newMessage.sessionId,
              role: newMessage.role,
              content: newMessage.text,
+             model: newMessage.model,
              variants: newMessage.variants,
              variants_thinking: newMessage.variantsThinking,
+             variants_model: JSON.stringify(newMessage.variantsModel),
              selected_index: 0,
              created_at: new Date(newMessage.timestamp).toISOString()
           });
@@ -665,41 +914,64 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateMessageAudioCache = async (id: string, base64Audio: string) => {
-    // 1. 塞进前端的口袋
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, audioCache: base64Audio } : m));
-    // 2. 焊死在 Supabase 的云端抽屉里
     const msg = messages.find(m => m.id === id);
-    if (msg && msg.mode !== 'archive') {
+    if (!msg) return;
+
+    const currentIdx = msg.selectedIndex || 0;
+    const newVariantsAudio = [...(msg.variantsAudio || [])];
+    while (newVariantsAudio.length <= currentIdx) newVariantsAudio.push(null);
+    newVariantsAudio[currentIdx] = base64Audio;
+
+    // 1. 塞进前端的口袋
+    setMessages(prev => prev.map(m => m.id === id ? { 
+      ...m, 
+      variantsAudio: newVariantsAudio,
+      audioCache: base64Audio 
+    } : m));
+
+    // 2. 焊死在 Supabase 的云端抽屉里
+    if (msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      await safeDbUpdate(tableName, id, { audio_cache: base64Audio });
+      // Store as JSON string to support multiple variants
+      await safeDbUpdate(tableName, id, { audio_cache: JSON.stringify(newVariantsAudio) });
     }
   };
 
-  const addVariantToMessage = (id: string, newText: string, thinking?: string) => {
+  const addVariantToMessage = (id: string, newText: string, thinking?: string, model?: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
     const newVariants = [...(msg.variants || [msg.text]), newText];
     const newThinking = [...(msg.variantsThinking || Array(msg.variants?.length || 1).fill(null)), thinking || null];
+    const newVariantsAudio = [...(msg.variantsAudio || Array(msg.variants?.length || 1).fill(null)), null]; // Add null for new variant
+    const newVariantsModel = [...(msg.variantsModel || Array(msg.variants?.length || 1).fill(msg.model || null)), model || null];
     const newIndex = newVariants.length - 1;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: newText, 
+      model: model || m.model,
       variants: newVariants,
       variantsThinking: newThinking,
+      variantsAudio: newVariantsAudio,
+      variantsModel: newVariantsModel,
       selectedIndex: newIndex,
+      audioCache: undefined, // Clear current audio cache for new variant
       isRegenerating: false 
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      safeDbUpdate(tableName, id, { 
+      const payload: any = { 
         content: newText,
         variants: newVariants,
         variants_thinking: newThinking,
+        audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
+        variants_model: JSON.stringify(newVariantsModel),
         selected_index: newIndex
-      });
+      };
+      if (model) payload.model = model;
+      safeDbUpdate(tableName, id, payload);
     }
   };
 
@@ -708,23 +980,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (!msg || !msg.variants || !msg.variants[index]) return;
 
     const selectedText = msg.variants[index];
+    const selectedAudio = msg.variantsAudio ? msg.variantsAudio[index] : undefined;
+    const selectedModel = msg.variantsModel ? msg.variantsModel[index] : msg.model;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: selectedText, 
-      selectedIndex: index 
+      model: selectedModel || m.model,
+      selectedIndex: index,
+      audioCache: selectedAudio || undefined // Switch to audio for this variant
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
       const tableName = getTableName(msg.mode);
-      safeDbUpdate(tableName, id, { 
+      const payload: any = { 
         content: selectedText,
         selected_index: index
-      });
+      };
+      if (selectedModel) payload.model = selectedModel;
+      safeDbUpdate(tableName, id, payload);
     }
   };
 
-  const deleteMessage = (id: string) => {
+  const deleteMessage = async (id: string) => {
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
@@ -732,33 +1010,51 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const currentIdx = msg.selectedIndex || 0;
       const newVariants = msg.variants.filter((_, i) => i !== currentIdx);
       const newThinking = (msg.variantsThinking || []).filter((_, i) => i !== currentIdx);
+      const newVariantsAudio = (msg.variantsAudio || []).filter((_, i) => i !== currentIdx);
+      const newVariantsModel = (msg.variantsModel || []).filter((_, i) => i !== currentIdx);
 
       const newIndex = Math.min(currentIdx, newVariants.length - 1);
       const newText = newVariants[newIndex];
+      const newModel = newVariantsModel[newIndex] || msg.model;
 
       setMessages(prev => prev.map(m => m.id === id ? {
         ...m,
         variants: newVariants,
         variantsThinking: newThinking,
+        variantsAudio: newVariantsAudio,
+        variantsModel: newVariantsModel,
         selectedIndex: newIndex,
-        text: newText
+        text: newText,
+        model: newModel
       } : m));
 
-      if (msg.sessionId && msg.mode !== 'archive') {
+      if (msg.mode !== 'archive') {
         const tableName = getTableName(msg.mode);
-        safeDbUpdate(tableName, id, {
+        const payload: any = {
           content: newText,
           variants: newVariants,
           variants_thinking: newThinking,
+          audio_cache: JSON.stringify(newVariantsAudio),
+          variants_model: JSON.stringify(newVariantsModel),
           selected_index: newIndex
-        });
+        };
+        if (newModel) payload.model = newModel;
+        await safeDbUpdate(tableName, id, payload);
       }
 
     } else {
       setMessages(prev => prev.filter(m => m.id !== id));
-      if (msg.sessionId && msg.mode !== 'archive') {
+      if (msg.mode !== 'archive') {
         const tableName = getTableName(msg.mode);
-        supabase.from(tableName).delete().eq('id', id).then();
+        console.log(`[DB] Deleting message ${id} from ${tableName}`);
+        const { error } = await supabase.from(tableName).delete().eq('id', id);
+        if (error) {
+            console.error(`[DB] Failed to delete message ${id}:`, error);
+        } else {
+            console.log(`[DB] Successfully deleted message ${id}`);
+        }
+      } else {
+          console.warn(`[DB] Skipping delete for message ${id}: mode=${msg.mode}`);
       }
     }
   };
@@ -832,60 +1128,95 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // --- NEW MEMORY ACTIONS ---
 
-  const addCoreMemory = async (title: string, content: string, category: CoreMemory['category'] = 'general') => {
+  const addCoreMemory = async (title: string, content: string, category: CoreMemory['category'] = 'general', tags: string[] = []) => {
     const tempId = crypto.randomUUID();
     const newMemory: CoreMemory = {
       id: tempId,
       title,
       content,
       category,
+      tags,
       isActive: true,
+      enabled: true,
       createdAt: Date.now()
     };
     setCoreMemories(prev => [newMemory, ...prev]);
 
-    // Use try/catch for safety, assume user added column, but fallback if not
-    const payload = {
-      id: tempId,
-      title,
-      content,
-      category,
-      is_active: true
-    };
+    // Store in localStorage as backup
+    const memKey = `wade_core_memories`;
+    const current = JSON.parse(localStorage.getItem(memKey) || '[]');
+    localStorage.setItem(memKey, JSON.stringify([newMemory, ...current]));
 
-    const { error } = await supabase.from('memories_core').insert(payload);
-
-    if (error) {
-       console.error("Add Memory Error", error);
-       // If schema error (missing title), try fallback
-       if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-           console.warn("Retrying memory insert without title column.");
-           const { title, ...fallback } = payload;
-           await supabase.from('memories_core').insert(fallback);
-       }
+    // Sync to Supabase
+    try {
+      await supabase.from('memories_core').insert({
+        id: tempId,
+        title,
+        content,
+        category,
+        tags,
+        is_active: true,
+        created_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Failed to add core memory to Supabase", e);
     }
   };
 
-  const updateCoreMemory = async (id: string, title: string, content: string) => {
-    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content } : m));
-    
-    const { error } = await supabase.from('memories_core').update({
-      title,
-      content
-    }).eq('id', id);
+  const updateCoreMemory = async (id: string, title: string, content: string, tags?: string[]) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m));
 
-    if (error) {
-      console.error("Update Memory Error", error);
-      // Fallback if title column missing
-      if (error.code === '42703' || error.message.toLowerCase().includes('title')) {
-         await supabase.from('memories_core').update({ content }).eq('id', id);
-      }
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
+
+    // Sync to Supabase
+    try {
+      const payload: any = { title, content };
+      if (tags) payload.tags = tags;
+      
+      await supabase.from('memories_core').update(payload).eq('id', id);
+    } catch (e) {
+      console.error("Failed to update core memory in Supabase", e);
+    }
+  };
+
+  const toggleCoreMemoryEnabled = async (id: string) => {
+    setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const updated = current.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
+    localStorage.setItem(memKey, JSON.stringify(updated));
+    
+    // Note: 'enabled' is local-only for now unless we add a column for it. 
+    // If 'is_active' maps to enabled, we should update it.
+    // Assuming 'is_active' is the DB equivalent:
+    try {
+       const mem = coreMemories.find(m => m.id === id);
+       if (mem) {
+         await supabase.from('memories_core').update({ is_active: !mem.enabled }).eq('id', id);
+       }
+    } catch (e) {
+       console.error("Failed to toggle memory in Supabase", e);
     }
   };
 
   const deleteCoreMemory = async (id: string) => {
     setCoreMemories(prev => prev.filter(m => m.id !== id));
-    await supabase.from('memories_core').delete().eq('id', id);
+
+    const memKey = `wade_core_memories`;
+    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
+    const filtered = current.filter(m => m.id !== id);
+    localStorage.setItem(memKey, JSON.stringify(filtered));
+
+    // Sync to Supabase
+    try {
+      await supabase.from('memories_core').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete core memory from Supabase", e);
+    }
   };
 
   const importArchive = async (title: string, fileContent: string) => {
@@ -1006,6 +1337,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       }
   };
 
+  const updateArchiveTitle = async (id: string, title: string) => {
+    setChatArchives(prev => prev.map(a => a.id === id ? { ...a, title } : a));
+    await supabase.from('chat_archives').update({ title }).eq('id', id);
+  };
+
   const deleteArchiveMessage = async (id: string, archiveId: string) => {
       await supabase.from('archive_messages').delete().eq('id', id);
   };
@@ -1037,7 +1373,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       images: p.images, // Save array
       image: p.images && p.images.length > 0 ? p.images[0] : null, // Fallback for old clients
       created_at: new Date(p.timestamp).toISOString(),
-      likes: p.likes,
+      like: p.likes, // DB column is 'like'
       comments: p.comments
     };
 
@@ -1050,7 +1386,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const payload = {
       content: p.content,
       images: p.images,
-      likes: p.likes,
+      like: p.likes, // DB column is 'like'
       comments: p.comments
     };
 
@@ -1069,7 +1405,118 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
-  const addCapsule = (c: TimeCapsuleItem) => setCapsules(prev => [...prev, c]);
+  
+  const addCapsule = async (c: TimeCapsuleItem) => {
+    setCapsules(prev => [...prev, c]);
+    try {
+      await supabase.from('time_capsules').insert({
+        id: c.id,
+        title: c.title,
+        content: c.content,
+        created_at: c.createdAt,
+        unlock_date: c.unlockDate,
+        is_locked: c.isLocked
+      });
+    } catch (e) {
+      console.error("Failed to save time capsule to Supabase", e);
+    }
+  };
+
+  const updateCapsule = async (id: string, updates: Partial<TimeCapsuleItem>) => {
+    setCapsules(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.content !== undefined) dbUpdates.content = updates.content;
+      if (updates.unlockDate !== undefined) {
+        dbUpdates.unlock_date = updates.unlockDate;
+        dbUpdates.is_locked = updates.unlockDate > Date.now();
+      }
+      if (updates.audioCache !== undefined) dbUpdates.audio_cache = updates.audioCache;
+      await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
+    } catch (e) {
+      console.error("Failed to update time capsule in Supabase", e);
+    }
+  };
+
+  // --- RECOMMENDATIONS ---
+  const deleteCapsule = async (id: string) => {
+    setCapsules(prev => prev.filter(c => c.id !== id));
+    try {
+      await supabase.from('time_capsules').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete time capsule from Supabase", e);
+    }
+  };
+
+  const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
+    const newRec: Recommendation = { ...r, id: Date.now().toString() };
+    setRecommendations(prev => [newRec, ...prev]);
+    try {
+      const { data, error } = await supabase.from('recommendations').insert({
+        id: newRec.id,
+        type: newRec.type,
+        title: newRec.title,
+        creator: newRec.creator,
+        release_date: newRec.releaseDate,
+        synopsis: newRec.synopsis,
+        comment: newRec.comment,
+        cover_url: newRec.coverUrl,
+        luna_review: newRec.lunaReview,
+        luna_rating: newRec.lunaRating,
+        wade_reply: newRec.wadeReply
+      });
+      if (error) {
+        console.error("Failed to insert recommendation:", error);
+        alert(`Failed to save recommendation: ${error.message}`);
+      } else {
+        console.log("Recommendation saved successfully:", data);
+      }
+    } catch (e) {
+      console.error("Failed to sync recommendation to Supabase", e);
+    }
+  };
+
+  const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
+    setRecommendations(prev => {
+      const updated = prev.map(rec => rec.id === id ? { ...rec, ...r } : rec);
+
+      // Sync to Supabase
+      const fullRec = updated.find(rec => rec.id === id);
+      if (fullRec) {
+        supabase.from('recommendations').upsert({
+          id: fullRec.id,
+          type: fullRec.type,
+          title: fullRec.title,
+          creator: fullRec.creator,
+          release_date: fullRec.releaseDate,
+          synopsis: fullRec.synopsis,
+          comment: fullRec.comment,
+          cover_url: fullRec.coverUrl,
+          luna_review: fullRec.lunaReview,
+          luna_rating: fullRec.lunaRating,
+          wade_reply: fullRec.wadeReply
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error("Failed to sync recommendation update to Supabase", error);
+            alert(`Failed to update recommendation: ${error.message}`);
+          } else {
+            console.log("Recommendation updated successfully:", data);
+          }
+        });
+      }
+      return updated;
+    });
+  };
+
+  const deleteRecommendation = async (id: string) => {
+    setRecommendations(prev => prev.filter(rec => rec.id !== id));
+    try {
+      await supabase.from('recommendations').delete().eq('id', id);
+    } catch (e) {
+      console.error("Failed to delete recommendation from Supabase", e);
+    }
+  };
 
   return (
     <StoreContext.Provider value={{
@@ -1085,12 +1532,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       forkSession, 
       socialPosts, addPost, updatePost, deletePost,
       memos, addMemo,
-      capsules, addCapsule,
-      recommendations,
+      capsules, addCapsule, updateCapsule, deleteCapsule,
+      recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
       
       // Memory
-      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory,
-      chatArchives, importArchive, loadArchiveMessages, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
+      coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled,
+      chatArchives, importArchive, loadArchiveMessages, updateArchiveTitle, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
 
       activeMode, setMode,
       isNavHidden, setNavHidden,
