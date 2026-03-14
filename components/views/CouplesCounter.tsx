@@ -15,7 +15,8 @@ export const CouplesCounter: React.FC = () => {
 
   useEffect(() => {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - initialDate.getTime());
+    // 参谋修正：将计算锚点从 initialDate 改成了 proposalDate，精准狙击你的需求
+    const diffTime = Math.abs(now.getTime() - proposalDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
     setDaysTogether(diffDays);
   }, []);
@@ -128,7 +129,6 @@ export const CouplesCounter: React.FC = () => {
                         <span className="text-[10px] text-wade-text-muted">{ann.date}</span>
                       </div>
                     </div>
-                    {/* Optional: Countdown or passed indicator */}
                     <div className="text-[10px] font-mono text-wade-accent bg-wade-bg-card px-2 py-1 rounded-md">
                         {new Date(ann.date).getFullYear()}
                     </div>
