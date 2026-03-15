@@ -206,10 +206,10 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ archiveId, onBack }) =
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
             // 👇 Archive 的动态呼吸间距！ 👇
-            let marginBottom = 'mb-6';
+            let marginBottom = 'mb-3';
             const nextMsg = displayMessages[idx + 1];
             if (nextMsg && nextMsg.role === msg.role) marginBottom = 'mb-2';
-            else marginBottom = 'mb-6';
+            else marginBottom = 'mb-3';
 
             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
 
