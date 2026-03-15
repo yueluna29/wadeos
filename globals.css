@@ -36,40 +36,40 @@
 }
 
 [data-theme="cyberpunk"] {
-  --wade-accent-rgb: 255, 42, 109;
-  --wade-accent: #FF2A6D;
-  --wade-accent-hover-rgb: 5, 255, 161;
-  --wade-accent-hover: #05FFA1;
-  --wade-accent-light-rgb: 30, 12, 24;
-  --wade-accent-light: #1E0C18;
+  --wade-accent-rgb: 235, 164, 210;
+  --wade-accent: #EBA4D2;
+  --wade-accent-hover-rgb: 106, 175, 242;
+  --wade-accent-hover: #6AAFF2;
+  --wade-accent-light-rgb: 40, 24, 58;
+  --wade-accent-light: #28183A;
 
-  --wade-bg-base-rgb: 10, 5, 15;
-  --wade-bg-base: #0A050F;
-  --wade-bg-card-rgb: 18, 10, 28;
-  --wade-bg-card: #120A1C;
-  --wade-bg-app-rgb: 13, 7, 20;
-  --wade-bg-app: #0D0714;
+  --wade-bg-base-rgb: 33, 23, 75;
+  --wade-bg-base: #21174B;
+  --wade-bg-card-rgb: 42, 30, 88;
+  --wade-bg-card: #2A1E58;
+  --wade-bg-app-rgb: 36, 25, 80;
+  --wade-bg-app: #241950;
 
-  --wade-text-main-rgb: 230, 255, 240;
-  --wade-text-main: #E6FFF0;
-  --wade-text-muted-rgb: 140, 160, 155;
-  --wade-text-muted: #8CA09B;
+  --wade-text-main-rgb: 235, 225, 245;
+  --wade-text-main: #EBE1F5;
+  --wade-text-muted-rgb: 160, 140, 190;
+  --wade-text-muted: #A08CBE;
 
-  --wade-border-rgb: 50, 20, 60;
-  --wade-border: #32143C;
-  --wade-border-light-rgb: 255, 42, 109;
-  --wade-border-light: #FF2A6D;
+  --wade-border-rgb: 74, 66, 174;
+  --wade-border: #4A42AE;
+  --wade-border-light-rgb: 204, 84, 208;
+  --wade-border-light: #CC54D0;
 
-  --wade-code-bg-rgb: 5, 2, 8;
-  --wade-code-bg: #050208;
-  --wade-code-text-rgb: 5, 255, 161;
-  --wade-code-text: #05FFA1;
+  --wade-code-bg-rgb: 26, 18, 56;
+  --wade-code-bg: #1A1238;
+  --wade-code-text-rgb: 106, 175, 242;
+  --wade-code-text: #6AAFF2;
 
-  --wade-nav-bg: #0A050F;
-  --wade-bubble-luna: #FF2A6D;
-  --wade-bubble-luna-rgb: 255, 42, 109;
+  --wade-nav-bg: #21174B;
+  --wade-bubble-luna: #CC54D0;
+  --wade-bubble-luna-rgb: 204, 84, 208;
 
-  --wade-shadow-glow: 0 4px 15px rgba(255, 42, 109, 0.4), 0 0 10px rgba(5, 255, 161, 0.25);
+  --wade-shadow-glow: 0 4px 15px rgba(235, 164, 210, 0.3), 0 0 10px rgba(106, 175, 242, 0.2);
 }
 
 [data-theme="deadpool"] {
