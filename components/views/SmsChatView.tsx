@@ -233,29 +233,31 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
       {/* =========================================
-          🔥 完美统一版 Header 🔥
+          🔥 终极防跳跃 Header (锁定高度68px，左右绝对对齐) 🔥
           ========================================= */}
-      <div className="w-full p-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+      <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
         
+        {/* 左侧：返回按钮死死钉在左边 104px 的盒子里 */}
         <div className="w-[104px] flex justify-start">
-          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
+          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm">
             <Icons.Back />
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity mt-0.5">
-          {/* 头像变大了一点点：w-10 h-10 */}
-          <img src={settings.wadeAvatar} className="w-10 h-10 shrink-0 rounded-full object-cover shadow-sm mb-1 border border-wade-border" alt="Wade" />
+        {/* 中间：变瘦的边距，刚刚好的头像 */}
+        <div className="flex-1 flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+          <img src={settings.wadeAvatar} className="w-9 h-9 shrink-0 rounded-full object-cover shadow-sm mb-0.5 border border-wade-border" alt="Wade" />
           <div className="flex items-center gap-1">
             <span className="font-bold text-wade-text-main text-[12px] tracking-wide">Wade Wilson</span>
             <Icons.ChevronRight size={10} className="text-wade-text-muted" />
           </div>
         </div>
 
+        {/* 右侧：功能按钮死死钉在右边 104px 的盒子里 */}
         <div className="w-[104px] flex items-center justify-end gap-2">
-          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Search /></button>
-          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Map /></button>
-          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative"><Icons.More /></button>
+          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Search /></button>
+          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Map /></button>
+          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm"><Icons.More /></button>
         </div>
       </div>
 

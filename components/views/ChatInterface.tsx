@@ -193,25 +193,24 @@ export const ChatInterface: React.FC = () => {
     } else if (viewState === 'list') {
     return (
       <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
-        
         {/* =========================================
-            🔥 完美统一的列表 Header：解锁宽度限制，左右按钮对齐 🔥
+            🔥 终极防跳跃 Header (和聊天页一模一样的 68px 绝对坐标) 🔥
             ========================================= */}
-        <div className="w-full p-4 bg-wade-bg-app flex items-center justify-between shrink-0 border-b border-transparent">
+        <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
           
-          {/* 左侧：返回按钮 (跟 SmsChatView 一模一样的 104px 宽度锁定) */}
+          {/* 左侧：和聊天室完全一样的坐标！ */}
           <div className="w-[104px] flex justify-start">
-            <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
+            <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
               <Icons.Back />
             </button>
           </div>
 
           {/* 中间：标题居中 */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center items-center">
             <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
           </div>
           
-          {/* 右侧：添加/上传按钮 (跟 SmsChatView 一模一样的 104px 宽度锁定) */}
+          {/* 右侧：和聊天室完全一样的坐标！ */}
           <div className="w-[104px] flex items-center justify-end gap-2">
             {activeMode === 'archive' ? (
                <button 
@@ -231,9 +230,7 @@ export const ChatInterface: React.FC = () => {
           </div>
         </div>
         
-        {/* =========================================
-            🔥 列表区域：释放宽度，从 max-w-md 改成 max-w-2xl 🔥
-            ========================================= */}
+        {/* 🔥 解除了列表区域的紧身衣，电脑上看着更舒展！ 🔥 */}
         <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto px-4 md:px-6 pt-4 pb-24 custom-scrollbar space-y-3">
 
           {/* ARCHIVE LIST LOGIC */}
