@@ -23,7 +23,7 @@ const THEMES = [
   { color: '#d58f99', name: 'Luna Pink' },
   { color: '#97181A', name: 'Deadpool Red' },
   { color: '#9D8DF1', name: 'Midnight' },
-  { color: '#C8A2C8', name: 'Pinterest Vibes' },
+  { color: '#6B8DB5', name: 'Serenity' },
   { color: '#04BAE8', name: 'Cyberpunk' },
 ];
 

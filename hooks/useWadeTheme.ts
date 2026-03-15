@@ -75,7 +75,7 @@ export const useWadeTheme = () => {
         '#d58f99': 'default',
         '#97181A': 'deadpool',
         '#9D8DF1': 'midnight',
-        '#C8A2C8': 'serenity',
+        '#6B8DB5': 'serenity',
         '#04BAE8': 'cyberpunk'
       };
       const themeName = themeMap[settings.themeColor] || 'default';
