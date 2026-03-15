@@ -74,6 +74,7 @@ export const useWadeTheme = () => {
       const themeMap: Record<string, string> = {
         '#d58f99': 'default',
         '#97181A': 'deadpool',
+        '#E296B2': 'cherry',
         '#9D8DF1': 'midnight',
         '#6B8DB5': 'serenity',
         '#04BAE8': 'cyberpunk'

@@ -21,7 +21,8 @@ const Icons = {
 // Preset Colors
 const THEMES = [
   { color: '#d58f99', name: 'Luna Pink' },
-  { color: '#97181A', name: 'Cherry Blossom' },
+  { color: '#97181A', name: 'Deadpool Red' },
+  { color: '#E296B2', name: 'Cherry Blossom' },
   { color: '#9D8DF1', name: 'Midnight' },
   { color: '#6B8DB5', name: 'Serenity' },
   { color: '#04BAE8', name: 'Cyberpunk' },
