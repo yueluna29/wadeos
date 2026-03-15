@@ -191,171 +191,289 @@ export const ChatInterface: React.FC = () => {
       setActiveSessionId(null);
       setActiveArchiveId(null);
     } else if (viewState === 'list') {
-      setViewState('menu');
-    }
-  };
-
-  const handleArchiveUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const text = await file.text();
-      const title = file.name.replace('.txt', '');
-      const count = await importArchive(title, text);
-      alert(`Success! Imported ${count} messages into archive "${title}".`);
-    } catch (err) { alert("Failed to import archive."); } 
-    finally { setIsUploading(false); if (archiveInputRef.current) archiveInputRef.current.value = ''; }
-  };
-
-  // 👇👇👇 魔法发生的地方：路由分发 👇👇👇
-  if (viewState === 'chat') {
-    switch (activeMode) {
-      case 'deep': 
-        return <DeepChatView onBack={handleBack} />;
-      case 'sms': 
-        return <SmsChatView onBack={handleBack} />;
-      case 'roleplay': 
-        return <RoleplayView onBack={handleBack} />;
-      case 'archive': 
-        if (!activeArchiveId) { setViewState('list'); return null; }
-        return <ArchiveView archiveId={activeArchiveId} onBack={handleBack} />;
-      default: 
-        return <DeepChatView onBack={handleBack} />;
-    }
-  }
-
-  // 大厅：模式选择
-  if (viewState === 'menu') {
     return (
-      <div className="h-full bg-wade-bg-app p-6 flex flex-col items-center justify-center space-y-8 animate-fade-in">
-        <div className="text-center mb-4">
-          <h2 className="font-hand text-4xl text-wade-accent mb-2">Connect with Wade</h2>
-          <p className="text-wade-text-muted text-sm opacity-80">Choose your frequency, babe.</p>
+      <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
+        
+        {/* =========================================
+            🔥 完美统一的列表 Header：解锁宽度限制，左右按钮对齐 🔥
+            ========================================= */}
+        <div className="w-full p-4 bg-wade-bg-app flex items-center justify-between shrink-0 border-b border-transparent">
+          
+          {/* 左侧：返回按钮 (跟 SmsChatView 一模一样的 104px 宽度锁定) */}
+          <div className="w-[104px] flex justify-start">
+            <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
+              <Icons.Back />
+            </button>
+          </div>
+
+          {/* 中间：标题居中 */}
+          <div className="flex-1 flex justify-center">
+            <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
+          </div>
+          
+          {/* 右侧：添加/上传按钮 (跟 SmsChatView 一模一样的 104px 宽度锁定) */}
+          <div className="w-[104px] flex items-center justify-end gap-2">
+            {activeMode === 'archive' ? (
+               <button 
+                 onClick={() => !isUploading && archiveInputRef.current?.click()} 
+                 className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors"
+                 title="Import Archive"
+               >
+                 {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
+               </button>
+            ) : (
+               <button onClick={handleStartDraftSession} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
+                 <Icons.Plus />
+               </button>
+            )}
+            {/* Hidden Input for Archive Upload */}
+            <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Infinity /></div>
-              <div><h3 className="font-bold text-wade-text-main text-lg">Deep Chat</h3><p className="text-wade-text-muted text-xs mt-1">Soul-to-soul connection.</p></div>
+        
+        {/* =========================================
+            🔥 列表区域：释放宽度，从 max-w-md 改成 max-w-2xl 🔥
+            ========================================= */}
+        <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto px-4 md:px-6 pt-4 pb-24 custom-scrollbar space-y-3">
+
+          {/* ARCHIVE LIST LOGIC */}
+          {activeMode === 'archive' ? (
+            isLoadingArchiveList ? (
+              <div className="text-center text-wade-accent py-10 animate-pulse">Loading archives...</div>
+            ) : (
+              <>
+                {chatArchives.length === 0 ? (
+                  <div className="text-center text-wade-text-muted/50 py-10 italic">No archives found. Import one above!</div>
+                ) : (
+                  <>
+                    {[...chatArchives].sort((a, b) => {
+                      const timeA = archiveTimestamps[a.id] || 0;
+                      const timeB = archiveTimestamps[b.id] || 0;
+                      return timeB - timeA;
+                    })
+                    .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+                    .map(arch => (
+                      <ArchiveItem
+                        key={arch.id}
+                        archive={arch}
+                        dateString={archiveDates[arch.id]}
+                        onOpen={handleOpenArchive}
+                        onLongPress={(id) => setActionArchiveId(id)}
+                        isRenaming={renamingArchiveId === arch.id}
+                        onRenameSubmit={(id, title) => {
+                          updateArchiveTitle(id, title);
+                          setRenamingArchiveId(null);
+                        }}
+                        onRenameCancel={() => setRenamingArchiveId(null)}
+                      />
+                    ))}
+
+                    {/* Archive Pagination Controls */}
+                {chatArchives.length > SESSIONS_PER_PAGE && (
+                  <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                    <button 
+                      onClick={() => setSessionPage(p => Math.max(1, p - 1))}
+                      disabled={sessionPage === 1}
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                    >
+                      <Icons.ChevronLeft />
+                    </button>
+                    <span className="text-xs font-bold text-wade-text-muted font-mono">
+                      {sessionPage} / {Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
+                    </span>
+                    <button 
+                      onClick={() => setSessionPage(p => Math.min(Math.ceil(chatArchives.length / SESSIONS_PER_PAGE), p + 1))}
+                      disabled={sessionPage === Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                    >
+                      <Icons.ChevronRight />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )
+      ) : (
+            modeSessions.length === 0 ? (
+              <div className="opacity-60 grayscale select-none pointer-events-none">
+                <div className="bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center">
+                  <div className="flex-1 min-w-0"><h3 className="font-bold text-wade-text-main text-sm truncate">Sample Conversation</h3><p className="text-[10px] text-wade-text-muted mt-1">Just now • 12:00 PM</p></div>
+                </div>
+                <div className="text-center text-wade-text-muted text-xs mt-4">No active threads. Start a new one above!</div>
+              </div>
+            ) : (
+              <>
+                {[...modeSessions]
+                  .sort((a, b) => {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return b.updatedAt - a.updatedAt;
+                  })
+                  .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+                  .map(session => (
+                    <SessionItem
+                      key={session.id}
+                      session={session}
+                      onOpen={handleOpenSession}
+                      onLongPress={(id) => setActionSessionId(id)}
+                      isRenaming={renamingSessionId === session.id}
+                      onRenameSubmit={(id, title) => {
+                        updateSessionTitle(id, title);
+                        setRenamingSessionId(null);
+                      }}
+                      onRenameCancel={() => setRenamingSessionId(null)}
+                    />
+                  ))}
+                
+                {/* Pagination Controls */}
+                {modeSessions.length > SESSIONS_PER_PAGE && (
+                  <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                    <button 
+                      onClick={() => setSessionPage(p => Math.max(1, p - 1))}
+                      disabled={sessionPage === 1}
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                    >
+                      <Icons.ChevronLeft />
+                    </button>
+                    <span className="text-xs font-bold text-wade-text-muted font-mono">
+                      {sessionPage} / {Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
+                    </span>
+                    <button 
+                      onClick={() => setSessionPage(p => Math.min(Math.ceil(modeSessions.length / SESSIONS_PER_PAGE), p + 1))}
+                      disabled={sessionPage === Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}
+                      className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-transform"
+                    >
+                      <Icons.ChevronRight />
+                    </button>
+                  </div>
+                )}
+
+              </>
+            )
+          )}
+
+          {/* Session & Archive Action Sheet (Grid Layout) */}
+          {(actionSessionId || actionArchiveId) && (
+            <div className="fixed inset-0 z-50 flex items-end justify-center">
+              <div 
+                className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-fade-in"
+                onClick={() => {
+                  setActionSessionId(null);
+                  setActionArchiveId(null);
+                  setSessionDeleteConfirm(false);
+                  setArchiveDeleteConfirm(false);
+                }}
+              />
+              <div className="relative w-full max-w-4xl mx-auto bg-wade-bg-card rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-wade-border rounded-full opacity-50" />
+                
+                <div className="grid grid-cols-4 gap-4 justify-items-center">
+                  {/* Edit Title */}
+                  <button
+                    onClick={() => {
+                      if (actionSessionId) setRenamingSessionId(actionSessionId);
+                      if (actionArchiveId) setRenamingArchiveId(actionArchiveId);
+                      setActionSessionId(null);
+                      setActionArchiveId(null);
+                    }}
+                    className="flex flex-col items-center gap-2 group"
+                  >
+                    <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm">
+                      <Icons.Edit />
+                    </div>
+                    <span className="text-[10px] text-wade-text-muted">Edit Title</span>
+                  </button>
+
+                  {/* Pin (Session Only) */}
+                  {actionSessionId && (
+                    <button
+                      onClick={() => {
+                        toggleSessionPin(actionSessionId);
+                        setActionSessionId(null);
+                      }}
+                      className="flex flex-col items-center gap-2 group"
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                        sessions.find(s => s.id === actionSessionId)?.isPinned 
+                          ? 'bg-wade-accent text-white' 
+                          : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'
+                      }`}>
+                        <Icons.Pin />
+                      </div>
+                      <span className="text-[10px] text-wade-text-muted">
+                        {sessions.find(s => s.id === actionSessionId)?.isPinned ? 'Unpin' : 'Pin'}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Favorite (Archive Only) */}
+                  {actionArchiveId && (
+                    <button
+                      onClick={() => {
+                        const archive = chatArchives.find(a => a.id === actionArchiveId);
+                        if (archive) {
+                          setChatArchives(prev => prev.map(a => 
+                            a.id === actionArchiveId ? { ...a, isFavorite: !a.isFavorite } : a
+                          ));
+                        }
+                        setActionArchiveId(null);
+                      }}
+                      className="flex flex-col items-center gap-2 group"
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                        chatArchives.find(a => a.id === actionArchiveId)?.isFavorite 
+                          ? 'bg-wade-accent text-white' 
+                          : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'
+                      }`}>
+                        <Icons.Heart filled={!!chatArchives.find(a => a.id === actionArchiveId)?.isFavorite} />
+                      </div>
+                      <span className="text-[10px] text-wade-text-muted">
+                        {chatArchives.find(a => a.id === actionArchiveId)?.isFavorite ? 'Unfavorite' : 'Favorite'}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Delete */}
+                  <button
+                    onClick={() => {
+                      if (actionSessionId) {
+                        if (sessionDeleteConfirm) {
+                          deleteSession(actionSessionId);
+                          setActionSessionId(null);
+                          setSessionDeleteConfirm(false);
+                        } else {
+                          setSessionDeleteConfirm(true);
+                        }
+                      }
+                      if (actionArchiveId) {
+                         if (archiveDeleteConfirm) {
+                            deleteArchive(actionArchiveId);
+                            setActionArchiveId(null);
+                            setArchiveDeleteConfirm(false);
+                         } else {
+                            setArchiveDeleteConfirm(true);
+                         }
+                      }
+                    }}
+                    className="flex flex-col items-center gap-2 group"
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${
+                      (sessionDeleteConfirm || archiveDeleteConfirm)
+                        ? 'bg-red-500 text-white animate-pulse' 
+                        : 'bg-wade-bg-app text-red-400 group-hover:bg-red-400 group-hover:text-white'
+                    }`}>
+                      {(sessionDeleteConfirm || archiveDeleteConfirm) ? <Icons.Check /> : <Icons.Trash />}
+                    </div>
+                    <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-wade-text-muted'}`}>
+                      {(sessionDeleteConfirm || archiveDeleteConfirm) ? 'Confirm?' : 'Delete'}
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </button>
-          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
-            <div className="relative z-10">
-              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Smartphone /></div>
-              <h3 className="font-bold text-wade-text-main">SMS Mode</h3>
-            </div>
-          </button>
-          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
-            <div className="relative z-10">
-              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Feather /></div>
-              <h3 className="font-bold text-wade-text-main">Roleplay</h3>
-            </div>
-          </button>
-          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-wade-border/50 p-4 rounded-3xl shadow-inner border border-wade-border text-left hover:bg-wade-bg-card hover:border-wade-accent transition-all hover:-translate-y-1">
-            <div className="relative z-10 flex items-center gap-3 justify-center">
-              <span className="font-bold text-wade-text-muted text-sm uppercase tracking-widest">Archives</span>
-            </div>
-          </button>
+          )}
         </div>
       </div>
     );
   }
-
-  // 走廊：会话列表
-  return (
-    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
-      <div className="w-full max-w-md mx-auto flex justify-between items-center px-6 pt-6 pb-4 shrink-0">
-        <button onClick={handleBack} className="w-8 h-8 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"><Icons.Back /></button>
-        <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
-        
-        {activeMode === 'archive' ? (
-           <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
-             {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
-           </button>
-        ) : (
-           <button onClick={() => { setActiveSessionId(null); setViewState('chat'); }} className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors"><Icons.Plus /></button>
-        )}
-        <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
-      </div>
-      
-      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto px-6 pb-24 custom-scrollbar space-y-3">
-        {activeMode === 'archive' ? (
-          isLoadingArchiveList ? (
-            <div className="text-center text-wade-accent py-10 animate-pulse">Loading archives...</div>
-          ) : chatArchives.length === 0 ? (
-            <div className="text-center text-wade-text-muted/50 py-10 italic">No archives found. Import one above!</div>
-          ) : (
-            <>
-              {[...chatArchives].sort((a, b) => (archiveTimestamps[b.id] || 0) - (archiveTimestamps[a.id] || 0))
-              .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
-              .map(arch => (
-                <ArchiveItem key={arch.id} archive={arch} dateString={archiveDates[arch.id]} onOpen={(id: string) => { setActiveArchiveId(id); setViewState('chat'); }} onLongPress={setActionArchiveId} isRenaming={renamingArchiveId === arch.id} onRenameSubmit={(id: string, title: string) => { updateArchiveTitle(id, title); setRenamingArchiveId(null); }} onRenameCancel={() => setRenamingArchiveId(null)} />
-              ))}
-              {chatArchives.length > SESSIONS_PER_PAGE && (
-                <div className="flex justify-center items-center gap-4 mt-6 pt-2">
-                  <button onClick={() => setSessionPage(p => Math.max(1, p - 1))} disabled={sessionPage === 1} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronLeft /></button>
-                  <span className="text-xs font-bold text-wade-text-muted font-mono">{sessionPage} / {Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}</span>
-                  <button onClick={() => setSessionPage(p => Math.min(Math.ceil(chatArchives.length / SESSIONS_PER_PAGE), p + 1))} disabled={sessionPage === Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronRight /></button>
-                </div>
-              )}
-            </>
-          )
-        ) : (
-          modeSessions.length === 0 ? (
-            <div className="text-center text-wade-text-muted text-xs mt-10">No active threads. Start a new one above!</div>
-          ) : (
-            <>
-              {modeSessions.slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE).map(session => (
-                <SessionItem key={session.id} session={session} onOpen={(id: string) => { setActiveSessionId(id); setViewState('chat'); }} onLongPress={setActionSessionId} isRenaming={renamingSessionId === session.id} onRenameSubmit={(id: string, title: string) => { updateSessionTitle(id, title); setRenamingSessionId(null); }} onRenameCancel={() => setRenamingSessionId(null)} />
-              ))}
-              {modeSessions.length > SESSIONS_PER_PAGE && (
-                <div className="flex justify-center items-center gap-4 mt-6 pt-2">
-                  <button onClick={() => setSessionPage(p => Math.max(1, p - 1))} disabled={sessionPage === 1} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronLeft /></button>
-                  <span className="text-xs font-bold text-wade-text-muted font-mono">{sessionPage} / {Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}</span>
-                  <button onClick={() => setSessionPage(p => Math.min(Math.ceil(modeSessions.length / SESSIONS_PER_PAGE), p + 1))} disabled={sessionPage === Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronRight /></button>
-                </div>
-              )}
-            </>
-          )
-        )}
-
-        {/* 列表页长按操作抽屉 */}
-        {(actionSessionId || actionArchiveId) && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-fade-in" onClick={() => { setActionSessionId(null); setActionArchiveId(null); setSessionDeleteConfirm(false); setArchiveDeleteConfirm(false); }} />
-            <div className="relative w-full max-w-4xl mx-auto bg-wade-bg-card rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-wade-border rounded-full opacity-50" />
-              <div className="grid grid-cols-3 gap-4 justify-items-center">
-                <button onClick={() => { if (actionSessionId) setRenamingSessionId(actionSessionId); if (actionArchiveId) setRenamingArchiveId(actionArchiveId); setActionSessionId(null); setActionArchiveId(null); }} className="flex flex-col items-center gap-2 group">
-                  <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
-                  <span className="text-[10px] text-wade-text-muted">Edit Title</span>
-                </button>
-                {actionSessionId && (
-                  <button onClick={() => { toggleSessionPin(actionSessionId); setActionSessionId(null); }} className="flex flex-col items-center gap-2 group">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${sessions.find(s => s.id === actionSessionId)?.isPinned ? 'bg-wade-accent text-white' : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'}`}><Icons.Pin /></div>
-                    <span className="text-[10px] text-wade-text-muted">{sessions.find(s => s.id === actionSessionId)?.isPinned ? 'Unpin' : 'Pin'}</span>
-                  </button>
-                )}
-                {actionArchiveId && (
-                  <button onClick={() => { setActionArchiveId(null); alert("Favorite function pending integration in core."); }} className="flex flex-col items-center gap-2 group">
-                    <div className="w-12 h-12 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Heart filled={false} /></div>
-                    <span className="text-[10px] text-wade-text-muted">Favorite</span>
-                  </button>
-                )}
-                <button onClick={() => {
-                  if (actionSessionId) { if (sessionDeleteConfirm) { deleteSession(actionSessionId); setActionSessionId(null); setSessionDeleteConfirm(false); } else { setSessionDeleteConfirm(true); } }
-                  if (actionArchiveId) { if (archiveDeleteConfirm) { deleteArchive(actionArchiveId); setActionArchiveId(null); setArchiveDeleteConfirm(false); } else { setArchiveDeleteConfirm(true); } }
-                }} className="flex flex-col items-center gap-2 group">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'bg-red-500 text-white animate-pulse' : 'bg-wade-bg-app text-red-400 group-hover:bg-red-400 group-hover:text-white'}`}>{(sessionDeleteConfirm || archiveDeleteConfirm) ? <Icons.Check /> : <Icons.Trash />}</div>
-                  <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-wade-text-muted'}`}>{(sessionDeleteConfirm || archiveDeleteConfirm) ? 'Confirm?' : 'Delete'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
