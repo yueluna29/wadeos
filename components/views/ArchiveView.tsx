@@ -109,14 +109,30 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ archiveId, onBack }) =
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
-      {/* 极简复古 Header */}
-      <div className="chat-header !bg-wade-bg-card border-b-2 border-wade-border">
-        <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent"><Icons.Back /></button>
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <span className="font-bold text-wade-text-main text-base uppercase tracking-widest">{archiveTitle}</span>
-          <span className="text-[9px] font-mono text-wade-text-muted">Memory Lane // Read-Only</span>
+      {/* =========================================
+          🔥 终极防跳跃 Header (Archive 模式) 🔥
+          ========================================= */}
+      <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0 relative">
+        
+        {/* 左侧：绝对锁定的 104px 宽度 */}
+        <div className="flex justify-start z-10 w-[104px]">
+          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
+            <Icons.Back />
+          </button>
         </div>
-        <button onClick={() => setShowSearch(!showSearch)} className="w-8 h-8 rounded-full bg-wade-bg-app shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent"><Icons.Search /></button>
+
+        {/* 中间：绝美双行标题 (绝对居中) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto flex flex-col items-center justify-center mt-1">
+            <span className="font-bold text-wade-text-main text-base uppercase tracking-widest">{archiveTitle}</span>
+            <span className="text-[9px] font-mono text-wade-text-muted">Memory Lane // Read-Only</span>
+          </div>
+        </div>
+
+        {/* 右侧：绝对锁定的 104px 宽度 */}
+        <div className="flex items-center justify-end gap-2 z-10 w-[104px]">
+          <button onClick={() => setShowSearch(!showSearch)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Search /></button>
+        </div>
       </div>
 
       {showSearch && (

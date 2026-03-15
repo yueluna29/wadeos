@@ -146,27 +146,30 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
       {/* =========================================
-          🔥 终极防跳跃 Header (Roleplay 模式专属) 🔥
+          🔥 终极防跳跃 Header (Roleplay 模式，绝美双行标题) 🔥
           ========================================= */}
       <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0 relative">
         
-        {/* 左侧：绝对锁定的返回键 (104px宽度) */}
+        {/* 左侧：绝对锁定的 104px 宽度 */}
         <div className="flex justify-start z-10 w-[104px]">
           <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
             <Icons.Back />
           </button>
         </div>
 
-        {/* 中间：会话标题 (绝对居中，读取窗口名字) */}
+        {/* 中间：完全复刻 Archive 的高级双行排版！ */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="font-hand text-xl text-wade-accent tracking-wide font-bold">
+          <div className="pointer-events-auto flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity mt-1">
+            <span className="font-bold text-wade-text-main text-base uppercase tracking-widest">
               {activeSessionId && sessions ? sessions.find(s => s.id === activeSessionId)?.title || 'Roleplay' : 'Roleplay'}
+            </span>
+            <span className="text-[9px] font-mono text-wade-text-muted">
+              {wadeStatus === 'typing' ? '*Setting the scene...*' : 'Immersive Theater'}
             </span>
           </div>
         </div>
 
-        {/* 右侧：三大金刚功能键 (104px宽度) */}
+        {/* 右侧：三大金刚绝对锁定在 104px */}
         <div className="flex items-center justify-end gap-2 z-10 w-[104px]">
           <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Search /></button>
           <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Map /></button>
