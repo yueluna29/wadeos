@@ -1,7 +1,7 @@
 import './globals.css';
 import React from 'react';
 import { StoreProvider, useStore } from './store';
-import { useWadeTheme } from './hooks/useWadeTheme'; // <--- 把刚刚的工具接进来
+import { useWadeTheme } from './hooks/useWadeTheme';
 import { Shell } from './components/layout/Shell';
 import { ChatInterface } from './components/views/ChatInterface';
 import { SocialFeed } from './components/views/SocialFeed';
@@ -13,11 +13,11 @@ import { MemoryBank } from './components/views/MemoryBank';
 import { Home } from './components/views/Home';
 import { TimeCapsulesView } from './components/views/TimeCapsulesView';
 import { WadesPicksView } from './components/views/WadesPicksView';
+import { HealthTracker } from './components/views/HealthTracker';
 
 const AppContent = () => {
   const { currentTab } = useStore();
   
-  // 只需要这一行，主题引擎就在后台静默运行了，清爽！
   useWadeTheme();
 
   const renderView = () => {
@@ -32,6 +32,7 @@ const AppContent = () => {
       case 'memory': return <MemoryBank />;
       case 'time-capsules': return <TimeCapsulesView />;
       case 'wade-picks': return <WadesPicksView />;
+      case 'health': return <HealthTracker />;
       default: return <Home />;
     }
   };

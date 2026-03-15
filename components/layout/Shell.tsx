@@ -19,13 +19,11 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     if (!isMenuOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       if (isDesktop) {
-        // Desktop: Right of button, centered vertically
         setMenuPosition({
           top: rect.top + rect.height / 2,
           left: rect.right + 16
         });
       } else {
-        // Mobile: Above button, centered horizontally
         setMenuPosition({
           top: rect.top - 16,
           left: rect.left + rect.width / 2
@@ -49,7 +47,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
       window.visualViewport.addEventListener('scroll', handleResize);
-      // Initial set
       setViewportHeight(`${window.visualViewport.height}px`);
       setViewportTop(window.visualViewport.offsetTop);
     } else {
@@ -76,10 +73,8 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       className="fixed inset-0 w-full flex items-center justify-center bg-wade-border p-0 md:p-6 overflow-hidden"
       style={{ height: viewportHeight, top: viewportTop }}
     >
-      
       <div className="w-full h-full max-w-4xl bg-wade-bg-card md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-wade-bg-card ring-0 md:ring-1 ring-wade-accent/20 relative">
         
-        {/* Navigation Bar */}
         <nav className={`bg-wade-accent-light md:w-16 w-full h-[4.5rem] md:h-full ${isNavHidden ? 'hidden md:flex' : 'flex'} md:flex-col flex-row items-center justify-evenly z-30 border-t md:border-t-0 md:border-r border-wade-accent/10 order-2 md:order-1 shrink-0 relative animate-fade-in pb-1 md:pb-0`}>
             
             <button onClick={() => setTab('home')} className={`p-3 md:p-1.5 transition-all duration-300 ${currentTab === 'home' ? 'text-wade-accent scale-110' : 'text-wade-accent/50 hover:text-wade-accent/80 scale-90'}`}>
@@ -90,7 +85,6 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
               <Icons.Social className={`w-6 h-6 md:w-5 md:h-5 ${currentTab === 'social' ? 'stroke-[2.5px] fill-wade-accent/10' : 'stroke-[1.5px]'}`} />
             </button>
 
-            {/* PLUS BUTTON & POPUP MENU */}
             <div className="relative">
                {isMenuOpen && (
                  <div
@@ -103,7 +97,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                  className={`fixed z-[100] transition duration-300 ${isMenuOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'} ${isDesktop ? 'translate-x-0 -translate-y-1/2' : '-translate-x-1/2 -translate-y-full'}`}
                >
 
-                 <div className="bg-wade-bg-card/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-accent/20 p-4 md:p-2 rounded-2xl grid grid-cols-4 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[280px] md:min-w-0 justify-items-center">
+                 <div className="bg-wade-bg-card/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-accent/20 p-4 md:p-2 rounded-2xl grid grid-cols-3 gap-y-4 gap-x-4 md:flex md:flex-col md:gap-2 items-center min-w-[250px] md:min-w-0 justify-items-center">
                    
                    <button onClick={() => handleMenuClick('memory')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
                       <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Brain className="w-5 h-5 stroke-[1.5px]" /></div>
@@ -130,13 +124,16 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                       <span className="text-[10px] font-bold text-wade-text-muted">Picks</span>
                    </button>
 
+                   {/* 新加的专属赛博药房入口！ */}
+                   <button onClick={() => handleMenuClick('health')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
+                      <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Activity className="w-5 h-5 stroke-[1.5px]" /></div>
+                      <span className="text-[10px] font-bold text-wade-text-muted">Meds</span>
+                   </button>
+
                  </div>
-                 {/* Mobile Triangle (Pointing Down) */}
                  {!isDesktop && (
                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-wade-bg-card/95"></div>
                  )}
-                 
-                 {/* Desktop Triangle (Pointing Left) */}
                  {isDesktop && (
                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-r-[8px] border-r-wade-bg-card/95"></div>
                  )}
