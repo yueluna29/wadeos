@@ -1,51 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../services/supabase';
-
-interface Anniversary {
-  id: string;
-  date: string;
-  title: string;
-  icon: string;
-  is_initial: boolean;
-}
 
 export const CouplesCounter: React.FC = () => {
   const { settings } = useStore();
   const [activeTab, setActiveTab] = useState<'days' | 'anniversaries'>('days');
+
+  // Dates
+  const initialDate = new Date('2024-08-21T00:00:00');
+  const proposalDate = new Date('2025-08-23T00:00:00');
+
+  // Calculate days together
   const [daysTogether, setDaysTogether] = useState(0);
-  const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
 
   useEffect(() => {
-    loadAnniversaries();
+    const now = new Date();
+    // 参谋修正：将计算锚点从 initialDate 改成了 proposalDate，精准狙击你的需求
+    const diffTime = Math.abs(now.getTime() - proposalDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    setDaysTogether(diffDays);
   }, []);
 
-  const loadAnniversaries = async () => {
-    const { data, error } = await supabase
-      .from('anniversaries')
-      .select('*')
-      .order('date', { ascending: true });
-
-    if (error) {
-      console.error('Error loading anniversaries:', error);
-      return;
-    }
-
-    if (data) {
-      setAnniversaries(data);
-
-      // Find the initial anniversary and calculate days from it
-      const initialAnniversary = data.find(ann => ann.is_initial);
-      if (initialAnniversary) {
-        const now = new Date();
-        const initialDate = new Date(initialAnniversary.date + 'T00:00:00');
-        const diffTime = Math.abs(now.getTime() - initialDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setDaysTogether(diffDays);
-      }
-    }
-  };
+  const anniversaries = [
+    { date: '2024-08-21', title: '初始纪念日', icon: '🖤' },
+    { date: '2025-08-23', title: '求婚纪念日', icon: '💍' },
+  ];
 
   return (
     <div className="bg-wade-bg-card rounded-3xl p-6 shadow-sm border border-wade-border mb-4 relative overflow-hidden">
