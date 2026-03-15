@@ -235,10 +235,10 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
             // 👇 完美的动态呼吸间距！ 👇
-            let marginBottom = 'mb-2';
+            let marginBottom = 'mb-1';
             const nextMsg = displayMessages[idx + 1];
             if (nextMsg && nextMsg.role === msg.role) marginBottom = 'mb-2';
-            else marginBottom = 'mb-2';
+            else marginBottom = 'mb-1';
 
             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
 
