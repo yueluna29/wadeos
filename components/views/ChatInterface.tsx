@@ -295,7 +295,7 @@ export const ChatInterface: React.FC = () => {
           </div>
         </div>
       
-      <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto px-6 pb-24 custom-scrollbar space-y-3">
+      <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto px-4 md:px-6 pt-4 pb-24 custom-scrollbar space-y-3">
         {activeMode === 'archive' ? (
           isLoadingArchiveList ? (
             <div className="text-center text-wade-accent py-10 animate-pulse">Loading archives...</div>
