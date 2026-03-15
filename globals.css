@@ -36,36 +36,40 @@
 }
 
 [data-theme="cyberpunk"] {
-  --wade-accent-rgb: 4, 186, 232;
-  --wade-accent: #04BAE8;
-  --wade-accent-hover-rgb: 254, 85, 190;
-  --wade-accent-hover: #FE55BE;
-  --wade-accent-light-rgb: 21, 35, 54;
-  --wade-accent-light: #152336;
-  
-  --wade-bg-base-rgb: 11, 8, 20;
-  --wade-bg-base: #0B0814;
-  --wade-bg-card-rgb: 21, 16, 38;
-  --wade-bg-card: #151026;
-  --wade-bg-app-rgb: 14, 10, 26;
-  --wade-bg-app: #0E0A1A;
-  
-  --wade-text-main-rgb: 234, 251, 255;
-  --wade-text-main: #EAFBFF;
-  --wade-text-muted-rgb: 157, 142, 173;
-  --wade-text-muted: #9D8EAD;
-  
-  --wade-border-rgb: 42, 30, 78;
-  --wade-border: #2A1E4E;
-  --wade-border-light-rgb: 254, 85, 190;
-  --wade-border-light: #FE55BE;
-  
-  --wade-code-bg-rgb: 6, 4, 10;
-  --wade-code-bg: #06040A;
-  --wade-code-text-rgb: 255, 219, 241;
-  --wade-code-text: #FFDBF1;
+  --wade-accent-rgb: 255, 42, 109;
+  --wade-accent: #FF2A6D;
+  --wade-accent-hover-rgb: 5, 255, 161;
+  --wade-accent-hover: #05FFA1;
+  --wade-accent-light-rgb: 30, 12, 24;
+  --wade-accent-light: #1E0C18;
 
-  --wade-shadow-glow: 0 4px 15px rgba(4, 186, 232, 0.4), 0 0 10px rgba(254, 85, 190, 0.2);
+  --wade-bg-base-rgb: 10, 5, 15;
+  --wade-bg-base: #0A050F;
+  --wade-bg-card-rgb: 18, 10, 28;
+  --wade-bg-card: #120A1C;
+  --wade-bg-app-rgb: 13, 7, 20;
+  --wade-bg-app: #0D0714;
+
+  --wade-text-main-rgb: 230, 255, 240;
+  --wade-text-main: #E6FFF0;
+  --wade-text-muted-rgb: 140, 160, 155;
+  --wade-text-muted: #8CA09B;
+
+  --wade-border-rgb: 50, 20, 60;
+  --wade-border: #32143C;
+  --wade-border-light-rgb: 255, 42, 109;
+  --wade-border-light: #FF2A6D;
+
+  --wade-code-bg-rgb: 5, 2, 8;
+  --wade-code-bg: #050208;
+  --wade-code-text-rgb: 5, 255, 161;
+  --wade-code-text: #05FFA1;
+
+  --wade-nav-bg: #0A050F;
+  --wade-bubble-luna: #FF2A6D;
+  --wade-bubble-luna-rgb: 255, 42, 109;
+
+  --wade-shadow-glow: 0 4px 15px rgba(255, 42, 109, 0.4), 0 0 10px rgba(5, 255, 161, 0.25);
 }
 
 [data-theme="deadpool"] {
