@@ -572,7 +572,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
             const nextMsg = displayMessages[idx + 1];
-            const spacingClass = (nextMsg && nextMsg.role === msg.role) ? "-mb-1.5" : "mb-3";
+            const spacingClass = (nextMsg && nextMsg.role === msg.role) ? "-mb-1" : "mb-3";
             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
             
             return (
