@@ -305,13 +305,18 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
       {/* 对话地图 (Conversation GPS) */}
       {showMap && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setShowMap(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-wade-bg-card/90 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70vh] overflow-hidden animate-slide-up">
-            <div className="p-4 border-b border-wade-border/50 flex items-center justify-between">
+          {/* 重点 1：把 fixed 改成 absolute，加上高斯模糊，让它只在这个聊天框里生效 */}
+          <div className="absolute inset-0 z-40 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowMap(false)} />
+          
+          {/* 重点 2：同样把弹窗本体改成 absolute，最大高度改成百分比 70%，加上 flex 布局防止内容溢出 */}
+          <div className="absolute bottom-0 left-0 right-0 z-50 bg-wade-bg-card/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70%] flex flex-col overflow-hidden animate-slide-up">
+            <div className="p-4 border-b border-wade-border/50 flex items-center justify-between shrink-0">
               <h3 className="font-bold text-wade-text-main text-sm">Conversation GPS</h3>
               <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Close /></button>
             </div>
-            <div className="overflow-y-auto p-4 space-y-2 max-h-[calc(70vh-60px)]">
+            
+            {/* 重点 3：让列表区域自动滚动，不再超出弹窗 */}
+            <div className="overflow-y-auto p-4 space-y-2 flex-1 custom-scrollbar">
               {displayMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'Luna' ? 'justify-end' : 'justify-start'}`}>
                   <button onClick={() => scrollToMessage(msg.id)} className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${msg.role === 'Luna' ? 'bg-wade-accent/20 border border-wade-accent/30 max-w-[85%]' : 'bg-wade-bg-card border border-wade-border w-full'}`}>
