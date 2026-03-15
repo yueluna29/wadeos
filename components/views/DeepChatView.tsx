@@ -266,27 +266,27 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
           <div className="absolute top-16 right-4 z-50 bg-wade-bg-card/75 backdrop-blur-2xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-border/40 py-2 px-2 min-w-[200px] animate-fade-in">
             
             <button onClick={() => { if (activeSessionId) toggleSessionPin(activeSessionId); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
-              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Pin /></div><span className="font-medium">{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Pin size={16} /></div><span className="font-medium">{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
             </button>
-            
+
             <button onClick={() => { setShowLlmSelector(!showLlmSelector); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
-              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Hexagon /></div><span className="font-medium">Brain Transplant</span>
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Hexagon size={16} /></div><span className="font-medium">Brain Transplant</span>
             </button>
-            
+
             <button onClick={() => { setShowMemorySelector(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
-              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Brain /></div><span className="font-medium">Trigger Flashbacks</span>
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Brain size={16} /></div><span className="font-medium">Trigger Flashbacks</span>
             </button>
-            
+
             <button onClick={() => { setShowPromptEditor(true); setShowMenu(false); setCustomPromptText(sessions.find(s => s.id === activeSessionId)?.customPrompt || ''); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
-              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Fire /></div><span className="font-medium">Add Special Sauce</span>
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Fire size={16} /></div><span className="font-medium">Add Special Sauce</span>
             </button>
-            
+
             <button onClick={() => { setIsThemeStudioOpen(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
               <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Settings size={16} /></div><span className="font-medium">Chat Theme</span>
             </button>
-            
+
             <button onClick={() => { setShowDebug(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
-              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Bug /></div><span className="font-medium">X-Ray Vision</span>
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Bug size={16} /></div><span className="font-medium">X-Ray Vision</span>
             </button>
             
           </div>
@@ -360,7 +360,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
                           {isActive && <div className="absolute top-4 right-4 w-2 h-2 bg-wade-accent rounded-full animate-pulse shadow-[0_0_8px_var(--wade-accent)]" />}
                           <div className="flex items-center gap-3">
                             <div className={`p-2.5 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-wade-accent-light text-wade-accent' : 'bg-wade-bg-app text-wade-text-muted group-hover:text-wade-accent group-hover:bg-wade-accent-light'}`}>{getProviderIcon(preset.provider)}</div>
-                            <div className="flex-1 min-w-0"><h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>{preset.name}</h4><span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>{preset.provider || 'UNKNOWN'}</span></div>
+                            <div className="flex-1 min-w-0"><h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>{preset.name}</h4><span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>{preset.provider || \'UNKNOWN'}</span></div>
                           </div>
                           <p className={`text-xs font-mono truncate w-full ${isActive ? 'text-wade-text-muted' : 'text-wade-text-muted/60'}`}>{preset.model}</p>
                         </button>

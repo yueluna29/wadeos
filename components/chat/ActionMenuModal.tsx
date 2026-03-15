@@ -70,7 +70,7 @@ export const ActionMenuModal: React.FC<ActionMenuModalProps> = ({
       
       {/* 抽屉本体 */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-wade-bg-card rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-wade-bg-card/70 backdrop-blur-2xl rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 transform transition-transform animate-slide-up overflow-hidden max-w-4xl mx-auto"
         onClick={() => isDeleteConfirming && setIsDeleteConfirming(false)}
       >
         <div className="p-1.5 flex justify-center">
