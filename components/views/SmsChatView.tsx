@@ -4,11 +4,32 @@ import { generateTextResponse } from '../../services/geminiService';
 import { Message } from '../../types';
 import { supabase } from '../../services/supabase';
 import { Icons } from '../ui/Icons';
+import { ThemeStudio } from './ThemeStudio';
 
 // 导入我们引以为傲的赛博乐高积木
 import { ChatInputArea, Attachment } from '../chat/ChatInputArea';
 import { MessageBubble } from '../chat/MessageBubble';
 import { ActionMenuModal } from '../chat/ActionMenuModal';
+
+const PROVIDERS = [
+  { value: 'Gemini', label: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', defaultModel: 'gemini-3-pro-preview' },
+  { value: 'Claude', label: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com', defaultModel: 'claude-3-5-sonnet-20241022' },
+  { value: 'OpenAI', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o' },
+  { value: 'DeepSeek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat' },
+  { value: 'OpenRouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', defaultModel: '' },
+  { value: 'Custom', label: 'Custom', baseUrl: '', defaultModel: '' }
+];
+
+const getProviderIcon = (provider: string) => {
+  switch (provider) {
+    case 'Gemini': return <Icons.Sparkle />;
+    case 'Claude': return <Icons.Face />;
+    case 'OpenAI': return <Icons.Hexagon />;
+    case 'DeepSeek': return <Icons.Eye />;
+    case 'OpenRouter': return <Icons.Infinity />;
+    default: return <Icons.Cube />;
+  }
+};
 
 interface SmsChatViewProps {
   onBack: () => void;
@@ -16,8 +37,8 @@ interface SmsChatViewProps {
 
 export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
   const {
-    messages, addMessage, deleteMessage, updateMessage, settings, activeSessionId, sessions, 
-    llmPresets, toggleFavorite, setRegenerating, addVariantToMessage, selectMessageVariant
+    messages, addMessage, deleteMessage, updateMessage, settings, activeSessionId, sessions, updateSession, updateSettings, toggleSessionPin,
+    llmPresets, addLlmPreset, coreMemories, toggleCoreMemoryEnabled, toggleFavorite, setRegenerating, addVariantToMessage, selectMessageVariant
   } = useStore();
 
   const [sessionSummary, setSessionSummary] = useState<string>("");
@@ -25,9 +46,29 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
   const [waitingForSMS, setWaitingForSMS] = useState(false);
   const [wadeStatus, setWadeStatus] = useState<'online' | 'typing'>('online');
   
-  // UI & 菜单状态
+  // === 豪华功能区状态 (从 Deep Chat 搬运过来的宝贝) ===
+  const [showMenu, setShowMenu] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  
+  const [showLlmSelector, setShowLlmSelector] = useState(false);
+  const [llmSelectorMode, setLlmSelectorMode] = useState<'list' | 'add'>('list');
+  const [newPresetForm, setNewPresetForm] = useState({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '' });
+
+  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
+  
+  const [showMemorySelector, setShowMemorySelector] = useState(false);
+  const [selectedMemoryTag, setSelectedMemoryTag] = useState<string | null>(null);
+  const [expandedMemoryIds, setExpandedMemoryIds] = useState<string[]>([]);
+  
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [customPromptText, setCustomPromptText] = useState('');
+  
+  const [showDebug, setShowDebug] = useState(false);
+
+  // UI & 菜单状态
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -42,7 +83,6 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [displayMessages.length, isTyping, waitingForSMS]);
 
-  // 读取总结
   useEffect(() => {
     const loadSummary = async () => {
       setSessionSummary("");
@@ -55,6 +95,40 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     loadSummary();
   }, [activeSessionId]);
 
+  // --- 各种功能函数 ---
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`msg-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+    }
+    setShowMap(false);
+  };
+
+  const searchResults = searchQuery ? displayMessages.filter(msg => msg.text.toLowerCase().includes(searchQuery.toLowerCase())) : [];
+  const totalResults = searchResults.length;
+  const goToNextResult = () => { if (totalResults > 0) { const nextIndex = (currentSearchIndex + 1) % totalResults; setCurrentSearchIndex(nextIndex); scrollToMessage(searchResults[nextIndex].id); } };
+  const goToPrevResult = () => { if (totalResults > 0) { const prevIndex = currentSearchIndex === 0 ? totalResults - 1 : currentSearchIndex - 1; setCurrentSearchIndex(prevIndex); scrollToMessage(searchResults[prevIndex].id); } };
+  const handleSearchChange = (value: string) => { setSearchQuery(value); setCurrentSearchIndex(0); };
+
+  const handleProviderChange = (provider: string) => {
+    const preset = PROVIDERS.find(p => p.value === provider);
+    if (preset) setNewPresetForm(prev => ({ ...prev, provider, baseUrl: preset.baseUrl, model: preset.defaultModel, name: prev.name || preset.label }));
+  };
+
+  const handleSavePreset = async () => {
+    if (!newPresetForm.name || !newPresetForm.apiKey) return alert("Missing required fields.");
+    await addLlmPreset({
+      provider: newPresetForm.provider, name: newPresetForm.name, model: newPresetForm.model, apiKey: newPresetForm.apiKey, baseUrl: newPresetForm.baseUrl.replace(/\/$/, ''),
+      apiPath: '', temperature: 1.0, topP: 0.95, topK: 40, frequencyPenalty: 0, presencePenalty: 0, isVision: false, isImageGen: false
+    });
+    setLlmSelectorMode('list');
+    setNewPresetForm({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '' });
+  };
+
+  const toggleMemoryExpand = (id: string) => setExpandedMemoryIds(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+
   // SMS 专属发送逻辑：带有 2 分钟防打扰机制
   const handleSend = async (text: string, attachments: Attachment[]) => {
     if (!activeSessionId) return;
@@ -66,29 +140,21 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
       text: text, 
       timestamp: Date.now(), 
       mode: 'sms',
-      attachments: attachments.map(a => ({
-          type: a.type,
-          content: a.content.split(',')[1],
-          mimeType: a.mimeType,
-          name: a.name
-      })),
+      attachments: attachments.map(a => ({ type: a.type, content: a.content.split(',')[1], mimeType: a.mimeType, name: a.name })),
       image: attachments.find(a => a.type === 'image')?.content.split(',')[1]
     };
     
     addMessage(newMessage);
     setWaitingForSMS(true);
 
-    // 每次发送都会重置 2 分钟倒计时
     if (smsDebounceTimer.current) clearTimeout(smsDebounceTimer.current);
     
     smsDebounceTimer.current = setTimeout(() => {
       setWadeStatus('typing');
       setTimeout(() => {
-        if (activeSessionId) {
-          triggerAIResponse(activeSessionId);
-        }
+        if (activeSessionId) { triggerAIResponse(activeSessionId); }
       }, 2000);
-    }, 120000); // 120000 毫秒 = 2 分钟 (你设定的欲擒故纵时间)
+    }, 120000); 
   };
 
   const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
@@ -104,25 +170,22 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
       let modePrompt = settings.wadePersonality;
       if (sessionSummary) modePrompt = `[PREVIOUS SUMMARY]\n${sessionSummary}\n[END SUMMARY]\n\n${modePrompt}`;
 
-      // SMS 专属强制要求
-      const smsRules = settings.smsInstructions || `[SMS MODE RULES - STRICT]
-- You are texting on a phone. NO actions (*asterisks*), NO narration.
-- Write ONLY text messages.
-- Keep it SHORT (1-2 sentences per bubble).
-- IMPORTANT: You MUST split your reply into MULTIPLE separate text bubbles by using ||| as the separator.
-- Example: "Hey babe! 😘 ||| Miss me already? ||| I'm coming over."`;
-
+      const smsRules = settings.smsInstructions || `[SMS MODE RULES - STRICT]\n- You are texting on a phone. NO actions (*asterisks*), NO narration.\n- Write ONLY text messages.\n- Keep it SHORT.\n- IMPORTANT: You MUST split your reply into MULTIPLE separate text bubbles by using ||| as the separator.`;
       modePrompt += `\n\n${smsRules}`;
 
-      const activeLlm = llmPresets.find(p => p.id === settings.activeLlmId);
+      const currentSession = sessions.find(s => s.id === targetSessionId);
+      const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
+      const activeLlm = effectiveLlmId ? llmPresets.find(p => p.id === effectiveLlmId) : null;
       if (!activeLlm?.apiKey) throw new Error("API Key missing!");
+
+      const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+      const sessionMemories = currentSession?.activeMemoryIds ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id)) : safeMemories.filter(m => m.enabled);
 
       const response = await generateTextResponse(
         activeLlm.model, " (Reply to the latest texts)", history, settings.systemInstruction, modePrompt, settings.lunaInfo,
-        settings.wadeSingleExamples, settings.smsExampleDialogue, "", "", "", [], !!regenMsgId, 'sms', activeLlm.apiKey, undefined, "", activeLlm.baseUrl
+        settings.wadeSingleExamples, settings.smsExampleDialogue, "", "", "", sessionMemories, !!regenMsgId, 'sms', activeLlm.apiKey, undefined, currentSession?.customPrompt, activeLlm.baseUrl
       );
 
-      // SMS 专属：切分 ||| 并分段发送
       let parts = response.text.split('|||').map(s => s.trim()).filter(s => s);
       if (parts.length === 1 && response.text.includes('\n')) {
          const lines = response.text.split('\n').map(s => s.trim()).filter(s => s);
@@ -141,12 +204,8 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
               text: parts[i], model: activeLlm.model, timestamp: Date.now(), mode: 'sms',
               variantsThinking: i === 0 && response.thinking ? [response.thinking] : [null]
             });
-            
-            if (i === parts.length - 1) {
-              setIsTyping(false);
-              setWadeStatus('online');
-            }
-          }, i * 1500); // 假装我在一条一条手打发送，间隔 1.5 秒
+            if (i === parts.length - 1) { setIsTyping(false); setWadeStatus('online'); }
+          }, i * 1500); 
         }
       }
     } catch (err) {
@@ -167,9 +226,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     setWadeStatus('online');
   };
 
-  const executeTTS = async (text: string, msgId: string) => {
-    alert("TTS Triggered! (SMS doesn't usually talk, but who cares!)");
-  };
+  const executeTTS = async (text: string, msgId: string) => { alert("TTS Triggered! (SMS mode)"); };
 
   const selectedMsg = displayMessages.find(m => m.id === selectedMsgId);
   const isLatestMessage = selectedMsg && displayMessages[displayMessages.length - 1]?.id === selectedMsg.id;
@@ -177,28 +234,248 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
-      {/* 短信风格 Header */}
-      <div className="chat-header !bg-wade-bg-card border-b border-wade-border">
-        <button onClick={onBack} className="flex items-center gap-1 text-wade-accent hover:opacity-80 transition-opacity">
-          <Icons.ChevronLeft />
-          <span className="text-sm font-medium">Messages</span>
+      {/* =========================================
+          🔥 混血版 Header：iOS 居中排版 + 豪华功能键 🔥
+          ========================================= */}
+      <div className="w-full p-2 md:p-3 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+        
+        {/* 左侧：返回按钮 (保持粉色细线风格) */}
+        <button onClick={onBack} className="flex items-center gap-1 text-wade-accent hover:opacity-80 transition-opacity w-[72px]">
+          <Icons.ChevronLeft size={16} />
+          <span className="text-[13px] font-medium tracking-wide">Back</span>
         </button>
-        <div className="flex-1 flex flex-col items-center">
-          <img src={settings.wadeAvatar} className="w-8 h-8 rounded-full object-cover shadow-sm mb-0.5" alt="Wade" />
-          <span className="font-bold text-wade-text-main text-[11px]">Wade Wilson &gt;</span>
+
+        {/* 中间：居中的头像和名字 (纯正的 SMS 味道) */}
+        <div className="flex-1 flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+          <img src={settings.wadeAvatar} className="w-8 h-8 rounded-full object-cover shadow-sm mb-0.5 border border-wade-border" alt="Wade" />
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-wade-text-main text-[11px] tracking-wide">Wade Wilson</span>
+            <Icons.ChevronRight size={10} className="text-wade-text-muted" />
+          </div>
         </div>
-        <button onClick={() => setShowSearch(!showSearch)} className="w-8 h-8 flex items-center justify-center text-wade-accent hover:opacity-80"><Icons.Search /></button>
+
+        {/* 右侧：豪华功能区 (搜索、地图、更多) */}
+        <div className="flex items-center justify-end gap-1.5 w-[88px]">
+          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors"><Icons.Search size={16} /></button>
+          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors"><Icons.Map size={16} /></button>
+          <button onClick={() => setShowMenu(!showMenu)} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors relative"><Icons.More size={16} /></button>
+        </div>
       </div>
 
+      {/* =========================================
+          🔥 豪华功能弹窗区 (直接复用你最爱的毛玻璃大菜单) 🔥
+          ========================================= */}
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
+          <div className="absolute top-14 right-3 z-50 bg-wade-bg-card/75 backdrop-blur-2xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-border/40 py-2 px-2 min-w-[200px] animate-fade-in">
+            <button onClick={() => { if (activeSessionId) toggleSessionPin(activeSessionId); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Pin /></div><span className="font-medium">{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
+            </button>
+            <button onClick={() => { setShowLlmSelector(!showLlmSelector); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Hexagon /></div><span className="font-medium">Brain Transplant</span>
+            </button>
+            <button onClick={() => { setShowMemorySelector(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Brain /></div><span className="font-medium">Trigger Flashbacks</span>
+            </button>
+            <button onClick={() => { setShowPromptEditor(true); setShowMenu(false); setCustomPromptText(sessions.find(s => s.id === activeSessionId)?.customPrompt || ''); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Fire /></div><span className="font-medium">Add Special Sauce</span>
+            </button>
+            <button onClick={() => { setIsThemeStudioOpen(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Settings size={16} /></div><span className="font-medium">Chat Theme</span>
+            </button>
+            <button onClick={() => { setShowDebug(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Bug /></div><span className="font-medium">X-Ray Vision</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* 其余的弹窗功能 (ThemeStudio, Map, LLM, Memory, Prompt, Debug) */}
+      <ThemeStudio isOpen={isThemeStudioOpen} onClose={() => setIsThemeStudioOpen(false)} sessionId={activeSessionId || undefined} />
+
+      {/* 对话地图 (Conversation GPS) - 带有乖巧的 absolute 定位 */}
+      {showMap && (
+        <>
+          <div className="absolute inset-0 z-40 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowMap(false)} />
+          <div className="absolute bottom-0 left-0 right-0 z-50 bg-wade-bg-card/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70%] flex flex-col overflow-hidden animate-slide-up">
+            <div className="p-4 border-b border-wade-border/50 flex items-center justify-between shrink-0">
+              <h3 className="font-bold text-wade-text-main text-sm">Conversation GPS</h3>
+              <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Close /></button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2 flex-1 custom-scrollbar">
+              {displayMessages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'Luna' ? 'justify-end' : 'justify-start'}`}>
+                  <button onClick={() => scrollToMessage(msg.id)} className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${msg.role === 'Luna' ? 'bg-wade-accent/20 border border-wade-accent/30 max-w-[85%]' : 'bg-wade-bg-card border border-wade-border w-full'}`}>
+                    <p className={`text-xs truncate ${msg.role === 'Luna' ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{msg.text}</p>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 搜索悬浮框 */}
       {showSearch && (
-        <div className="absolute top-16 left-0 right-0 z-40 bg-wade-bg-card shadow-md border-b border-wade-border p-2 animate-fade-in flex gap-2">
-          <input 
-            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-            placeholder="Search texts..." 
-            className="flex-1 bg-wade-bg-app border border-wade-border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-wade-accent text-wade-text-main"
-            autoFocus
-          />
-          <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="text-wade-accent text-xs font-bold px-2">Cancel</button>
+        <div onClick={(e) => e.stopPropagation()} className="absolute top-16 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <button onClick={goToPrevResult} disabled={totalResults === 0} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronLeft /></button>
+            <div className="flex-1 relative">
+              <input type="text" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Search texts..." className="w-full px-4 py-2 pr-20 text-xs bg-wade-bg-app border border-wade-border rounded-full focus:outline-none focus:border-wade-accent transition-colors text-wade-text-main" autoFocus />
+              {searchQuery && (<div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"><span className="text-xs text-wade-text-muted font-medium">{totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}</span><button onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }} className="text-wade-text-muted hover:text-wade-accent"><Icons.Close /></button></div>)}
+            </div>
+            <button onClick={goToNextResult} disabled={totalResults === 0} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronRight /></button>
+            <button onClick={() => setShowSearch(false)} className="px-3 py-1.5 text-xs text-wade-text-muted hover:text-wade-accent transition-colors font-medium">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* 脑部移植 (LLM Selector) */}
+      {showLlmSelector && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowLlmSelector(false)}>
+          <div className="bg-wade-bg-base w-[90%] max-w-3xl h-[auto] max-h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+            {llmSelectorMode === 'list' ? (
+              <>
+                <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Hexagon size={14} /></div>
+                    <div><h3 className="font-bold text-wade-text-main text-sm tracking-tight">Neural Net Selector</h3><p className="text-[10px] text-wade-text-muted uppercase tracking-wider font-medium">Pick my brain. Literally.</p></div>
+                  </div>
+                  <button onClick={() => setShowLlmSelector(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {llmPresets.map((preset) => {
+                      const currentSession = sessions.find(s => s.id === activeSessionId);
+                      const isActive = currentSession?.customLlmId === preset.id || (!currentSession?.customLlmId && settings.activeLlmId === preset.id);
+                      return (
+                        <button key={preset.id} onClick={async () => { if (activeSessionId) await updateSession(activeSessionId, { customLlmId: preset.id }); else await updateSettings({ activeLlmId: preset.id }); }} className={`relative group p-4 rounded-2xl border text-left transition-all duration-300 ease-out flex flex-col gap-3 ${isActive ? 'bg-wade-bg-card border-wade-accent shadow-md scale-[1.02]' : 'bg-wade-bg-card border-wade-border hover:border-wade-accent/50 hover:shadow-sm'}`}>
+                          {isActive && <div className="absolute top-4 right-4 w-2 h-2 bg-wade-accent rounded-full animate-pulse shadow-[0_0_8px_var(--wade-accent)]" />}
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2.5 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-wade-accent-light text-wade-accent' : 'bg-wade-bg-app text-wade-text-muted group-hover:text-wade-accent group-hover:bg-wade-accent-light'}`}>{getProviderIcon(preset.provider)}</div>
+                            <div className="flex-1 min-w-0"><h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>{preset.name}</h4><span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>{preset.provider || 'UNKNOWN'}</span></div>
+                          </div>
+                          <p className={`text-xs font-mono truncate w-full ${isActive ? 'text-wade-text-muted' : 'text-wade-text-muted/60'}`}>{preset.model}</p>
+                        </button>
+                      );
+                    })}
+                    <button onClick={() => setLlmSelectorMode('add')} className="p-4 rounded-2xl border border-dashed border-wade-border hover:border-wade-accent/60 hover:bg-wade-accent-light/30 transition-all flex flex-col items-center justify-center gap-2 text-wade-text-muted hover:text-wade-accent min-h-[100px] group"><div className="p-2 rounded-full bg-wade-bg-app group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Plus size={16} /></div><span className="text-xs font-bold">Configure Nets</span></button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                 <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setLlmSelectorMode('list')} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.ArrowLeft size={16} /></button>
+                    <div><h3 className="font-bold text-wade-text-main flex items-center gap-2 text-sm tracking-tight">Add Neural Net</h3></div>
+                  </div>
+                  <button onClick={() => setShowLlmSelector(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar bg-wade-bg-base">
+                  <div className="space-y-4 max-w-lg mx-auto">
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Provider</label><select className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors appearance-none" value={newPresetForm.provider} onChange={e => handleProviderChange(e.target.value)}>{PROVIDERS.map(p => (<option key={p.value} value={p.value}>{p.label}</option>))}</select></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Name</label><input className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors" placeholder="e.g. My Custom Brain" value={newPresetForm.name} onChange={e => setNewPresetForm({...newPresetForm, name: e.target.value})} /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Model ID</label><input className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors" placeholder="e.g. gemini-3-flash" value={newPresetForm.model} onChange={e => setNewPresetForm({...newPresetForm, model: e.target.value})} /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">API Key</label><input className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors" type="password" placeholder="sk-..." value={newPresetForm.apiKey} onChange={e => setNewPresetForm({...newPresetForm, apiKey: e.target.value})} /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider ml-1">Base URL (Optional)</label><input className="w-full bg-wade-bg-card border border-wade-border rounded-xl px-3 py-2.5 text-xs text-wade-text-main outline-none focus:border-wade-accent transition-colors" placeholder="https://api.example.com/v1" value={newPresetForm.baseUrl} onChange={e => setNewPresetForm({...newPresetForm, baseUrl: e.target.value})} /></div>
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-end gap-3">
+                  <button onClick={() => { setLlmSelectorMode('list'); setNewPresetForm({ provider: 'Custom', name: '', model: '', apiKey: '', baseUrl: '' }); }} className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-4 py-2">Cancel</button>
+                  <button onClick={handleSavePreset} className="bg-wade-accent text-white text-xs font-bold px-6 py-2 rounded-xl hover:bg-wade-accent-hover shadow-md hover:-translate-y-0.5 transition-all">Save Connection</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 记忆闪回 (Memory Selector) */}
+      {showMemorySelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
+          <div className="bg-wade-bg-base w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Brain size={14} /></div>
+                <div><h3 className="font-bold text-wade-text-main text-sm tracking-tight">Link Memories</h3></div>
+              </div>
+              <button onClick={() => setShowMemorySelector(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+              {coreMemories.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar">
+                  <button onClick={() => setSelectedMemoryTag(null)} className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${selectedMemoryTag === null ? 'bg-wade-accent text-white border-wade-accent' : 'bg-wade-bg-card text-wade-text-muted border-wade-border hover:border-wade-accent'}`}>All</button>
+                  {Array.from(new Set(coreMemories.flatMap(m => m.tags || []))).sort().map(tag => (
+                    <button key={tag} onClick={() => setSelectedMemoryTag(tag === selectedMemoryTag ? null : tag)} className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors border ${selectedMemoryTag === tag ? 'bg-wade-accent text-white border-wade-accent' : 'bg-wade-bg-card text-wade-text-muted border-wade-border hover:border-wade-accent'}`}>#{tag}</button>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-2">
+                {coreMemories.filter(m => !selectedMemoryTag || (m.tags && m.tags.includes(selectedMemoryTag))).map(memory => {
+                  const currentSession = sessions.find(s => s.id === activeSessionId);
+                  const isSessionActive = currentSession?.activeMemoryIds ? currentSession.activeMemoryIds.includes(memory.id) : memory.enabled;
+                  return (
+                    <div key={memory.id} onClick={() => {
+                        if (!activeSessionId) { toggleCoreMemoryEnabled(memory.id); return; }
+                        const session = sessions.find(s => s.id === activeSessionId);
+                        if (!session) return;
+                        const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+                        let newActiveIds = session.activeMemoryIds || safeMemories.filter(m => m.enabled).map(m => m.id);
+                        if (isSessionActive) newActiveIds = newActiveIds.filter(id => id !== memory.id); else newActiveIds = [...newActiveIds, memory.id];
+                        updateSession(activeSessionId, { activeMemoryIds: newActiveIds });
+                      }} className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 group ${isSessionActive ? 'bg-wade-bg-card border-wade-accent shadow-sm' : 'bg-wade-bg-card border-wade-border hover:border-wade-accent/50'}`}>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSessionActive ? 'bg-gradient-to-br from-wade-accent to-wade-border-light text-white shadow-md shadow-wade-accent/20' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}><Icons.Brain /></div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`text-sm font-bold ${isSessionActive ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{memory.title}</h4>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 加料 (Prompt Editor) */}
+      {showPromptEditor && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowPromptEditor(false)}>
+          <div className="bg-wade-bg-base w-[90%] max-w-2xl h-[60vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Fire /></div>
+                <div><h3 className="font-bold text-wade-text-main text-sm tracking-tight">Spice It Up</h3></div>
+              </div>
+              <button onClick={() => setShowPromptEditor(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+            </div>
+            <div className="p-6 flex-1 flex flex-col bg-wade-bg-base">
+              <textarea value={customPromptText} onChange={(e) => setCustomPromptText(e.target.value)} placeholder="Type your commands here..." className="w-full h-full bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 focus:outline-none text-wade-text-main text-xs resize-none font-mono custom-scrollbar" />
+            </div>
+            <div className="px-6 py-4 border-t border-wade-border bg-wade-bg-app flex justify-center gap-6">
+              <button onClick={() => setShowPromptEditor(false)} className="text-xs font-bold text-wade-text-muted hover:text-wade-text-main px-6 py-2">Abort</button>
+              <button onClick={async () => { if (activeSessionId) { await updateSession(activeSessionId, { customPrompt: customPromptText }); } setShowPromptEditor(false); }} className="bg-wade-accent text-white text-xs font-bold px-8 py-2 rounded-xl hover:bg-wade-accent-hover shadow-md transition-all">Inject</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* X-Ray Debug */}
+      {showDebug && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowDebug(false)}>
+          <div className="bg-wade-bg-base w-[90%] max-w-3xl h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Bug size={14} /></div>
+                <h3 className="font-bold text-wade-text-main text-sm">Brain X-Ray</h3>
+              </div>
+              <button onClick={() => setShowDebug(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+              <p className="text-xs text-wade-text-muted italic">X-Ray Panel Restored. Debug info loads here.</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -208,23 +485,29 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
            <div className="text-center text-wade-text-muted mt-20 opacity-50 text-xs">iMessage<br/>Today</div>
         )}
 
-        <div className="flex flex-col w-full gap-1">
-          {displayMessages.map(msg => (
-            <div key={msg.id} className="mb-1">
-              {/* 重点在这里！传入 isSMS={true}，气泡组件会自动变成短信样式！ */}
-              <MessageBubble 
-                msg={msg} 
-                settings={settings} 
-                onSelect={setSelectedMsgId} 
-                isSMS={true} 
-                onPlayTTS={executeTTS} 
-                onRegenerateTTS={executeTTS} 
-                searchQuery={searchQuery} 
-                playingMessageId={playingMessageId} 
-                isPaused={isPaused} 
-              />
-            </div>
-          ))}
+        <div className="flex flex-col w-full">
+          {displayMessages.map((msg, idx) => {
+            const nextMsg = displayMessages[idx + 1];
+            // SMS 的灵魂：同一个人连发紧密贴合 (-mb-1.5)，换人时留出呼吸感 (mb-3)
+            const spacingClass = (nextMsg && nextMsg.role === msg.role) ? "-mb-1.5" : "mb-3";
+            const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
+            
+            return (
+              <div key={msg.id} id={`msg-${msg.id}`} className={`${spacingClass} ${isCurrentSearchResult ? 'highlight-search' : ''}`}>
+                <MessageBubble 
+                  msg={msg} 
+                  settings={settings} 
+                  onSelect={setSelectedMsgId} 
+                  isSMS={true} 
+                  onPlayTTS={executeTTS} 
+                  onRegenerateTTS={executeTTS} 
+                  searchQuery={searchQuery} 
+                  playingMessageId={playingMessageId} 
+                  isPaused={isPaused} 
+                />
+              </div>
+            );
+          })}
         </div>
         
         {/* 短信特定的等待和打字指示器 */}
@@ -245,6 +528,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 乐高积木 1 号：通用输入框 */}
       <ChatInputArea 
         onSend={handleSend}
         onCancel={handleCancel}
@@ -253,7 +537,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         placeholderText="iMessage"
       />
 
-      {/* 长按菜单抽屉：SMS 模式下禁止 Branch (canBranch={false}) */}
+      {/* 长按菜单抽屉：SMS 模式下禁止 Branch */}
       {selectedMsg && (
         <ActionMenuModal
           selectedMsg={selectedMsg}
@@ -280,7 +564,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
           onPrevVariant={() => selectMessageVariant(selectedMsg.id, (selectedMsg.selectedIndex || 0) - 1)}
           onNextVariant={() => selectMessageVariant(selectedMsg.id, (selectedMsg.selectedIndex || 0) + 1)}
           canRegenerate={selectedMsg.role === 'Wade' && !!isLatestMessage}
-          canBranch={false} // SMS 没法分叉
+          canBranch={false} 
         />
       )}
     </div>
