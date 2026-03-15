@@ -279,7 +279,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div
           {...longPressHandlers}
           style={{ WebkitTouchCallout: 'none' }}
-          className="w-full mt-2 bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
+          className="w-full mt-2 bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:opacity-95 transition-all select-none overflow-hidden"
         >
           {thinkingContent && (
             <div
