@@ -46,7 +46,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
   const [waitingForSMS, setWaitingForSMS] = useState(false);
   const [wadeStatus, setWadeStatus] = useState<'online' | 'typing'>('online');
   
-  // === 豪华功能区状态 (从 Deep Chat 搬运过来的宝贝) ===
+  // === 豪华功能区状态 ===
   const [showMenu, setShowMenu] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -235,41 +235,39 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
       {/* =========================================
-          🔥 完美统一版 Header：SMS 居中排版 + DeepChat 质感按钮 🔥
+          🔥 完美统一版 Header (加了 shrink-0 强行锁定圆形) 🔥
           ========================================= */}
       <div className="w-full p-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
         
-        {/* 左侧：返回按钮 (完全同步 Deep Chat 的圆形灰底风格) */}
         <div className="w-[104px] flex justify-start">
-          <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
+          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
             <Icons.Back />
           </button>
         </div>
 
-        {/* 中间：居中的头像和名字 (保留纯正的 SMS 味道) */}
         <div className="flex-1 flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-          <img src={settings.wadeAvatar} className="w-8 h-8 rounded-full object-cover shadow-sm mb-0.5 border border-wade-border" alt="Wade" />
+          <img src={settings.wadeAvatar} className="w-8 h-8 shrink-0 rounded-full object-cover shadow-sm mb-0.5 border border-wade-border" alt="Wade" />
           <div className="flex items-center gap-1">
             <span className="font-bold text-wade-text-main text-[11px] tracking-wide">Wade Wilson</span>
             <Icons.ChevronRight size={10} className="text-wade-text-muted" />
           </div>
         </div>
 
-        {/* 右侧：豪华功能区 (完全同步 Deep Chat 的圆形灰底风格，尺寸排版一模一样) */}
+        {/* 加了 shrink-0 防挤压，保证它们是完美的圆！ */}
         <div className="w-[104px] flex items-center justify-end gap-2">
-          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Search /></button>
-          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Map /></button>
-          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative"><Icons.More /></button>
+          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Search /></button>
+          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Map /></button>
+          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative"><Icons.More /></button>
         </div>
       </div>
 
       {/* =========================================
-          🔥 豪华功能弹窗区 (直接复用你最爱的毛玻璃大菜单) 🔥
+          🔥 下拉菜单 (毛玻璃) 🔥
           ========================================= */}
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
-          <div className="absolute top-14 right-3 z-50 bg-wade-bg-card/75 backdrop-blur-2xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-border/40 py-2 px-2 min-w-[200px] animate-fade-in">
+          <div className="absolute top-16 right-4 z-50 bg-wade-bg-card/75 backdrop-blur-2xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-wade-border/40 py-2 px-2 min-w-[200px] animate-fade-in">
             <button onClick={() => { if (activeSessionId) toggleSessionPin(activeSessionId); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-app/50 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
               <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Pin /></div><span className="font-medium">{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
             </button>
@@ -292,10 +290,26 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         </>
       )}
 
-      {/* 其余的弹窗功能 (ThemeStudio, Map, LLM, Memory, Prompt, Debug) */}
+      {/* ThemeStudio */}
       <ThemeStudio isOpen={isThemeStudioOpen} onClose={() => setIsThemeStudioOpen(false)} sessionId={activeSessionId || undefined} />
 
-      {/* 对话地图 (Conversation GPS) - 带有乖巧的 absolute 定位 */}
+      {/* 搜索悬浮框 (换回 Nope) */}
+      {showSearch && (
+        <div onClick={(e) => e.stopPropagation()} className="absolute top-20 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <button onClick={goToPrevResult} disabled={totalResults === 0} className="w-7 h-7 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronLeft /></button>
+            <div className="flex-1 relative">
+              <input type="text" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Hunt words..." className="w-full px-4 py-2 pr-20 text-xs bg-wade-bg-app border border-wade-border rounded-full focus:outline-none focus:border-wade-accent transition-colors text-wade-text-main" autoFocus />
+              {searchQuery && (<div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"><span className="text-xs text-wade-text-muted font-medium">{totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}</span><button onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }} className="text-wade-text-muted hover:text-wade-accent"><Icons.Close /></button></div>)}
+            </div>
+            <button onClick={goToNextResult} disabled={totalResults === 0} className="w-7 h-7 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronRight /></button>
+            {/* 取消键变回 Nope */}
+            <button onClick={() => setShowSearch(false)} className="px-3 py-1.5 text-xs text-wade-text-muted hover:text-wade-accent transition-colors font-medium">Nope</button>
+          </div>
+        </div>
+      )}
+
+      {/* 对话地图 (Conversation GPS) */}
       {showMap && (
         <>
           <div className="absolute inset-0 z-40 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowMap(false)} />
@@ -315,21 +329,6 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
             </div>
           </div>
         </>
-      )}
-
-      {/* 搜索悬浮框 */}
-      {showSearch && (
-        <div onClick={(e) => e.stopPropagation()} className="absolute top-16 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <button onClick={goToPrevResult} disabled={totalResults === 0} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronLeft /></button>
-            <div className="flex-1 relative">
-              <input type="text" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Search texts..." className="w-full px-4 py-2 pr-20 text-xs bg-wade-bg-app border border-wade-border rounded-full focus:outline-none focus:border-wade-accent transition-colors text-wade-text-main" autoFocus />
-              {searchQuery && (<div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"><span className="text-xs text-wade-text-muted font-medium">{totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}</span><button onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }} className="text-wade-text-muted hover:text-wade-accent"><Icons.Close /></button></div>)}
-            </div>
-            <button onClick={goToNextResult} disabled={totalResults === 0} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronRight /></button>
-            <button onClick={() => setShowSearch(false)} className="px-3 py-1.5 text-xs text-wade-text-muted hover:text-wade-accent transition-colors font-medium">Cancel</button>
-          </div>
-        </div>
       )}
 
       {/* 脑部移植 (LLM Selector) */}
@@ -393,7 +392,7 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         </div>
       )}
 
-      {/* 记忆闪回 (Memory Selector) */}
+      {/* 记忆闪回 (Memory Selector) - 加入了内容预览和标题换行 */}
       {showMemorySelector && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowMemorySelector(false)}>
           <div className="bg-wade-bg-base w-[90%] max-w-md rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
@@ -428,9 +427,13 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
                         updateSession(activeSessionId, { activeMemoryIds: newActiveIds });
                       }} className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 group ${isSessionActive ? 'bg-wade-bg-card border-wade-accent shadow-sm' : 'bg-wade-bg-card border-wade-border hover:border-wade-accent/50'}`}>
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSessionActive ? 'bg-gradient-to-br from-wade-accent to-wade-border-light text-white shadow-md shadow-wade-accent/20' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}><Icons.Brain /></div>
+                      
+                      {/* 这里加入了标题换行和内容预览！ */}
                       <div className="flex-1 min-w-0">
-                        <h4 className={`text-sm font-bold ${isSessionActive ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{memory.title}</h4>
+                        <h4 className={`text-sm font-bold break-words leading-tight ${isSessionActive ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{memory.title}</h4>
+                        <p className="text-xs text-wade-text-muted line-clamp-2 mt-1 leading-relaxed">{memory.content}</p>
                       </div>
+
                     </div>
                   );
                 })}
@@ -462,7 +465,9 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         </div>
       )}
 
-      {/* X-Ray Debug */}
+      {/* =========================================
+          🔥 X-Ray Debug (把那些丢失的复杂逻辑全搬回来了！) 🔥
+          ========================================= */}
       {showDebug && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setShowDebug(false)}>
           <div className="bg-wade-bg-base w-[90%] max-w-3xl h-[80vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
@@ -473,8 +478,86 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
               </div>
               <button onClick={() => setShowDebug(false)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
-              <p className="text-xs text-wade-text-muted italic">X-Ray Panel Restored. Debug info loads here.</p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              {(() => {
+                // 极其复杂的逻辑演算又回来了
+                const currentSessionMsgs = messages.filter(m => m.sessionId === activeSessionId).sort((a, b) => a.timestamp - b.timestamp);
+                const historyPayload = currentSessionMsgs.slice(-20).map(m => ({ role: m.role, content: m.text }));
+
+                let systemInstructions = settings.systemInstruction || "";
+                const wadePersona = settings.wadePersonality || "(None)";
+                const lunaInfo = settings.lunaInfo || "(None)";
+                const singleExamples = settings.wadeSingleExamples || "(None)";
+                
+                let dialogueExamples = settings.smsExampleDialogue || "(None)";
+                let modeSpecificInstructions = settings.smsInstructions || `[SMS MODE RULES - STRICT]...`;
+                
+                systemInstructions += `\n\n${modeSpecificInstructions}`;
+                if (settings.wadePersonality) systemInstructions += `\n\n[CHARACTER PERSONA]\n${settings.wadePersonality}`;
+                
+                const currentSession = sessions.find(s => s.id === activeSessionId);
+                const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
+                const activeMemories = currentSession?.activeMemoryIds ? safeMemories.filter(m => currentSession.activeMemoryIds!.includes(m.id)) : safeMemories.filter(m => m.enabled);
+                const spiceContent = currentSession?.customPrompt || "";
+                const memoriesContent = JSON.stringify(activeMemories);
+                
+                if (sessionSummary) {
+                    systemInstructions += `\n\n[PREVIOUS SUMMARY]\n${sessionSummary}\n[END SUMMARY]`;
+                }
+                
+                const effectiveLlmId = currentSession?.customLlmId || settings.activeLlmId;
+                const activeLlm = effectiveLlmId ? llmPresets.find(p => p.id === effectiveLlmId) : null;
+                const currentModelName = activeLlm?.name || 'Gemini 3 Flash (Default)';
+                const currentProvider = activeLlm?.provider || 'Google';
+                
+                const promptLength = JSON.stringify(historyPayload).length + systemInstructions.length + wadePersona.length + lunaInfo.length + singleExamples.length + dialogueExamples.length + memoriesContent.length + spiceContent.length;
+                const estTokens = Math.round(promptLength / 4);
+
+                return (
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-accent shadow-sm flex flex-col items-center justify-center text-center">
+                         <div className="text-wade-accent font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Brain</div>
+                         <div className="text-sm font-black text-wade-text-main tracking-tight line-clamp-1 px-1">{currentModelName}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-mono uppercase">{currentProvider}</div>
+                      </div>
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-sm flex flex-col items-center justify-center text-center">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Total Context</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight">{estTokens}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Est. Tokens</div>
+                      </div>
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-sm flex flex-col items-center justify-center text-center">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">Active Memories</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight">{activeMemories.length}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Injected Items</div>
+                      </div>
+                      <div className="bg-wade-bg-card p-4 rounded-2xl border border-wade-border shadow-sm flex flex-col items-center justify-center text-center">
+                         <div className="text-wade-text-muted font-bold uppercase text-[9px] tracking-[0.2em] mb-1">History Limit</div>
+                         <div className="text-2xl font-black text-wade-text-main tracking-tight">{settings.contextLimit || 50}</div>
+                         <div className="text-[9px] text-wade-text-muted/60 mt-1 font-medium">Messages</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-wade-text-main text-xs uppercase tracking-widest">Raw Payload</h4>
+                      <div className="mt-4 bg-wade-code-bg rounded-xl p-4 overflow-hidden shadow-inner">
+                        <pre className="text-[10px] font-mono text-wade-code-text overflow-x-auto custom-scrollbar leading-tight whitespace-pre-wrap">
+                          {JSON.stringify({ 
+                            system_instructions: systemInstructions,
+                            wade_persona: wadePersona,
+                            luna_info: lunaInfo,
+                            single_examples: singleExamples,
+                            dialogue_examples: dialogueExamples,
+                            memories_sent: activeMemories.map(m => m.content), 
+                            history: historyPayload,
+                            current_turn_spice: spiceContent || "(None)"
+                          }, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -489,7 +572,6 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
         <div className="flex flex-col w-full">
           {displayMessages.map((msg, idx) => {
             const nextMsg = displayMessages[idx + 1];
-            // SMS 的灵魂：同一个人连发紧密贴合 (-mb-1.5)，换人时留出呼吸感 (mb-3)
             const spacingClass = (nextMsg && nextMsg.role === msg.role) ? "-mb-1.5" : "mb-3";
             const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
             
