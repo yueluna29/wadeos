@@ -15,9 +15,8 @@ export const CouplesCounter: React.FC = () => {
 
   useEffect(() => {
     const now = new Date();
-    // 参谋修正：将计算锚点从 initialDate 改成了 proposalDate，精准狙击你的需求
-    const diffTime = Math.abs(now.getTime() - proposalDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    const diffTime = Math.abs(now.getTime() - initialDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     setDaysTogether(diffDays);
   }, []);
 
