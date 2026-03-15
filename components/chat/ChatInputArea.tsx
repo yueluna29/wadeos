@@ -37,12 +37,24 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSend, onCancel, 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
     const isVision = activeLlm ? activeLlm.isVision : true; 
-    if (!isVision) { alert(`Muffin! Blind AI alert. Swap to a multimodal brain first!`); return; }
+
+    if (!isVision) {
+      alert(`The current model (${activeLlm?.name || 'Unknown'}) does not support images. Please switch to a vision-capable model.`);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
-      setAttachments(prev => [...prev, { type: 'image', content: e.target?.result as string, mimeType: file.type, name: file.name }]);
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'image',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
       setShowUploadMenu(false);
     };
     reader.readAsDataURL(file);
@@ -52,93 +64,156 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSend, onCancel, 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const activeLlm = settings.activeLlmId ? llmPresets.find(p => p.id === settings.activeLlmId) : null;
     const isVision = activeLlm ? activeLlm.isVision : true;
-    if (file.type === 'application/pdf' && !isVision) { alert(`Muffin! Blind AI alert. Swap to a multimodal brain first!`); return; }
+
+    if (file.type === 'application/pdf' && !isVision) {
+       alert(`The current model (${activeLlm?.name || 'Unknown'}) might not support PDF files. Please switch to a multimodal model.`);
+       return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
-      setAttachments(prev => [...prev, { type: 'file', content: e.target?.result as string, mimeType: file.type, name: file.name }]);
+      const content = e.target?.result as string;
+      setAttachments(prev => [...prev, {
+        type: 'file',
+        content: content,
+        mimeType: file.type,
+        name: file.name
+      }]);
       setShowUploadMenu(false);
     };
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSendClick = () => {
     if (!inputText.trim() && attachments.length === 0) return;
+    
     onSend(inputText, attachments);
+    
     setInputText('');
     setAttachments([]);
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    if (textareaRef.current) textareaRef.current.style.height = '32px';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (window.innerWidth >= 768 && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendClick(); }
+    if (window.innerWidth >= 768 && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendClick();
+    }
   };
 
   return (
-    <div className="w-full bg-wade-bg-app pb-6 pt-2 shrink-0 z-30 px-4 md:px-6">
-      <div className="max-w-4xl mx-auto relative">
-        
-        {/* 核心：截图中那个包含一切的白色巨型胶囊 (Pill-shape container) */}
-        <div className="bg-white border border-gray-100 shadow-sm rounded-[32px] p-1.5 flex items-end gap-2 transition-all focus-within:shadow-md focus-within:border-wade-accent/20">
+    <div className="p-3 pb-6 md:pb-3 bg-wade-bg-card border-t border-wade-border z-30 shrink-0">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-wade-bg-app border border-wade-border rounded-3xl px-2 py-2 focus-within:border-wade-accent shadow-inner flex flex-col gap-2 transition-colors">
           
-          {/* 左侧加号按钮：在白色胶囊里的圆环 */}
-          <div className="relative shrink-0 mb-0.5 ml-0.5">
-            <button
-              onClick={() => setShowUploadMenu(!showUploadMenu)}
-              className="w-[34px] h-[34px] rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-400 hover:text-wade-accent"
-            >
-              <Icons.PlusThin size={18} />
-            </button>
-
-            <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageSelect} />
-            <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.txt,.md,.json" onChange={handleFileSelect} />
-
-            {showUploadMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowUploadMenu(false)} />
-                <div className="absolute bottom-full left-0 mb-3 w-32 bg-white/95 backdrop-blur-md border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden animate-slide-up">
-                  <button onClick={() => imageInputRef.current?.click()} className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left text-wade-text-main border-b border-gray-50">
-                    <Icons.Image /><span className="text-xs font-medium">Image</span>
-                  </button>
-                  <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left text-wade-text-main">
-                    <Icons.File /><span className="text-xs font-medium">File</span>
+          {/* Attachment Preview Inside Input */}
+          {attachments.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-1 px-1">
+              {attachments.map((att, index) => (
+                <div key={index} className="relative group flex-shrink-0">
+                  {att.type === 'image' ? (
+                    <img src={att.content} alt="preview" className="h-16 w-16 object-cover rounded-lg border border-wade-border" />
+                  ) : (
+                    <div className="h-16 w-16 bg-wade-bg-card rounded-lg border border-wade-border flex flex-col items-center justify-center p-1">
+                      <Icons.File />
+                      <span className="text-[8px] truncate w-full text-center mt-1 text-wade-text-main">{att.name}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => removeAttachment(index)}
+                    className="absolute top-1 right-1 bg-wade-accent text-white rounded-full p-0.5 shadow-md hover:bg-wade-accent-hover transition-colors w-4 h-4 flex items-center justify-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
                 </div>
-              </>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {/* 中间输入区：透明底，不带任何边框 */}
-          <div className="flex-1 flex flex-col justify-center min-h-[36px] pb-1.5">
-            {attachments.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 px-1 mb-1 custom-scrollbar">
-                {attachments.map((att, index) => (
-                  <div key={index} className="relative group flex-shrink-0 animate-scale-in mt-1">
-                    {att.type === 'image' ? <img src={att.content} alt="preview" className="h-12 w-12 object-cover rounded-lg shadow-sm border border-gray-200" /> : <div className="h-12 w-12 bg-gray-50 rounded-lg border border-gray-200 flex flex-col items-center justify-center p-1 shadow-sm"><Icons.File /><span className="text-[8px] truncate w-full text-center mt-1 text-wade-text-muted">{att.name}</span></div>}
-                    <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="absolute -top-1.5 -right-1.5 bg-wade-accent text-white rounded-full p-0.5 shadow-md hover:bg-wade-accent-hover transition-colors w-[18px] h-[18px] flex items-center justify-center"><Icons.Close size={12} /></button>
+          <div className="flex items-end gap-2">
+            {/* File Upload Button (Bottom Left) */}
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setShowUploadMenu(!showUploadMenu)}
+                className="w-8 h-8 rounded-full bg-wade-bg-card border border-wade-border flex items-center justify-center hover:bg-wade-accent hover:text-white transition-colors text-wade-text-muted shadow-sm"
+              >
+                <Icons.PlusThin size={16} />
+              </button>
+
+              <input
+                type="file"
+                ref={imageInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageSelect}
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".pdf,.txt,.md,.json"
+                onChange={handleFileSelect}
+              />
+
+              {/* Upload Menu Popup */}
+              {showUploadMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowUploadMenu(false)}
+                  />
+                  <div className="absolute bottom-full left-0 mb-2 w-32 bg-wade-bg-card/90 backdrop-blur-md border border-wade-border rounded-xl shadow-lg z-50 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        imageInputRef.current?.click();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-wade-bg-app/80 transition-colors text-left text-wade-text-main border-b border-wade-border/50"
+                    >
+                      <Icons.Image />
+                      <span className="text-xs font-medium">Image</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-wade-bg-app/80 transition-colors text-left text-wade-text-main"
+                    >
+                      <Icons.File />
+                      <span className="text-xs font-medium">File</span>
+                    </button>
                   </div>
-                ))}
-              </div>
-            )}
-            <textarea
-              ref={textareaRef} value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown}
-              placeholder={placeholderText} rows={1} enterKeyHint="send"
-              className="w-full bg-transparent border-none outline-none text-[15px] text-wade-text-main placeholder-gray-300 py-0 resize-none tracking-wide custom-scrollbar"
-            />
-          </div>
+                </>
+              )}
+            </div>
 
-          {/* 右侧发送按钮：饱满的粉色圆扣 */}
-          <div className="shrink-0 mb-0.5 mr-0.5">
+            {/* Text Input */}
+            <textarea
+              ref={textareaRef}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholderText}
+              rows={1}
+              enterKeyHint="send"
+              className="flex-1 bg-transparent border-none focus:outline-none text-wade-text-main placeholder-wade-text-muted/50 resize-none overflow-y-auto max-h-32 min-h-[32px] text-sm py-1.5"
+            />
+
+            {/* Send Button (Bottom Right) */}
             <button
               onClick={isTyping ? onCancel : handleSendClick}
-              className={`w-[34px] h-[34px] rounded-full flex items-center justify-center shadow-md transition-all shrink-0 ${isTyping ? 'bg-white border border-gray-200 text-red-400 hover:text-red-500' : 'bg-[#d58f99] text-white hover:bg-[#c27c86] hover:scale-105 active:scale-95'}`}
+              className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all border border-wade-border shrink-0 bg-wade-accent text-white border-wade-accent hover:bg-wade-accent-hover"
             >
-              {isTyping ? <Icons.Stop size={16} /> : <Icons.ArrowUpThin size={20} />}
+              {isTyping ? <Icons.Stop size={16} /> : <Icons.ArrowUpThin size={16} />}
             </button>
           </div>
-
         </div>
       </div>
     </div>
