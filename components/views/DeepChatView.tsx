@@ -262,24 +262,24 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setShowMenu(false); setShowLlmSelector(false); }} />
-          <div className="absolute top-16 right-4 z-50 bg-wade-bg-card/80 backdrop-blur-xl rounded-xl shadow-xl border border-wade-border/50 py-1.5 px-1 min-w-fit animate-fade-in">
-            <button onClick={() => { if (activeSessionId) toggleSessionPin(activeSessionId); setShowMenu(false); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Pin /></div><span>{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
+          <div className="absolute top-16 right-4 z-50 bg-wade-bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl border border-wade-border/50 py-2 px-2 min-w-[200px] animate-fade-in">
+            <button onClick={() => { if (activeSessionId) toggleSessionPin(activeSessionId); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Pin /></div><span className="font-medium">{activeSessionId && sessions.find(s => s.id === activeSessionId)?.isPinned ? "Unstick From Fridge" : "Stick To Fridge"}</span>
             </button>
-            <button onClick={() => { setShowLlmSelector(!showLlmSelector); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Hexagon /></div><span>Brain Transplant</span>
+            <button onClick={() => { setShowLlmSelector(!showLlmSelector); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Hexagon /></div><span className="font-medium">Brain Transplant</span>
             </button>
-            <button onClick={() => { setShowMemorySelector(true); setShowMenu(false); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Brain /></div><span>Trigger Flashbacks</span>
+            <button onClick={() => { setShowMemorySelector(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Brain /></div><span className="font-medium">Trigger Flashbacks</span>
             </button>
-            <button onClick={() => { setShowPromptEditor(true); setShowMenu(false); setCustomPromptText(sessions.find(s => s.id === activeSessionId)?.customPrompt || ''); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Fire /></div><span>Add Special Sauce</span>
+            <button onClick={() => { setShowPromptEditor(true); setShowMenu(false); setCustomPromptText(sessions.find(s => s.id === activeSessionId)?.customPrompt || ''); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Fire /></div><span className="font-medium">Add Special Sauce</span>
             </button>
-            <button onClick={() => { setIsThemeStudioOpen(true); setShowMenu(false); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Settings className="w-4 h-4" /></div><span>Chat Theme</span>
+            <button onClick={() => { setIsThemeStudioOpen(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Settings size={16} /></div><span className="font-medium">Chat Theme</span>
             </button>
-            <button onClick={() => { setShowDebug(true); setShowMenu(false); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-wade-bg-card/60 transition-colors text-wade-text-main text-[11px] flex items-center gap-2.5 whitespace-nowrap">
-              <div className="w-5 flex justify-center"><Icons.Bug /></div><span>X-Ray Vision</span>
+            <button onClick={() => { setShowDebug(true); setShowMenu(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-wade-bg-card/80 transition-colors text-wade-text-main text-[13px] flex items-center gap-3 whitespace-nowrap">
+              <div className="w-5 flex justify-center text-wade-text-muted"><Icons.Bug /></div><span className="font-medium">X-Ray Vision</span>
             </button>
           </div>
         </>
