@@ -235,17 +235,18 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
       {/* =========================================
-          🔥 混血版 Header：iOS 居中排版 + 豪华功能键 🔥
+          🔥 完美统一版 Header：SMS 居中排版 + DeepChat 质感按钮 🔥
           ========================================= */}
-      <div className="w-full p-2 md:p-3 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+      <div className="w-full p-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
         
-        {/* 左侧：返回按钮 (保持粉色细线风格) */}
-        <button onClick={onBack} className="flex items-center gap-1 text-wade-accent hover:opacity-80 transition-opacity w-[72px]">
-          <Icons.ChevronLeft size={16} />
-          <span className="text-[13px] font-medium tracking-wide">Back</span>
-        </button>
+        {/* 左侧：返回按钮 (完全同步 Deep Chat 的圆形灰底风格) */}
+        <div className="w-[104px] flex justify-start">
+          <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
+            <Icons.Back />
+          </button>
+        </div>
 
-        {/* 中间：居中的头像和名字 (纯正的 SMS 味道) */}
+        {/* 中间：居中的头像和名字 (保留纯正的 SMS 味道) */}
         <div className="flex-1 flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
           <img src={settings.wadeAvatar} className="w-8 h-8 rounded-full object-cover shadow-sm mb-0.5 border border-wade-border" alt="Wade" />
           <div className="flex items-center gap-1">
@@ -254,11 +255,11 @@ export const SmsChatView: React.FC<SmsChatViewProps> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* 右侧：豪华功能区 (搜索、地图、更多) */}
-        <div className="flex items-center justify-end gap-1.5 w-[88px]">
-          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors"><Icons.Search size={16} /></button>
-          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors"><Icons.Map size={16} /></button>
-          <button onClick={() => setShowMenu(!showMenu)} className="w-7 h-7 rounded-full flex items-center justify-center text-wade-accent hover:bg-wade-accent-light transition-colors relative"><Icons.More size={16} /></button>
+        {/* 右侧：豪华功能区 (完全同步 Deep Chat 的圆形灰底风格，尺寸排版一模一样) */}
+        <div className="w-[104px] flex items-center justify-end gap-2">
+          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Search /></button>
+          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Map /></button>
+          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative"><Icons.More /></button>
         </div>
       </div>
 
