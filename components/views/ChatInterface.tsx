@@ -2,16 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { ChatMode } from '../../types';
 import { Icons } from '../ui/Icons';
-
-// 👇 我们的四大天王，闪亮登场！ 👇
 import { DeepChatView } from './DeepChatView';
 import { SmsChatView } from './SmsChatView';
 import { RoleplayView } from './RoleplayView';
 import { ArchiveView } from './ArchiveView';
 
-// ==========================================
-// 长按魔法 & 列表组件 (保持列表页的丝滑体验)
-// ==========================================
 const useLongPress = (callback: () => void, ms = 500) => {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const startPos = useRef<{ x: number, y: number } | null>(null);
@@ -108,9 +103,6 @@ const ArchiveItem = ({ archive, dateString, onOpen, onLongPress, isRenaming, onR
   );
 };
 
-// ==========================================
-// 终极大厅: ChatInterface (纯路由与列表)
-// ==========================================
 export const ChatInterface: React.FC = () => {
   const {
     activeMode, setMode, setNavHidden, sessions, updateSessionTitle, deleteSession, toggleSessionPin, 
@@ -122,12 +114,10 @@ export const ChatInterface: React.FC = () => {
   const [sessionPage, setSessionPage] = useState(1);
   const SESSIONS_PER_PAGE = 10;
 
-  // 档案室列表用的日期缓存
   const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
   const [archiveTimestamps, setArchiveTimestamps] = useState<Record<string, number>>({});
   const [isLoadingArchiveList, setIsLoadingArchiveList] = useState(false);
 
-  // 操作抽屉状态
   const [actionSessionId, setActionSessionId] = useState<string | null>(null);
   const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
   const [sessionDeleteConfirm, setSessionDeleteConfirm] = useState(false);
@@ -147,7 +137,6 @@ export const ChatInterface: React.FC = () => {
     return () => setNavHidden(false);
   }, []);
 
-  // 档案日期加载逻辑
   useEffect(() => {
     const loadDates = async () => {
       if (chatArchives.length === 0) return;
@@ -208,7 +197,12 @@ export const ChatInterface: React.FC = () => {
     finally { setIsUploading(false); if (archiveInputRef.current) archiveInputRef.current.value = ''; }
   };
 
-  // 👇👇👇 魔法发生的地方：路由分发 👇👇👇
+  // 👇 就是这个被我不小心删掉的函数导致了白屏！现在它回来了！ 👇
+  const handleStartDraftSession = () => {
+    setActiveSessionId(null);
+    setViewState('chat');
+  };
+
   if (viewState === 'chat') {
     switch (activeMode) {
       case 'deep': 
@@ -225,7 +219,6 @@ export const ChatInterface: React.FC = () => {
     }
   }
 
-  // 大厅：模式选择
   if (viewState === 'menu') {
     return (
       <div className="h-full bg-wade-bg-app p-6 flex flex-col items-center justify-center space-y-8 animate-fade-in">
@@ -263,38 +256,38 @@ export const ChatInterface: React.FC = () => {
     );
   }
 
-  // 走廊：会话列表
   return (
     <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
       {/* =========================================
-            🔥 终极防跳跃 Header (绝对锁定68px，左右104px防跳跃) 🔥
+            🔥 终极防跳跃 Header (绝对居中，电脑宽屏也不变形) 🔥
             ========================================= */}
-        <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent">
-          
-          <div className="w-[104px] flex justify-start">
-            <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
-              <Icons.Back />
-            </button>
-          </div>
-
-          <div className="flex-1 flex justify-center items-center">
-            <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
-          </div>
-          
-          <div className="w-[104px] flex items-center justify-end gap-2">
-            {activeMode === 'archive' ? (
-               <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors" title="Import Archive">
-                 {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
-               </button>
-            ) : (
-               <button onClick={handleStartDraftSession} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
-                 <Icons.Plus />
-               </button>
-            )}
-            <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
-          </div>
+      <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent relative">
+        
+        <div className="flex z-10">
+          <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
+            <Icons.Back />
+          </button>
         </div>
+
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+          <h2 className="font-hand text-2xl text-wade-accent capitalize pointer-events-auto">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
+        </div>
+        
+        <div className="flex items-center gap-2 z-10">
+          {activeMode === 'archive' ? (
+             <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors" title="Import Archive">
+               {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
+             </button>
+          ) : (
+             <button onClick={handleStartDraftSession} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
+               <Icons.Plus />
+             </button>
+          )}
+          <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
+        </div>
+      </div>
       
+      {/* 解除了列表宽度的紧身衣，现在是 max-w-2xl */}
       <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto px-4 md:px-6 pt-4 pb-24 custom-scrollbar space-y-3">
         {activeMode === 'archive' ? (
           isLoadingArchiveList ? (
@@ -336,7 +329,6 @@ export const ChatInterface: React.FC = () => {
           )
         )}
 
-        {/* 列表页长按操作抽屉 */}
         {(actionSessionId || actionArchiveId) && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-fade-in" onClick={() => { setActionSessionId(null); setActionArchiveId(null); setSessionDeleteConfirm(false); setArchiveDeleteConfirm(false); }} />
