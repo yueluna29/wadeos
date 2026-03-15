@@ -7,7 +7,7 @@ const defaultSettings: AppSettings = {
   activeLlmId: undefined,
   activeTtsId: undefined,
 
-  themeColor: '#d58f99',
+  themeColor: '#C8A2C8',
   fontSize: 'medium',
   
   wadeAvatar: 'https://i.pinimg.com/736x/06/56/8e/06568edc9148315660d6555d91e37454.jpg', 
