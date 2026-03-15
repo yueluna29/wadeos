@@ -28,6 +28,10 @@
   --wade-code-text-rgb: 166, 172, 205;
   --wade-code-text: #a6accd;
 
+  --wade-nav-bg: var(--wade-accent-light);
+  --wade-bubble-luna: var(--wade-accent);
+  --wade-bubble-luna-rgb: var(--wade-accent-rgb);
+
   --wade-shadow-glow: 0 4px 12px rgba(var(--wade-accent-rgb), 0.4);
 }
 
@@ -93,6 +97,10 @@
   --wade-code-bg: #1A1A1A;
   --wade-code-text-rgb: 254, 236, 222;
   --wade-code-text: #FEECDE;
+
+  --wade-nav-bg: #1A1A1A;
+  --wade-bubble-luna: #E296B2;
+  --wade-bubble-luna-rgb: 226, 150, 178;
 
   --wade-shadow-glow: 0 4px 12px rgba(151, 24, 26, 0.4);
 }

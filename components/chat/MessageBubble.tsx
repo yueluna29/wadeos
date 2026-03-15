@@ -173,7 +173,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   if (isSMS) {
     const bubbleClasses = isLuna
-      ? "bg-wade-accent text-white rounded-2xl rounded-br-none shadow-sm"
+      ? "text-white rounded-2xl rounded-br-none shadow-sm"
       : "bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-bl-none shadow-sm";
 
     // 参谋的微创手术：短信模式通常需要凑紧点，但我们在外层加了 mb-2 保证一点点呼吸感
@@ -182,7 +182,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className={`relative max-w-[85%] ${isLuna ? 'flex flex-row-reverse' : 'flex'} gap-2 items-end`}>
           <div
             {...longPressHandlers}
-            style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' }}
+            style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent', ...(isLuna ? { backgroundColor: 'var(--wade-bubble-luna)' } : {}) }}
             className={`px-4 py-2 relative ${bubbleClasses} min-w-[60px] cursor-pointer select-none`}
           >
             {thinkingContent && (
@@ -335,8 +335,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       <div
         {...longPressHandlers}
-        style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' }}
-        className="max-w-[90%] mt-2 bg-wade-accent text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
+        style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent', backgroundColor: 'var(--wade-bubble-luna)' }}
+        className="max-w-[90%] mt-2 text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
         {renderAttachments()}
         {isBase64Image ? (
