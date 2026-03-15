@@ -182,7 +182,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className={`relative max-w-[85%] ${isLuna ? 'flex flex-row-reverse' : 'flex'} gap-2 items-end`}>
           <div
             {...longPressHandlers}
-            style={{ WebkitTouchCallout: 'none' }}
+            style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' }}
             className={`px-4 py-2 relative ${bubbleClasses} min-w-[60px] cursor-pointer select-none`}
           >
             {thinkingContent && (
@@ -278,7 +278,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         <div
           {...longPressHandlers}
-          style={{ WebkitTouchCallout: 'none' }}
+          style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' }}
           className="w-full mt-2 bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:opacity-95 transition-all select-none overflow-hidden"
         >
           {thinkingContent && (
@@ -335,7 +335,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       <div
         {...longPressHandlers}
-        style={{ WebkitTouchCallout: 'none' }}
+        style={{ WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' }}
         className="max-w-[90%] mt-2 bg-wade-accent text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
       >
         {renderAttachments()}

@@ -167,6 +167,12 @@ body {
   font-family: 'Nunito', sans-serif !important;
 }
 
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Audio playing animation */
 @keyframes audio-pulse {
   0%, 100% {
