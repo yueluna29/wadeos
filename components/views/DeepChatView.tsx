@@ -360,7 +360,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
                           {isActive && <div className="absolute top-4 right-4 w-2 h-2 bg-wade-accent rounded-full animate-pulse shadow-[0_0_8px_var(--wade-accent)]" />}
                           <div className="flex items-center gap-3">
                             <div className={`p-2.5 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-wade-accent-light text-wade-accent' : 'bg-wade-bg-app text-wade-text-muted group-hover:text-wade-accent group-hover:bg-wade-accent-light'}`}>{getProviderIcon(preset.provider)}</div>
-                            <div className="flex-1 min-w-0"><h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>{preset.name}</h4><span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>{preset.provider || \'UNKNOWN'}</span></div>
+                            <div className="flex-1 min-w-0"><h4 className={`font-bold text-sm truncate ${isActive ? 'text-wade-text-main' : 'text-wade-text-main/80'}`}>{preset.name}</h4><span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-wade-accent' : 'text-wade-text-muted/60'}`}>{preset.provider || "UNKNOWN"}</span></div>
                           </div>
                           <p className={`text-xs font-mono truncate w-full ${isActive ? 'text-wade-text-muted' : 'text-wade-text-muted/60'}`}>{preset.model}</p>
                         </button>
