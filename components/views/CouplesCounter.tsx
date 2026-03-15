@@ -35,7 +35,7 @@ export const CouplesCounter: React.FC = () => {
         {/* Avatars */}
         <div className="flex items-center justify-center gap-4 mb-4 relative">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-[#7A8B99] to-[#4A4A5A]">
+            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-red-500 to-black">
               <img 
                 src={settings.wadeAvatar} 
                 alt="Wade" 
@@ -54,7 +54,7 @@ export const CouplesCounter: React.FC = () => {
           </div>
 
           <div className="relative">
-            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-[#F2C6D9] to-[#C8A2C8]">
+            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-wade-accent to-purple-400">
               <img 
                 src={settings.lunaAvatar} 
                 alt="Luna" 

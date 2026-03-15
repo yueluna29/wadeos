@@ -72,10 +72,10 @@ export const useWadeTheme = () => {
       document.body.removeAttribute('style');
       
       const themeMap: Record<string, string> = {
-        '#C8A2C8': 'default',
+        '#d58f99': 'default',
         '#97181A': 'deadpool',
         '#9D8DF1': 'midnight',
-        '#4A6FA5': 'serenity',
+        '#C8A2C8': 'serenity',
         '#04BAE8': 'cyberpunk'
       };
       const themeName = themeMap[settings.themeColor] || 'default';

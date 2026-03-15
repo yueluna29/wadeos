@@ -20,10 +20,10 @@ const Icons = {
 
 // Preset Colors
 const THEMES = [
-  { color: '#C8A2C8', name: 'Lavender' },
+  { color: '#d58f99', name: 'Luna Pink' },
   { color: '#97181A', name: 'Deadpool Red' },
   { color: '#9D8DF1', name: 'Midnight' },
-  { color: '#4A6FA5', name: 'Serenity' },
+  { color: '#C8A2C8', name: 'Pinterest Vibes' },
   { color: '#04BAE8', name: 'Cyberpunk' },
 ];
 
