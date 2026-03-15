@@ -24,9 +24,11 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [wadeStatus, setWadeStatus] = useState<'online' | 'typing'>('online');
   
-  // UI 状态
+  // UI 状态 (参谋已为你补齐了防止报错的 Map 和 Menu 状态！)
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMap, setShowMap] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   
   // 操作抽屉状态
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
@@ -143,18 +145,33 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
-      {/* 极具剧场感的 Header */}
-      <div className="chat-header !bg-wade-bg-app border-b-2 border-wade-accent/30">
-        <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent"><Icons.Back /></button>
-        <div className="flex-1 flex items-center justify-center gap-3">
-          <Icons.Feather />
-          <div className="flex flex-col items-center">
-            <span className="font-black tracking-widest text-wade-text-main text-sm uppercase">Immersive Theater</span>
-            <span className="text-[9px] font-mono text-wade-accent">{wadeStatus === 'typing' ? '*Setting the scene...*' : 'Curtain is up'}</span>
-          </div>
-          <Icons.Feather />
+      {/* =========================================
+          🔥 终极防跳跃 Header (Roleplay 模式专属) 🔥
+          ========================================= */}
+      <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0 relative">
+        
+        {/* 左侧：绝对锁定的返回键 (104px宽度) */}
+        <div className="flex justify-start z-10 w-[104px]">
+          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
+            <Icons.Back />
+          </button>
         </div>
-        <button onClick={() => setShowSearch(!showSearch)} className="w-8 h-8 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent"><Icons.Search /></button>
+
+        {/* 中间：会话标题 (绝对居中，读取窗口名字) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+            <span className="font-hand text-xl text-wade-accent tracking-wide font-bold">
+              {activeSessionId && sessions ? sessions.find(s => s.id === activeSessionId)?.title || 'Roleplay' : 'Roleplay'}
+            </span>
+          </div>
+        </div>
+
+        {/* 右侧：三大金刚功能键 (104px宽度) */}
+        <div className="flex items-center justify-end gap-2 z-10 w-[104px]">
+          <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Search /></button>
+          <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Map /></button>
+          <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm"><Icons.More /></button>
+        </div>
       </div>
 
       {showSearch && (
