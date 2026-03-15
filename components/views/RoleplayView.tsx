@@ -5,7 +5,6 @@ import { Message } from '../../types';
 import { supabase } from '../../services/supabase';
 import { Icons } from '../ui/Icons';
 
-// 👇 我们亲手捏的赛博乐高积木，继续发光发热！ 👇
 import { ChatInputArea, Attachment } from '../chat/ChatInputArea';
 import { MessageBubble } from '../chat/MessageBubble';
 import { ActionMenuModal } from '../chat/ActionMenuModal';
@@ -24,9 +23,10 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [wadeStatus, setWadeStatus] = useState<'online' | 'typing'>('online');
   
-  // UI 状态 (参谋已为你补齐了防止报错的 Map 和 Menu 状态！)
+  // UI 状态
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   
@@ -56,6 +56,23 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
     loadSummary();
   }, [activeSessionId]);
 
+  // 搜索导航功能
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`msg-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+    }
+    setShowMap(false);
+  };
+
+  const searchResults = searchQuery ? displayMessages.filter(msg => msg.text.toLowerCase().includes(searchQuery.toLowerCase())) : [];
+  const totalResults = searchResults.length;
+  const goToNextResult = () => { if (totalResults > 0) { const nextIndex = (currentSearchIndex + 1) % totalResults; setCurrentSearchIndex(nextIndex); scrollToMessage(searchResults[nextIndex].id); } };
+  const goToPrevResult = () => { if (totalResults > 0) { const prevIndex = currentSearchIndex === 0 ? totalResults - 1 : currentSearchIndex - 1; setCurrentSearchIndex(prevIndex); scrollToMessage(searchResults[prevIndex].id); } };
+  const handleSearchChange = (value: string) => { setSearchQuery(value); setCurrentSearchIndex(0); };
+
   const handleSend = async (text: string, attachments: Attachment[]) => {
     if (!activeSessionId) return;
     
@@ -79,7 +96,6 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
     setIsTyping(true);
     setWadeStatus('typing');
 
-    // 稍微延迟一下，显得他在入戏
     setTimeout(() => { triggerAIResponse(activeSessionId); }, 1500); 
   };
 
@@ -94,7 +110,6 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
       let modePrompt = settings.wadePersonality;
       if (sessionSummary) modePrompt = `[PREVIOUS SUMMARY]\n${sessionSummary}\n[END SUMMARY]\n\n${modePrompt}`;
 
-      // 👇 Roleplay 专属核心：注入动作指令 👇
       const rpRules = settings.roleplayInstructions || `[ROLEPLAY MODE RULES]\n- Write detailed, descriptive responses\n- Include actions in *asterisks*\n- Be immersive and narrative`;
       modePrompt += `\n\n${rpRules}`;
 
@@ -145,51 +160,70 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
-      {/* =========================================
-          🔥 终极防跳跃 Header (Roleplay 模式，绝美双行标题) 🔥
-          ========================================= */}
+      {/* 左对齐的绝美 Header：绝对不挤压三大金刚！ */}
       <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0 relative">
         
-        {/* 左侧：绝对锁定的 104px 宽度 */}
-        <div className="flex justify-start z-10 w-[104px]">
-          <button onClick={onBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
+        <div className="flex justify-start z-10 w-[48px] shrink-0">
+          <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-accent hover:text-white transition-colors shadow-sm">
             <Icons.Back />
           </button>
         </div>
 
-        {/* 中间：完全复刻 Archive 的高级双行排版！ */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto flex flex-col items-center justify-center cursor-pointer hover:opacity-80 transition-opacity mt-1">
-            <span className="font-bold text-wade-text-main text-base uppercase tracking-widest">
-              {activeSessionId && sessions ? sessions.find(s => s.id === activeSessionId)?.title || 'Roleplay' : 'Roleplay'}
-            </span>
-            <span className="text-[9px] font-mono text-wade-text-muted">
-              {wadeStatus === 'typing' ? '*Setting the scene...*' : 'Immersive Theater'}
-            </span>
-          </div>
+        {/* 左对齐标题，允许截断 (truncate)，保护右侧按钮 */}
+        <div className="flex-1 flex flex-col items-start justify-center min-w-0 px-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <span className="font-bold text-wade-text-main text-base uppercase tracking-widest truncate w-full">
+            {activeSessionId && sessions ? sessions.find(s => s.id === activeSessionId)?.title || 'Roleplay' : 'Roleplay'}
+          </span>
+          <span className="text-[9px] font-mono text-wade-text-muted truncate w-full">
+            {wadeStatus === 'typing' ? '*Setting the scene...*' : 'Immersive Theater'}
+          </span>
         </div>
 
-        {/* 右侧：三大金刚绝对锁定在 104px */}
-        <div className="flex items-center justify-end gap-2 z-10 w-[104px]">
+        <div className="flex items-center justify-end gap-2 z-10 w-[104px] shrink-0">
           <button onClick={() => { setShowSearch(!showSearch); setShowMap(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Search /></button>
           <button onClick={() => { setShowMap(!showMap); setShowSearch(false); }} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors shadow-sm"><Icons.Map /></button>
           <button onClick={() => setShowMenu(!showMenu)} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm"><Icons.More /></button>
         </div>
       </div>
 
+      {/* 补齐的 DeepChat 同款 Search Modal */}
       {showSearch && (
-        <div className="absolute top-20 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in flex gap-2">
-          <input 
-            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-            placeholder="Search your memories..." 
-            className="flex-1 bg-wade-bg-app border border-wade-border rounded-full px-4 py-2 text-xs focus:outline-none focus:border-wade-accent text-wade-text-main"
-            autoFocus
-          />
-          <button onClick={() => { setShowSearch(false); setSearchQuery(''); }} className="text-wade-text-muted hover:text-wade-accent px-2"><Icons.Close /></button>
+        <div onClick={(e) => e.stopPropagation()} className="absolute top-20 left-4 right-4 z-40 bg-wade-bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-wade-border p-3 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <button onClick={goToPrevResult} disabled={totalResults === 0} className="w-7 h-7 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronLeft /></button>
+            <div className="flex-1 relative">
+              <input type="text" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Hunt words..." className="w-full px-4 py-2 pr-20 text-xs bg-wade-bg-app border border-wade-border rounded-full focus:outline-none focus:border-wade-accent transition-colors text-wade-text-main" autoFocus />
+              {searchQuery && (<div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"><span className="text-xs text-wade-text-muted font-medium">{totalResults > 0 ? `${currentSearchIndex + 1}/${totalResults}` : '0/0'}</span><button onClick={() => { setSearchQuery(''); setCurrentSearchIndex(0); }} className="text-wade-text-muted hover:text-wade-accent"><Icons.Close /></button></div>)}
+            </div>
+            <button onClick={goToNextResult} disabled={totalResults === 0} className="w-7 h-7 shrink-0 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-30"><Icons.ChevronRight /></button>
+            <button onClick={() => setShowSearch(false)} className="px-3 py-1.5 text-xs text-wade-text-muted hover:text-wade-accent transition-colors font-medium">Nope</button>
+          </div>
         </div>
       )}
 
-      {/* 聊天气泡展示区 */}
+      {/* 补齐的地图组件！ */}
+      {showMap && (
+        <>
+          <div className="absolute inset-0 z-40 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowMap(false)} />
+          <div className="absolute bottom-0 left-0 right-0 z-50 bg-wade-bg-card/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-wade-border/50 max-h-[70%] flex flex-col overflow-hidden animate-slide-up">
+            <div className="p-4 border-b border-wade-border/50 flex items-center justify-between shrink-0">
+              <h3 className="font-bold text-wade-text-main text-sm">Conversation GPS</h3>
+              <button onClick={() => setShowMap(false)} className="w-7 h-7 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Close /></button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2 flex-1 custom-scrollbar">
+              {displayMessages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'Luna' ? 'justify-end' : 'justify-start'}`}>
+                  <button onClick={() => scrollToMessage(msg.id)} className={`text-left px-3 py-2 rounded-xl transition-all hover:scale-[1.02] ${msg.role === 'Luna' ? 'bg-wade-accent/20 border border-wade-accent/30 max-w-[85%]' : 'bg-wade-bg-card border border-wade-border w-full'}`}>
+                    <p className={`text-xs truncate ${msg.role === 'Luna' ? 'text-wade-text-main' : 'text-wade-text-muted'}`}>{msg.text}</p>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 聊天气泡展示区：加入 DeepChat 相同的呼吸感间距 */}
       <div className="flex-1 overflow-y-auto p-4 relative custom-scrollbar">
         {displayMessages.length === 0 && (
            <div className="text-center text-wade-text-muted mt-20 opacity-50 flex flex-col items-center gap-2">
@@ -199,15 +233,25 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
         )}
 
         <div className="flex flex-col w-full">
-          {displayMessages.map(msg => (
-            <div key={msg.id} className="mb-4">
-              <MessageBubble 
-                msg={msg} settings={settings} onSelect={setSelectedMsgId} isSMS={false} 
-                onPlayTTS={executeTTS} onRegenerateTTS={executeTTS} searchQuery={searchQuery} 
-                playingMessageId={playingMessageId} isPaused={isPaused} 
-              />
-            </div>
-          ))}
+          {displayMessages.map((msg, idx) => {
+            // 👇 完美的动态呼吸间距！ 👇
+            let marginBottom = 'mb-6';
+            const nextMsg = displayMessages[idx + 1];
+            if (nextMsg && nextMsg.role === msg.role) marginBottom = 'mb-2';
+            else marginBottom = 'mb-6';
+
+            const isCurrentSearchResult = searchQuery && totalResults > 0 && searchResults[currentSearchIndex]?.id === msg.id;
+
+            return (
+              <div key={msg.id} id={`msg-${msg.id}`} className={`${marginBottom} ${isCurrentSearchResult ? 'highlight-search' : ''}`}>
+                <MessageBubble 
+                  msg={msg} settings={settings} onSelect={setSelectedMsgId} isSMS={false} 
+                  onPlayTTS={executeTTS} onRegenerateTTS={executeTTS} searchQuery={searchQuery} 
+                  playingMessageId={playingMessageId} isPaused={isPaused} 
+                />
+              </div>
+            );
+          })}
         </div>
         
         {isTyping && (
@@ -218,7 +262,6 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 乐高积木 1 号：通用输入框 */}
       <ChatInputArea 
         onSend={handleSend}
         onCancel={handleCancel}
@@ -227,7 +270,6 @@ export const RoleplayView: React.FC<RoleplayViewProps> = ({ onBack }) => {
         placeholderText="*Walks in and looks at you...*"
       />
 
-      {/* 乐高积木 3 号：通用长按操作抽屉 */}
       {selectedMsg && (
         <ActionMenuModal
           selectedMsg={selectedMsg}
