@@ -266,19 +266,34 @@ export const ChatInterface: React.FC = () => {
   // 走廊：会话列表
   return (
     <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
-      <div className="w-full max-w-md mx-auto flex justify-between items-center px-6 pt-6 pb-4 shrink-0">
-        <button onClick={handleBack} className="w-8 h-8 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"><Icons.Back /></button>
-        <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
-        
-        {activeMode === 'archive' ? (
-           <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
-             {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
-           </button>
-        ) : (
-           <button onClick={() => { setActiveSessionId(null); setViewState('chat'); }} className="w-8 h-8 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors"><Icons.Plus /></button>
-        )}
-        <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
-      </div>
+      {/* =========================================
+            🔥 终极防跳跃 Header (绝对锁定68px，左右104px防跳跃) 🔥
+            ========================================= */}
+        <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent">
+          
+          <div className="w-[104px] flex justify-start">
+            <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
+              <Icons.Back />
+            </button>
+          </div>
+
+          <div className="flex-1 flex justify-center items-center">
+            <h2 className="font-hand text-2xl text-wade-accent capitalize">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
+          </div>
+          
+          <div className="w-[104px] flex items-center justify-end gap-2">
+            {activeMode === 'archive' ? (
+               <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors" title="Import Archive">
+                 {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
+               </button>
+            ) : (
+               <button onClick={handleStartDraftSession} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
+                 <Icons.Plus />
+               </button>
+            )}
+            <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
+          </div>
+        </div>
       
       <div className="flex-1 w-full max-w-md mx-auto overflow-y-auto px-6 pb-24 custom-scrollbar space-y-3">
         {activeMode === 'archive' ? (
