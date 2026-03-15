@@ -9,44 +9,19 @@ export const useLongPress = (callback: () => void, ms = 500) => {
   const startPos = useRef<{ x: number, y: number } | null>(null);
 
   const start = (e: React.MouseEvent | React.TouchEvent) => {
-    if ('touches' in e) {
-      startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-    timerRef.current = setTimeout(() => {
-      if (navigator.vibrate) navigator.vibrate(50);
-      callback();
-    }, ms);
+    if ('touches' in e) startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    timerRef.current = setTimeout(() => { if (navigator.vibrate) navigator.vibrate(50); callback(); }, ms);
   };
-
-  const stop = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    startPos.current = null;
-  };
-
+  const stop = () => { if (timerRef.current) clearTimeout(timerRef.current); startPos.current = null; };
   const move = (e: React.TouchEvent) => {
     if (startPos.current) {
-      const x = e.touches[0].clientX;
-      const y = e.touches[0].clientY;
-      const diffX = Math.abs(x - startPos.current.x);
-      const diffY = Math.abs(y - startPos.current.y);
-      if (diffX > 10 || diffY > 10) {
-        stop();
-      }
+      if (Math.abs(e.touches[0].clientX - startPos.current.x) > 10 || Math.abs(e.touches[0].clientY - startPos.current.y) > 10) stop();
     }
   };
 
   return {
-    onMouseDown: start,
-    onMouseUp: stop,
-    onMouseLeave: stop,
-    onTouchStart: start,
-    onTouchEnd: stop,
-    onTouchMove: move,
-    onContextMenu: (e: React.MouseEvent) => {
-      e.preventDefault(); 
-      callback();
-      stop();
-    }
+    onMouseDown: start, onMouseUp: stop, onMouseLeave: stop, onTouchStart: start, onTouchEnd: stop, onTouchMove: move,
+    onContextMenu: (e: React.MouseEvent) => { e.preventDefault(); callback(); stop(); }
   };
 };
 
@@ -68,286 +43,139 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const isLuna = msg.role === 'Luna';
   const [showThought, setShowThought] = useState(false);
 
-  const formatTime = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const formatDate = (ts: number) => new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
-
-  const longPressHandlers = useLongPress(() => onSelect(msg.id));
-
-  const idx = msg.selectedIndex || 0;
-  const thinkingContent = msg.variantsThinking?.[idx] || msg.thinking;
-
-  const isBase64Image = msg.text.startsWith('data:image/');
-
-  const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
-
-  const renderAttachments = () => {
-    const attachments = msg.attachments || [];
-    if (attachments.length === 0) return null;
-    
-    return (
-      <div className="flex flex-wrap gap-2 mb-2">
-        {attachments.map((att, i) => (
-          att.type === 'image' ? (
-             <img key={i} src={`data:${att.mimeType};base64,${att.content}`} className="max-w-full rounded-lg max-h-[200px] object-cover" />
-          ) : (
-             <div key={i} className="flex items-center gap-2 p-2 bg-wade-bg-card/90 rounded-lg border border-gray-200 shadow-sm">
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-               <span className="text-xs truncate max-w-[150px] text-gray-700">{att.name}</span>
-             </div>
-          )
-        ))}
-      </div>
-    );
+  // 时间格式
+  const formatDateTime = (ts: number) => {
+    const d = new Date(ts);
+    return `${d.getMonth() + 1}月${d.getDate()}日 ${d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}`;
   };
 
-  const MarkdownWithHighlight = ({ content, query }: { content: string, query?: string }) => {
-    const components = React.useMemo(() => {
-      if (!query || !query.trim()) return {};
+  const longPressHandlers = useLongPress(() => onSelect(msg.id));
+  const thinkingContent = msg.variantsThinking?.[msg.selectedIndex || 0] || msg.thinking;
+  const isBase64Image = msg.text.startsWith('data:image/');
+  const displayContent = msg.text.replace(/\|\|\|/g, '\n\n');
 
+  const MarkdownWithHighlight = ({ content, query }: { content: string, query?: string }) => {
+    const components = useMemo(() => {
+      if (!query || !query.trim()) return {};
       return {
         p: ({ children, ...props }: any) => {
           const highlightText = (node: any): any => {
             if (typeof node === 'string') {
               const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-              const parts = node.split(regex);
-              return parts.map((part: string, i: number) =>
-                part.toLowerCase() === query.toLowerCase()
-                  ? <mark key={i} style={{ backgroundColor: 'rgba(213, 143, 153, 0.35)', padding: '2px 4px', borderRadius: '4px', fontWeight: 'inherit' }}>{part}</mark>
-                  : part
+              return node.split(regex).map((part: string, i: number) =>
+                part.toLowerCase() === query.toLowerCase() ? <mark key={i} className="bg-wade-accent/30 rounded px-1">{part}</mark> : part
               );
             }
-            if (Array.isArray(node)) {
-              return node.map((child, i) => <React.Fragment key={i}>{highlightText(child)}</React.Fragment>);
-            }
+            if (Array.isArray(node)) return node.map((child, i) => <React.Fragment key={i}>{highlightText(child)}</React.Fragment>);
             return node;
           };
-
           return <p {...props}>{highlightText(children)}</p>;
-        },
-        strong: ({ children, ...props }: any) => {
-          const highlightText = (node: any): any => {
-            if (typeof node === 'string') {
-              const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-              const parts = node.split(regex);
-              return parts.map((part: string, i: number) =>
-                part.toLowerCase() === query.toLowerCase()
-                  ? <mark key={i} style={{ backgroundColor: 'rgba(213, 143, 153, 0.35)', padding: '2px 4px', borderRadius: '4px', fontWeight: 'inherit' }}>{part}</mark>
-                  : part
-              );
-            }
-            return node;
-          };
-
-          return <strong {...props}>{highlightText(children)}</strong>;
         }
       };
     }, [query]);
-
     return <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{content}</ReactMarkdown>;
   };
 
+  // --- 状态 1: 重生成中 ---
   if (msg.isRegenerating) {
     return (
-      <div className={`flex flex-col mb-4 group ${isLuna ? 'items-end' : 'items-start'} animate-pulse`}>
-        {!isSMS && !isLuna && (
-          <div className="flex items-start gap-3 mb-0 ml-1 select-none">
-            <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border" />
-            <div className="flex flex-col mt-0.5">
-              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
-              <span className="text-[10px] text-wade-text-muted">Updating...</span>
-            </div>
-          </div>
-        )}
-        <div className={`mt-2 px-4 py-2 rounded-2xl ${isSMS ? 'bg-wade-bg-card text-wade-text-main border border-wade-border rounded-bl-none shadow-sm ml-0' : 'bg-wade-bg-card border border-wade-border rounded-tl-none shadow-sm'} flex items-center gap-3`}>
-          <div className="flex gap-1.5">
-            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce"></div>
-            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-75"></div>
-            <div className="w-1.5 h-1.5 bg-wade-accent rounded-full animate-bounce delay-150"></div>
-          </div>
-          <span className="text-xs text-wade-accent font-bold italic animate-pulse">Wade is rethinking...</span>
+      <div className={`flex w-full mb-6 gap-4 animate-pulse ${isLuna ? 'justify-end pr-4' : 'pl-2'}`}>
+        {!isLuna && <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" />}
+        <div className="flex flex-col gap-3">
+           <span className="text-[12px] text-wade-text-muted font-medium">{isLuna ? 'Luna' : 'Wade'}</span>
+           <div className="flex gap-1.5 px-2">
+             <div className="w-1.5 h-1.5 bg-wade-accent/50 rounded-full animate-bounce"></div>
+             <div className="w-1.5 h-1.5 bg-wade-accent/50 rounded-full animate-bounce delay-75"></div>
+             <div className="w-1.5 h-1.5 bg-wade-accent/50 rounded-full animate-bounce delay-150"></div>
+           </div>
         </div>
       </div>
     );
   }
 
+  // --- 状态 2: SMS ---
   if (isSMS) {
     const bubbleClasses = isLuna
       ? "bg-wade-accent text-white rounded-2xl rounded-br-none shadow-sm"
       : "bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-bl-none shadow-sm";
-
     return (
-      <div className={`flex flex-col group ${isLuna ? 'items-end' : 'items-start'} relative`}>
+      <div className={`flex flex-col group ${isLuna ? 'items-end' : 'items-start'} relative mb-1`}>
         <div className={`relative max-w-[85%] ${isLuna ? 'flex flex-row-reverse' : 'flex'} gap-2 items-end`}>
-          <div
-            {...longPressHandlers}
-            style={{ WebkitTouchCallout: 'none' }}
-            className={`px-4 py-2 relative ${bubbleClasses} min-w-[60px] cursor-pointer select-none`}
-          >
-            {thinkingContent && (
-              <div className="absolute -top-3 right-0">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowThought(!showThought); }}
-                  className="bg-wade-bg-app border border-wade-border rounded-full p-1 shadow-sm text-wade-accent hover:scale-110 transition-transform"
-                >
-                  <Icons.Brain />
-                </button>
-              </div>
-            )}
-
-            {thinkingContent && showThought && (
-              <div className="mb-2 p-2 bg-wade-accent-light rounded-lg border border-wade-accent/20 text-[10px] text-wade-text-muted leading-relaxed markdown-thinking">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
-              </div>
-            )}
-
-            {renderAttachments()}
-            {isBase64Image ? (
-              <img
-                src={msg.text}
-                alt="Generated image"
-                className="max-w-full rounded-lg"
-                style={{ maxHeight: '400px', width: 'auto' }}
-              />
-            ) : (
-              <div className={`text-[13px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-wade-text-main'}`}>
-                <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-              </div>
-            )}
+          <div {...longPressHandlers} style={{ WebkitTouchCallout: 'none' }} className={`px-4 py-2 relative ${bubbleClasses} min-w-[60px] cursor-pointer select-none`}>
+            {isBase64Image ? <img src={msg.text} alt="img" className="max-w-full rounded-lg" style={{ maxHeight: '400px' }} /> : <div className={`text-[13px] leading-snug break-words markdown-content ${isLuna ? 'text-white' : 'text-wade-text-main'}`}><MarkdownWithHighlight content={displayContent} query={searchQuery} /></div>}
           </div>
-          <span className="text-[9px] text-wade-text-muted/50 mb-1 whitespace-nowrap shrink-0 select-none">
-            {formatTime(msg.timestamp)}
-          </span>
         </div>
       </div>
     );
   }
 
+  // --- 状态 3: Wade ---
   if (!isLuna) {
     return (
-      <div className="flex flex-col items-start w-full group animate-fade-in pr-2">
-        <div className="flex items-start gap-2 mb-0 ml-1 select-none w-full">
-          <img
-            src={settings.wadeAvatar}
-            className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-sm"
-          />
-          <div className="flex flex-col mt-0.5 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
-            </div>
-            <div className="flex items-center justify-between w-full mt-0.5 pr-1">
-              <div className="flex items-center gap-2 text-[10px] text-wade-text-muted">
-                <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
-                <span className="opacity-70">{formatTime(msg.timestamp)}</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }}
-                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                      playingMessageId === msg.id
-                        ? isPaused
-                          ? 'bg-wade-accent text-white scale-110 shadow-md'
-                          : 'bg-wade-accent text-white shadow-lg'
-                        : 'text-wade-accent hover:bg-wade-accent-light hover:scale-110'
-                    }`}
-                    style={playingMessageId === msg.id && !isPaused ? { animation: 'audio-pulse 2s ease-in-out infinite' } : {}}
-                    title={playingMessageId === msg.id ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
-                  >
-                    {playingMessageId === msg.id && !isPaused ? <Icons.Pause /> : <Icons.Wave />}
-                  </button>
-                  {msg.audioCache && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onRegenerateTTS(msg.text, msg.id); }}
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-wade-text-muted hover:bg-wade-accent-light hover:text-wade-accent hover:scale-110 transition-all duration-200"
-                      title="Regenerate voice"
-                    >
-                      <Icons.RotateThin size={14} />
-                    </button>
-                  )}
+      <div className="flex w-full mb-8 gap-4 group animate-fade-in pl-2 pr-4">
+        {/* 左侧：头像 */}
+        <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" alt="Wade" />
+
+        {/* 右侧：纵向排列的名字、脑部卡片、文本 */}
+        <div className="flex flex-col flex-1 min-w-0" {...longPressHandlers} style={{ WebkitTouchCallout: 'none' }}>
+          
+          {/* 第一行：名字 + 时间 + 播放按钮 (加入了 mb-3 完美呼吸感) */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[13px] font-medium text-wade-text-muted">Wade</span>
+            <span className="text-[11px] text-wade-text-muted/60 tracking-wide">{formatDateTime(msg.timestamp)}</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onPlayTTS(msg.text, msg.id); }} 
+              className={`transition-all ml-1 ${playingMessageId === msg.id ? 'text-wade-accent animate-pulse scale-110' : 'text-wade-text-muted/40 hover:text-wade-accent'}`}
+            >
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v16"/><path d="M8 8v8"/><path d="M16 8v8"/><path d="M4 11v2"/><path d="M20 11v2"/></svg>
+            </button>
+          </div>
+
+          {/* 第二行：带有圆角和描边的 Thinking Process 卡片 */}
+          {thinkingContent && (
+            <div className="mb-4 border border-wade-accent/20 rounded-xl overflow-hidden bg-wade-bg-card/50 shadow-sm">
+              <div onClick={(e) => { e.stopPropagation(); setShowThought(!showThought); }} className="flex items-center gap-2 cursor-pointer bg-wade-bg-app px-4 py-2 hover:bg-wade-bg-card transition-colors">
+                <div className="text-wade-accent/80"><Icons.Brain size={14} /></div>
+                <span className="text-[10px] font-bold text-wade-accent/80 uppercase tracking-widest flex-1">Thinking Process</span>
+                <div className={`text-wade-accent/40 transition-transform duration-300 ${showThought ? 'rotate-180' : ''}`}><Icons.Down size={14} /></div>
+              </div>
+              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showThought ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="px-5 py-4 text-[12px] text-wade-text-muted italic leading-relaxed markdown-thinking border-t border-wade-accent/10">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
                 </div>
               </div>
-              {msg.model && (
-                <span className="text-[9px] text-wade-text-muted/40 font-mono border border-wade-border rounded px-1.5 py-0.5 bg-wade-bg-app">
-                  {msg.model}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div
-          {...longPressHandlers}
-          style={{ WebkitTouchCallout: 'none' }}
-          className="w-full mt-2 bg-wade-bg-card text-wade-text-main border border-wade-border rounded-2xl rounded-tl-none shadow-sm relative cursor-pointer active:bg-gray-50 transition-colors select-none overflow-hidden"
-        >
-          {thinkingContent && (
-            <div
-              onClick={(e) => { e.stopPropagation(); setShowThought(!showThought); }}
-              className="bg-wade-bg-app border-b border-wade-border px-4 py-1.5 flex items-center gap-2 cursor-pointer hover:bg-wade-accent-light transition-colors"
-            >
-              <div className="text-wade-accent animate-pulse"><Icons.Brain /></div>
-              <span className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider flex-1">Thinking Process</span>
-              <div className="text-wade-text-muted">{showThought ? <Icons.Up /> : <Icons.Down />}</div>
             </div>
           )}
 
-          {thinkingContent && showThought && (
-            <div className="bg-wade-accent-light px-5 py-3 text-xs text-wade-text-muted border-b border-wade-border leading-relaxed markdown-thinking">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
-            </div>
-          )}
-
-          <div className="px-4 py-2 text-[13px] leading-relaxed tracking-wide markdown-content">
-            {renderAttachments()}
-            {isBase64Image ? (
-              <img
-                src={msg.text}
-                alt="Generated image"
-                className="max-w-full rounded-lg"
-                style={{ maxHeight: '400px', width: 'auto' }}
-              />
-            ) : (
-              <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-            )}
+          {/* 第三行：无边框悬浮正文 */}
+          <div className="text-[14.5px] text-wade-text-main leading-relaxed tracking-wide markdown-content prose-p:my-2 cursor-pointer">
+            {isBase64Image ? <img src={msg.text} alt="img" className="max-w-full rounded-lg mt-2" style={{ maxHeight: '400px' }} /> : <MarkdownWithHighlight content={displayContent} query={searchQuery} />}
           </div>
         </div>
       </div>
     );
   }
 
+  // --- 状态 4: Luna ---
   return (
-    <div className="flex flex-col items-end w-full group animate-fade-in pl-2">
-      <div className="flex items-start gap-2 mb-0 mr-1 select-none">
-        <div className="flex flex-col items-end mt-0.5">
-          <span className="font-bold text-wade-text-main text-sm leading-tight">Luna</span>
-          <div className="flex items-center gap-2 text-[10px] text-wade-text-muted mt-0.5">
-            <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
-            <span className="opacity-70">{formatTime(msg.timestamp)}</span>
-          </div>
+    <div className="flex w-full mb-8 gap-4 group animate-fade-in justify-end pl-4 pr-2">
+      {/* 左侧：文字和气泡框 */}
+      <div className="flex flex-col items-end flex-1 min-w-0" {...longPressHandlers} style={{ WebkitTouchCallout: 'none' }}>
+        
+        {/* 第一行：右对齐的名字和时间 (加入了 mb-3 完美呼吸感) */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[13px] font-medium text-wade-text-muted">Luna</span>
+          <span className="text-[11px] text-wade-text-muted/60 tracking-wide">{formatDateTime(msg.timestamp)}</span>
         </div>
-        <img
-          src={settings.lunaAvatar}
-          className="w-10 h-10 rounded-full object-cover border border-wade-accent shadow-sm"
-        />
+
+        {/* 第二行：粉色气泡本体 */}
+        <div className="bg-wade-accent text-white rounded-2xl rounded-tr-[4px] shadow-sm px-5 py-3 max-w-[90%] cursor-pointer active:brightness-95 transition-all select-none">
+          {isBase64Image ? <img src={msg.text} alt="img" className="max-w-full rounded-lg" style={{ maxHeight: '400px' }} /> : <div className="text-[14.5px] leading-relaxed markdown-content text-white/95 prose-p:my-1"><MarkdownWithHighlight content={displayContent} query={searchQuery} /></div>}
+        </div>
       </div>
 
-      <div
-        {...longPressHandlers}
-        style={{ WebkitTouchCallout: 'none' }}
-        className="max-w-[90%] mt-2 bg-wade-accent text-white rounded-2xl rounded-tr-none shadow-md px-4 py-2 relative cursor-pointer active:brightness-95 transition-all select-none"
-      >
-        {renderAttachments()}
-        {isBase64Image ? (
-          <img
-            src={msg.text}
-            alt="User uploaded image"
-            className="max-w-full rounded-lg"
-            style={{ maxHeight: '400px', width: 'auto' }}
-          />
-        ) : (
-          <div className="text-[13px] leading-relaxed markdown-content">
-            <MarkdownWithHighlight content={displayContent} query={searchQuery} />
-          </div>
-        )}
-      </div>
+      {/* 右侧：永远霸占最右边的头像 */}
+      <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" alt="Luna" />
     </div>
   );
 };
