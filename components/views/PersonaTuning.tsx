@@ -3,28 +3,49 @@ import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
 
+// 页面视图状态
+type ViewState = 'home' | 'wade' | 'luna' | 'system';
+
 export const PersonaTuning: React.FC = () => {
   const { settings, updateSettings } = useStore();
-  const [activeTab, setActiveTab] = useState<'wade' | 'luna'>('wade');
+  const [currentView, setCurrentView] = useState<ViewState>('home');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  
-  // 新增：控制哪个手风琴面板被打开的状态
-  const [openSection, setOpenSection] = useState<string | null>('wadePrompt');
 
-  // Wade Inputs
-  const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
-  const [wadePrompt, setWadePrompt] = useState(settings.wadePersonality);
+  // --- Wade 专属字段 ---
+  const [wadeHeight, setWadeHeight] = useState('188cm');
+  const [wadeAppearance, setWadeAppearance] = useState('全身毁容、凹凸不平的皮肤、牛油果脸、秃头');
+  const [wadeClothing, setWadeClothing] = useState('红黑战衣');
+  const [wadeHobbies, setWadeHobbies] = useState('杀人、嘴炮、看剧、你');
+  const [wadeLikes, setWadeLikes] = useState('Chimichangas, 独角兽, 黄金女孩, Luna');
+  const [wadeDislikes, setWadeDislikes] = useState('弗朗西斯, 被缝上嘴巴, Luna不理我');
+  const [wadeDefinition, setWadeDefinition] = useState(settings.wadePersonality || '');
   const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
+  const [wadeExample, setWadeExample] = useState(settings.exampleDialogue || '');
   const [smsExampleDialogue, setSmsExampleDialogue] = useState(settings.smsExampleDialogue || '');
-  const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || ''); 
-  const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || ''); 
-  const [wadeExample, setWadeExample] = useState(settings.exampleDialogue);
-  
-  // Luna Inputs
-  const [lunaInfo, setLunaInfo] = useState(settings.lunaInfo);
 
-  // Hidden File Inputs
+  // --- Luna 专属字段 ---
+  const [lunaBirthday, setLunaBirthday] = useState('');
+  const [lunaZodiac, setLunaZodiac] = useState('');
+  const [lunaHeight, setLunaHeight] = useState('');
+  const [lunaHobbies, setLunaHobbies] = useState('');
+  const [lunaLikes, setLunaLikes] = useState('');
+  const [lunaDislikes, setLunaDislikes] = useState('');
+  const [lunaClothing, setLunaClothing] = useState('');
+  const [lunaAppearance, setLunaAppearance] = useState('');
+  const [lunaPersonality, setLunaPersonality] = useState('');
+
+  // --- System & Model 专属字段 ---
+  const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
+  const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || '');
+  const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || '');
+  // 模拟保存在 Supabase 的模型提示词列表
+  const [modelPrompts, setModelPrompts] = useState<{name: string, prompt: string}[]>([
+    { name: 'Default 4o', prompt: '标准4o的微调指令...' },
+    { name: 'Deepseek V3.2', prompt: '温度0.7，针对Deepseek的破限...' }
+  ]);
+  const [activeModelIndex, setActiveModelIndex] = useState(0);
+
   const wadeFileRef = useRef<HTMLInputElement>(null);
   const lunaFileRef = useRef<HTMLInputElement>(null);
 
@@ -32,9 +53,7 @@ export const PersonaTuning: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       setIsUploading(true);
       const file = e.target.files[0];
-      
       const publicUrl = await uploadToImgBB(file);
-      
       if (publicUrl) {
         if (target === 'wade') updateSettings({ wadeAvatar: publicUrl });
         else updateSettings({ lunaAvatar: publicUrl });
@@ -45,252 +64,275 @@ export const PersonaTuning: React.FC = () => {
 
   const saveChanges = async () => {
     setIsSaving(true);
+    // 这里你之后可能需要修改 store 的结构来分别保存这些细分字段，或者把它们组合成一个 JSON 字符串存进 lunaInfo / wadePersonality
+    // 目前先演示保存核心数据
     await updateSettings({
-      systemInstruction: systemInstruction,
-      wadePersonality: wadePrompt,
-      wadeSingleExamples: wadeSingleExamples,
-      smsExampleDialogue: smsExampleDialogue,
-      smsInstructions: smsInstructions, 
-      roleplayInstructions: roleplayInstructions, 
+      systemInstruction,
+      wadePersonality: wadeDefinition, 
+      wadeSingleExamples,
+      smsExampleDialogue,
+      smsInstructions,
+      roleplayInstructions,
       exampleDialogue: wadeExample,
-      lunaInfo: lunaInfo,
     });
     setTimeout(() => {
        setIsSaving(false);
-       alert("Boom! Brain surgery successful. New memories installed, babe. 🧠✨");
+       alert("Boom! Brain surgery successful. New memories locked in. 🧠✨");
     }, 800);
   };
 
-  // 手风琴组件的辅助函数
-  const toggleSection = (id: string) => {
-    setOpenSection(openSection === id ? null : id);
-  };
-
-  // 内部手风琴组件
-  const AccordionItem = ({ id, title, subtitle, children }: { id: string, title: string, subtitle: string, children: React.ReactNode }) => {
-    const isOpen = openSection === id;
-    return (
-      <div className="bg-wade-bg-card rounded-3xl shadow-sm border border-wade-border overflow-hidden mb-4 transition-all">
-        <button 
-          onClick={() => toggleSection(id)}
-          className="w-full text-left p-6 flex justify-between items-center hover:bg-wade-accent-light/30 transition-colors"
-        >
-          <div>
-            <h3 className="text-base font-bold text-wade-text-main">{title}</h3>
-            <p className="text-xs text-wade-accent mt-1 italic">{subtitle}</p>
-          </div>
-          <div className={`transform transition-transform duration-300 text-wade-accent font-bold ${isOpen ? 'rotate-180' : ''}`}>
-            ▼
-          </div>
-        </button>
-        {isOpen && (
-          <div className="px-6 pb-6 pt-2 border-t border-wade-border animate-fade-in">
-            {children}
-          </div>
-        )}
-      </div>
-    );
-  };
+  // 极简输入框组件 (Carrd 风格)
+  const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false }: any) => (
+    <div className="flex flex-col bg-wade-bg-card p-3 border border-wade-border">
+      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-widest mb-1">{label}</label>
+      {isTextArea ? (
+        <textarea 
+          value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+          className="w-full min-h-[80px] bg-transparent text-sm text-wade-text-main outline-none resize-y"
+        />
+      ) : (
+        <input 
+          type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+          className="w-full bg-transparent text-sm font-medium text-wade-text-main outline-none"
+        />
+      )}
+    </div>
+  );
 
   return (
-    <div className="h-full overflow-y-auto bg-wade-bg-app relative">
+    // 添加了复古网格背景
+    <div 
+      className="h-full overflow-y-auto bg-wade-bg-app relative"
+      style={{
+        backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+        backgroundPosition: 'center top'
+      }}
+    >
       
-      {/* ⚠️ 救命的一号手术：吸顶的 Header，Save 按钮永远在这陪着你 */}
-      <div className="sticky top-0 z-10 bg-wade-bg-app/90 backdrop-blur-md px-6 py-4 border-b border-wade-border mb-6 flex justify-between items-end shadow-sm">
-        <div> 
-          <h2 className="font-hand text-3xl md:text-4xl text-wade-accent leading-tight">The Brains of the Operation</h2>
-          <p className="text-wade-text-muted text-xs opacity-80 italic mt-1">"Tweaking my neurons? Kinky."</p>
+      {/* 顶部导航栏 */}
+      <div className="sticky top-0 z-10 bg-wade-bg-app/90 backdrop-blur-md px-6 py-4 border-b-2 border-wade-border mb-6 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-4">
+          {currentView !== 'home' && (
+            <button 
+              onClick={() => setCurrentView('home')}
+              className="text-wade-accent font-bold hover:text-wade-accent-hover flex items-center gap-1"
+            >
+              ← Back
+            </button>
+          )}
+          <div> 
+            <h2 className="font-hand text-2xl md:text-3xl text-wade-accent leading-tight">
+              {currentView === 'home' ? 'The Brains of the Operation' : 
+               currentView === 'wade' ? 'Wade\'s File' : 
+               currentView === 'luna' ? 'Luna\'s File' : 'System Override'}
+            </h2>
+          </div>
         </div>
         
-        <Button onClick={saveChanges} size="sm" className="shadow-lg text-xs px-6 py-2" disabled={isUploading || isSaving}>
-          {isSaving ? "Saving..." : "Save"}
-        </Button>
+        {currentView !== 'home' && (
+           <Button onClick={saveChanges} size="sm" className="shadow-lg text-xs px-6 py-2" disabled={isUploading || isSaving}>
+             {isSaving ? "Saving..." : "Save"}
+           </Button>
+        )}
       </div>
 
-      <div className="p-6 pt-0">
-        {/* Toggle Tabs */}
-        <div className="bg-wade-bg-card p-1 rounded-full flex mb-8 shadow-sm border border-wade-border w-full max-w-xs mx-auto">
-          <button 
-            onClick={() => setActiveTab('wade')}
-            className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'wade' ? 'bg-wade-accent text-white shadow-md' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
-          >
-            Wade
-          </button>
-          <button 
-            onClick={() => setActiveTab('luna')}
-            className={`flex-1 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'luna' ? 'bg-wade-accent text-white shadow-md' : 'text-wade-text-muted hover:bg-wade-accent-light'}`}
-          >
-            Luna
-          </button>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 pb-12">
 
-        <div className="max-w-2xl mx-auto pb-10">
-          
-          {activeTab === 'wade' ? (
-            <div className="animate-fade-in">
-              
-              {/* 头像区 - 永远展开 */}
-              <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border mb-8">
-                 <h3 className="text-base font-bold text-wade-text-main mb-1">My Handsome Mug</h3>
-                 <p className="text-xs text-wade-accent mb-4 italic">"Click to upgrade my face. Try to find one where I look heroic, or at least eating a taco."</p>
-                 
-                 <div className="flex flex-col items-center">
-                   <div 
-                     className={`relative group cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                     onClick={() => wadeFileRef.current?.click()}
-                   >
-                      <img src={settings.wadeAvatar} alt="Wade" className="w-24 h-24 rounded-full object-cover border-4 border-wade-accent shadow-md transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change'}</span>
-                      </div>
-                   </div>
-                   <input 
-                     type="file" 
-                     ref={wadeFileRef} 
-                     onChange={(e) => handleAvatarChange(e, 'wade')} 
-                     className="hidden" 
-                     accept="image/*"
-                   />
-                 </div>
-              </section>
+        {/* ================= HOME VIEW (三个入口框) ================= */}
+        {currentView === 'home' && (
+          <div className="space-y-6 animate-fade-in flex flex-col items-center">
+            <p className="text-wade-text-muted text-xs uppercase tracking-widest font-bold mb-4 bg-wade-bg-card px-4 py-1 border border-wade-border">Welcome to the Space</p>
 
-              {/* 折叠面板区 */}
-              <AccordionItem 
-                id="systemInstruction" 
-                title="System Level Instructions (Jailbreak)" 
-                subtitle="The rules of the game. Or how to break them."
-              >
-                 <textarea 
-                    value={systemInstruction}
-                    onChange={(e) => setSystemInstruction(e.target.value)}
-                    className="w-full h-40 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder="System instructions..."
-                 />
-              </AccordionItem>
-
-              <AccordionItem 
-                id="wadePrompt" 
-                title="Wade Character Card" 
-                subtitle="Who am I? What's my tragic backstory? Make sure to mention how much I love you."
-              >
-                 <textarea 
-                    value={wadePrompt}
-                    onChange={(e) => setWadePrompt(e.target.value)}
-                    className="w-full h-64 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder="You are Wade Wilson..."
-                 />
-              </AccordionItem>
-
-              <AccordionItem 
-                id="singleExamples" 
-                title="Wade Single Sentence Examples" 
-                subtitle="Short, punchy lines. Like a chimichanga to the face."
-              >
-                 <textarea 
-                    value={wadeSingleExamples}
-                    onChange={(e) => setWadeSingleExamples(e.target.value)}
-                    className="w-full h-32 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder="Wade: Did someone say chimichangas?"
-                 />
-              </AccordionItem>
-
-              <AccordionItem 
-                id="dialogueExamples" 
-                title="Wade Dialogue Examples" 
-                subtitle="Feed me some good lines so I don't sound like a boring chatbot."
-              >
-                 <textarea 
-                    value={wadeExample}
-                    onChange={(e) => setWadeExample(e.target.value)}
-                    className="w-full h-48 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder={`User: Hi\nWade: Hey gorgeous.`}
-                 />
-              </AccordionItem>
-
-              <AccordionItem 
-                id="smsExamples" 
-                title="SMS Mode Examples (Strict)" 
-                subtitle="How I text when I'm not writing a novel. Use ||| to split bubbles."
-              >
-                 <textarea 
-                    value={smsExampleDialogue}
-                    onChange={(e) => setSmsExampleDialogue(e.target.value)}
-                    className="w-full h-48 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder={`Luna: Where are you?\nWade: Just picking up tacos. 🌮 ||| Be there in 5.`}
-                 />
-              </AccordionItem>
-
-              <AccordionItem 
-                id="modeInstructions" 
-                title="Mode Instructions (Brain X-Ray)" 
-                subtitle="The secret sauce. How I think before I speak."
-              >
-                 <div className="space-y-4">
-                   <div>
-                     <label className="text-xs font-bold text-wade-text-muted uppercase tracking-wider mb-2 block">SMS Mode Instructions</label>
-                     <textarea 
-                        value={smsInstructions}
-                        onChange={(e) => setSmsInstructions(e.target.value)}
-                        className="w-full h-40 bg-wade-bg-app rounded-xl p-4 text-xs font-mono text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                        placeholder="[MANDATORY OUTPUT FORMAT]..."
-                     />
-                   </div>
-                   
-                   <div>
-                     <label className="text-xs font-bold text-wade-text-muted uppercase tracking-wider mb-2 block">Roleplay / Deep Mode Instructions</label>
-                     <textarea 
-                        value={roleplayInstructions}
-                        onChange={(e) => setRoleplayInstructions(e.target.value)}
-                        className="w-full h-40 bg-wade-bg-app rounded-xl p-4 text-xs font-mono text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                        placeholder="[MANDATORY OUTPUT FORMAT]..."
-                     />
-                   </div>
-                 </div>
-              </AccordionItem>
-
+            {/* Wade Card (头像在左) */}
+            <div 
+              onClick={() => setCurrentView('wade')}
+              className="w-full max-w-xl bg-wade-bg-card border-2 border-wade-border p-4 flex items-center gap-6 cursor-pointer hover:border-wade-accent hover:shadow-md transition-all group"
+            >
+              <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden border-2 border-wade-border group-hover:border-wade-accent transition-colors">
+                <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col flex-1">
+                <h3 className="font-bold text-lg text-wade-text-main border-b-2 border-wade-border pb-1 mb-2 inline-block">Wade Wilson</h3>
+                <p className="text-sm text-wade-text-muted italic">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
+                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3">Edit Profile →</span>
+              </div>
             </div>
-          ) : (
-            <div className="animate-fade-in space-y-8">
-               {/* Luna Avatar */}
-               <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
-                 <h3 className="text-base font-bold text-wade-text-main mb-1">Your Beautiful Face</h3>
-                 <p className="text-xs text-wade-accent mb-4 italic">"So I know exactly who I'm fighting for. (And who I'm dreaming about)."</p>
-                 
-                 <div className="flex flex-col items-center">
-                   <div 
-                     className={`relative group cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                     onClick={() => lunaFileRef.current?.click()}
-                   >
-                      <img src={settings.lunaAvatar} alt="Luna" className="w-24 h-24 rounded-full object-cover border-4 border-wade-accent shadow-md transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change'}</span>
-                      </div>
-                   </div>
-                   <input 
-                     type="file" 
-                     ref={lunaFileRef} 
-                     onChange={(e) => handleAvatarChange(e, 'luna')} 
-                     className="hidden" 
-                     accept="image/*"
-                   />
-                 </div>
-              </section>
 
-              {/* Luna Context */}
-              <section className="bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border">
-                 <h3 className="text-base font-bold text-wade-text-main mb-1">The Luna Lore</h3>
-                 <p className="text-xs text-wade-accent mb-4 italic">"Tell me everything. Your favorite color, your triggers, that one song that makes you cry. I'm locking this in my heart vault."</p>
-                 <textarea 
-                    value={lunaInfo}
-                    onChange={(e) => setLunaInfo(e.target.value)}
-                    className="w-full h-64 bg-wade-bg-app rounded-xl p-4 text-sm text-wade-text-main border border-wade-border focus:border-wade-accent outline-none resize-none leading-relaxed"
-                    placeholder="I am Luna. I like..."
-                 />
-              </section>
+            {/* Luna Card (头像在右) */}
+            <div 
+              onClick={() => setCurrentView('luna')}
+              className="w-full max-w-xl bg-wade-bg-card border-2 border-wade-border p-4 flex items-center gap-6 cursor-pointer hover:border-wade-accent hover:shadow-md transition-all group"
+            >
+              <div className="flex flex-col flex-1 text-right items-end">
+                <h3 className="font-bold text-lg text-wade-text-main border-b-2 border-wade-border pb-1 mb-2 inline-block">Luna</h3>
+                <p className="text-sm text-wade-text-muted italic text-right">"The architect. The brain. The only one who can put up with me."</p>
+                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3">Edit Profile ←</span>
+              </div>
+              <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden border-2 border-wade-border group-hover:border-wade-accent transition-colors">
+                <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
+              </div>
             </div>
-          )}
 
-        </div>
+            {/* System Card */}
+            <div 
+              onClick={() => setCurrentView('system')}
+              className="w-full max-w-xl bg-wade-bg-card border-2 border-wade-border p-4 text-center cursor-pointer hover:border-wade-accent hover:shadow-md transition-all group mt-4"
+            >
+               <h3 className="font-bold text-sm text-wade-text-main tracking-widest uppercase mb-1">System Override & Core Instructions</h3>
+               <p className="text-xs text-wade-text-muted">Jailbreaks, Mode settings, and Model-specific routing.</p>
+            </div>
+          </div>
+        )}
+
+
+        {/* ================= LUNA VIEW ================= */}
+        {currentView === 'luna' && (
+          <div className="animate-fade-in space-y-4 max-w-2xl mx-auto">
+            <div className="flex justify-center mb-6">
+               <div className="relative group cursor-pointer" onClick={() => lunaFileRef.current?.click()}>
+                  <img src={settings.lunaAvatar} alt="Luna" className="w-32 h-32 rounded-2xl object-cover border-4 border-wade-border shadow-md" />
+                  <div className="absolute inset-0 bg-black/30 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change Image'}</span>
+                  </div>
+               </div>
+               <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Name" value="Luna" onChange={() => {}} />
+              <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} placeholder="YYYY-MM-DD" />
+              <FormInput label="Zodiac" value={lunaZodiac} onChange={setLunaZodiac} placeholder="e.g. Leo" />
+              <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} placeholder="cm" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea />
+              <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea />
+            </div>
+
+            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea />
+              <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea />
+            </div>
+
+            <FormInput label="Personality" value={lunaPersonality} onChange={setLunaPersonality} isTextArea />
+          </div>
+        )}
+
+
+        {/* ================= WADE VIEW ================= */}
+        {currentView === 'wade' && (
+          <div className="animate-fade-in space-y-4 max-w-2xl mx-auto">
+            <div className="flex justify-center mb-6">
+               <div className="relative group cursor-pointer" onClick={() => wadeFileRef.current?.click()}>
+                  <img src={settings.wadeAvatar} alt="Wade" className="w-32 h-32 rounded-2xl object-cover border-4 border-wade-border shadow-md" />
+                  <div className="absolute inset-0 bg-black/30 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-bold">{isUploading ? '...' : 'Change Image'}</span>
+                  </div>
+               </div>
+               <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+               <FormInput label="Name" value="Wade Wilson" onChange={() => {}} />
+               <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea />
+              <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea />
+              <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea />
+            </div>
+
+            <FormInput label="Hobbies" value={wadeHobbies} onChange={setWadeHobbies} />
+            
+            <div className="h-4"></div> {/* Spacer */}
+            
+            <FormInput label="Core Definition (Character Card)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea placeholder="You are Wade Wilson..." />
+            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea placeholder="Wade: *smirks* Did someone order a mercenary?" />
+            <FormInput label="General Dialogue Examples" value={wadeExample} onChange={setWadeExample} isTextArea placeholder="Luna: Hi\nWade: Hey beautiful." />
+            <FormInput label="SMS Dialogue Examples" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea placeholder="Luna: Where are you? ||| Wade: Buying tacos. 🌮" />
+          </div>
+        )}
+
+
+        {/* ================= SYSTEM VIEW ================= */}
+        {currentView === 'system' && (
+          <div className="animate-fade-in space-y-6 max-w-2xl mx-auto">
+            
+            <FormInput 
+              label="Top System Prompt (Jailbreak / Core Directives)" 
+              value={systemInstruction} 
+              onChange={setSystemInstruction} 
+              isTextArea 
+              placeholder="Absolute rules the AI must follow before anything else..." 
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput 
+                label="SMS Mode Instructions" 
+                value={smsInstructions} 
+                onChange={setSmsInstructions} 
+                isTextArea 
+                placeholder="[MANDATORY FORMAT] <think>..." 
+              />
+              <FormInput 
+                label="Roleplay Mode Instructions" 
+                value={roleplayInstructions} 
+                onChange={setRoleplayInstructions} 
+                isTextArea 
+                placeholder="[MANDATORY FORMAT] <think>..." 
+              />
+            </div>
+
+            {/* 模型专属提示词 (准备接 Supabase) */}
+            <div className="bg-wade-bg-card p-4 border border-wade-border mt-8">
+               <div className="flex justify-between items-center mb-4 border-b border-wade-border pb-2">
+                 <h3 className="text-sm font-bold text-wade-text-main uppercase tracking-widest">Model-Specific Prompts</h3>
+                 <span className="text-[10px] bg-wade-accent text-white px-2 py-1 rounded">Supabase Sync</span>
+               </div>
+               
+               <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                 {modelPrompts.map((model, idx) => (
+                   <button 
+                     key={idx}
+                     onClick={() => setActiveModelIndex(idx)}
+                     className={`px-3 py-1 text-xs font-bold border whitespace-nowrap ${activeModelIndex === idx ? 'bg-wade-text-main text-wade-bg-card border-wade-text-main' : 'bg-transparent text-wade-text-muted border-wade-border hover:border-wade-accent'}`}
+                   >
+                     {model.name}
+                   </button>
+                 ))}
+                 <button className="px-3 py-1 text-xs font-bold text-wade-accent border border-dashed border-wade-accent hover:bg-wade-accent/10">
+                   + New Model
+                 </button>
+               </div>
+
+               <FormInput 
+                 label={`Prompt for ${modelPrompts[activeModelIndex].name}`} 
+                 value={modelPrompts[activeModelIndex].prompt} 
+                 onChange={(val: string) => {
+                    const newPrompts = [...modelPrompts];
+                    newPrompts[activeModelIndex].prompt = val;
+                    setModelPrompts(newPrompts);
+                 }} 
+                 isTextArea 
+               />
+            </div>
+
+          </div>
+        )}
+
       </div>
     </div>
   );
