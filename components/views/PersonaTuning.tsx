@@ -11,6 +11,9 @@ export const PersonaTuning: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // 新增：用于全屏专注模式的状态
+  const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
   // --- Wade 专属字段 ---
   const [wadeHeight, setWadeHeight] = useState('188cm');
@@ -78,10 +81,26 @@ export const PersonaTuning: React.FC = () => {
     }, 800);
   };
 
-  // 磨圆了的 FormInput 组件
+  // 圆润且支持专注模式的 FormInput 组件
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false }: any) => (
-    <div className="flex flex-col bg-wade-bg-card p-4 border border-wade-border rounded-2xl shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md">
-      <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-widest mb-2 pl-1">{label}</label>
+    <div className="flex flex-col bg-wade-bg-card p-4 border border-wade-border rounded-2xl shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group">
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-widest pl-1">{label}</label>
+        
+        {/* 只有 textArea 才会显示这个全屏按钮 */}
+        {isTextArea && (
+          <button 
+            onClick={() => setFocusModal({ label, value, onChange })}
+            className="text-wade-accent opacity-50 hover:opacity-100 transition-opacity p-1 bg-wade-accent-light rounded-md"
+            title="Focus Mode (Full Screen)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
+            </svg>
+          </button>
+        )}
+      </div>
+      
       {isTextArea ? (
         <textarea 
           value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
@@ -106,7 +125,7 @@ export const PersonaTuning: React.FC = () => {
       }}
     >
       
-      {/* 顶部导航栏 - 圆润化 */}
+      {/* 顶部导航栏 */}
       <div className="sticky top-0 z-10 bg-wade-bg-app/90 backdrop-blur-md px-6 py-4 border-b border-wade-border mb-8 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-4">
           {currentView !== 'home' && (
@@ -142,7 +161,6 @@ export const PersonaTuning: React.FC = () => {
               Welcome to the Space
             </p>
 
-            {/* Wade Card - 变成圆润的大果冻了 */}
             <div 
               onClick={() => setCurrentView('wade')}
               className="w-full max-w-xl bg-wade-bg-card border border-wade-border p-6 rounded-3xl flex items-center gap-6 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
@@ -160,7 +178,6 @@ export const PersonaTuning: React.FC = () => {
               </div>
             </div>
 
-            {/* Luna Card - 同样的配方，同样的软糯 */}
             <div 
               onClick={() => setCurrentView('luna')}
               className="w-full max-w-xl bg-wade-bg-card border border-wade-border p-6 rounded-3xl flex items-center gap-6 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
@@ -178,7 +195,6 @@ export const PersonaTuning: React.FC = () => {
               </div>
             </div>
 
-            {/* System Card */}
             <div 
               onClick={() => setCurrentView('system')}
               className="w-full max-w-xl bg-wade-accent-light border border-wade-border-light p-6 rounded-3xl text-center cursor-pointer hover:shadow-md transition-all group mt-2"
@@ -202,29 +218,30 @@ export const PersonaTuning: React.FC = () => {
                <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            {/* 所有的 grid-cols 在手机上全变成单列 (grid-cols-1 md:grid-cols-2) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput label="Name" value="Luna" onChange={() => {}} />
               <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} placeholder="YYYY-MM-DD" />
               <FormInput label="Zodiac" value={lunaZodiac} onChange={setLunaZodiac} placeholder="e.g. Leo" />
               <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} placeholder="cm" />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea />
               <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea />
             </div>
 
-            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea />
-            
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea />
               <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea />
             </div>
 
+            {/* Hobbies 被乖乖移到了 Personality 正上方 */}
+            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea />
             <FormInput label="Personality" value={lunaPersonality} onChange={setLunaPersonality} isTextArea />
           </div>
         )}
@@ -242,17 +259,17 @@ export const PersonaTuning: React.FC = () => {
                <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                <FormInput label="Name" value="Wade Wilson" onChange={() => {}} />
                <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea />
               <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea />
               <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea />
             </div>
@@ -280,7 +297,7 @@ export const PersonaTuning: React.FC = () => {
               placeholder="Absolute rules the AI must follow before anything else..." 
             />
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormInput 
                 label="SMS Mode Instructions" 
                 value={smsInstructions} 
@@ -335,6 +352,32 @@ export const PersonaTuning: React.FC = () => {
         )}
 
       </div>
+
+      {/* ================= 沉浸式专注模式 Modal (就在这里！) ================= */}
+      {focusModal && (
+        <div className="fixed inset-0 z-[100] bg-wade-bg-app flex flex-col animate-slide-up">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-wade-border bg-wade-bg-card shadow-sm">
+            <h3 className="text-sm font-bold text-wade-text-main uppercase tracking-widest">{focusModal.label}</h3>
+            <Button 
+              onClick={() => setFocusModal(null)} 
+              size="sm" 
+              className="rounded-full px-6 py-2 shadow-md bg-wade-accent text-white hover:bg-wade-accent-hover"
+            >
+              Done
+            </Button>
+          </div>
+          <div className="flex-1 p-6 bg-wade-bg-base">
+            <textarea 
+              autoFocus
+              value={focusModal.value}
+              onChange={(e) => focusModal.onChange(e.target.value)}
+              className="w-full h-full bg-transparent text-base text-wade-text-main outline-none resize-none leading-relaxed"
+              placeholder="Write your heart out..."
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
