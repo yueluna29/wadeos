@@ -79,7 +79,6 @@ export const PersonaTuning: React.FC = () => {
     }, 800);
   };
 
-  // 找回原来舒适字体的 FormInput 组件
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col bg-wade-bg-card p-3 border border-wade-border rounded-2xl shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
       <div className="flex justify-between items-center mb-1">
@@ -121,7 +120,6 @@ export const PersonaTuning: React.FC = () => {
       }}
     >
       
-      {/* 恢复你喜欢的圆润导航栏 */}
       <div className="sticky top-0 z-10 bg-wade-bg-app/90 backdrop-blur-md px-5 py-4 border-b border-wade-border mb-6 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
           {currentView !== 'home' && (
@@ -148,7 +146,7 @@ export const PersonaTuning: React.FC = () => {
 
       <div className="max-w-2xl mx-auto px-5">
 
-        {/* ================= HOME VIEW (完美复原 V2 的大果冻排版) ================= */}
+        {/* ================= HOME VIEW ================= */}
         {currentView === 'home' && (
           <div className="space-y-5 animate-fade-in flex flex-col items-center">
             <p className="text-wade-text-muted text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1 bg-wade-bg-card px-5 py-2 rounded-full border border-wade-border shadow-sm">
@@ -203,10 +201,8 @@ export const PersonaTuning: React.FC = () => {
         {currentView === 'luna' && (
           <div className="animate-fade-in flex flex-col gap-3">
             
-            {/* 头像区域修复：1:1 正方形网格排版 */}
             <div className="flex flex-row gap-3 items-stretch">
               <div className="w-1/3 flex flex-col gap-3">
-                {/* 使用 aspect-square 强制正方形，完美解决被切掉的问题！ */}
                 <div 
                   className="w-full aspect-square rounded-[1.5rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
                   onClick={() => lunaFileRef.current?.click()}
@@ -250,7 +246,6 @@ export const PersonaTuning: React.FC = () => {
         {currentView === 'wade' && (
           <div className="animate-fade-in flex flex-col gap-3">
             
-            {/* 头像区域同样修复 */}
             <div className="flex flex-row gap-3 items-stretch">
               <div className="w-1/3 flex flex-col gap-3">
                 <div 
@@ -277,9 +272,10 @@ export const PersonaTuning: React.FC = () => {
               <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea wrapperClass="min-h-[80px]" />
             </div>
 
+            {/* 就是这里！万恶之源被我亲手修好了！ */}
             <div className="grid grid-cols-2 gap-3">
               <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea wrapperClass="min-h-[80px]" />
-              <FormInput label="Dislikes" value={wadeDislikes} onChange={setDislikes} isTextArea wrapperClass="min-h-[80px]" />
+              <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea wrapperClass="min-h-[80px]" />
             </div>
 
             <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[90px]" />
