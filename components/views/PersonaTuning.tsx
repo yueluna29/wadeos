@@ -79,16 +79,16 @@ export const PersonaTuning: React.FC = () => {
     }, 800);
   };
 
-  // 恢复干净的 FormInput
+  // 恢复清爽！移除了标题栏的格子背景，避免你头晕
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
-      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/50">
+      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40">
         <label className="text-[10px] font-bold text-wade-text-main uppercase tracking-widest leading-none">{label}</label>
         {isTextArea && (
           <button 
             onClick={() => setFocusModal({ label, value, onChange })}
-            className="text-wade-accent opacity-60 hover:opacity-100 transition-all p-1.5 bg-wade-bg-card rounded-md shadow-sm border border-wade-border hover:bg-wade-accent hover:text-white"
-            title="Expand Editor"
+            className="text-wade-accent opacity-60 hover:opacity-100 transition-all p-1 bg-wade-bg-card rounded-md shadow-sm border border-wade-border hover:bg-wade-accent hover:text-white"
+            title="Focus Mode"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
@@ -322,31 +322,41 @@ export const PersonaTuning: React.FC = () => {
 
       </div>
 
-      {/* ================= 沉浸式专注模式 Modal (已穿紧身衣，且头部带格子) ================= */}
+      {/* ================= 沉浸式专注模式 Modal (真正的修复版！) ================= */}
       {focusModal && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-end px-4 md:px-10">
-          {/* 背景遮罩全屏 */}
+        // 关键改动：增加了 md:justify-center 和 md:items-center，让它在电脑上居中悬浮
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center md:items-center px-0 md:px-10">
+          
           <div className="absolute inset-0 bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setFocusModal(null)}></div>
           
-          {/* 重点：宽度被锁定在 max-w-5xl，和底层你的红框完全一致！ */}
-          <div className="relative w-full max-w-5xl h-[85vh] bg-wade-bg-card rounded-t-[2.5rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden border-t border-x border-wade-border">
+          {/* 关键改动：电脑端限制 max-w-4xl (完美贴合你的红框)，高度变成 h-[80vh]，并且有全圆角 */}
+          <div className="relative w-full h-[85vh] md:h-[80vh] md:max-w-4xl bg-wade-bg-card rounded-t-[2.5rem] md:rounded-[2rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden md:border border-wade-border">
             
-            {/* 重点：这就是你要的格子背景头部！ */}
+            {/* 手机端的拉条，电脑端自动隐藏 */}
+            <div className="md:hidden w-12 h-1.5 bg-wade-border rounded-full mx-auto mt-4 mb-2"></div>
+            
+            {/* 只有这里的头部保留了你最爱的格子背景！ */}
             <div 
-              className="px-6 py-4 border-b border-wade-border flex justify-between items-center"
+              className="px-6 py-3 md:py-4 border-b border-wade-border flex justify-between items-center"
               style={{
                 backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
                 backgroundSize: '12px 12px',
                 backgroundColor: 'var(--wade-bg-app)'
               }}
             >
-              <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-app/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
-              <Button onClick={() => setFocusModal(null)} size="sm" className="rounded-full shadow-md w-9 h-9 flex items-center justify-center p-0 bg-wade-bg-card text-wade-accent hover:bg-wade-accent hover:text-white border border-wade-border transition-colors">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </Button>
+              <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
+              
+              {/* 白月光按钮：纯白背景，浅色图标，Hover后变成粉底白图标 */}
+              <button 
+                onClick={() => setFocusModal(null)} 
+                className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-wade-border-light hover:bg-wade-accent hover:text-white transition-all border border-wade-border/40 group"
+                title="Done"
+              >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-wade-border group-hover:text-white transition-colors"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
             </div>
             
-            <div className="flex-1 p-6 md:p-8 flex flex-col bg-wade-bg-card">
+            <div className="flex-1 p-5 md:p-8 flex flex-col bg-wade-bg-card">
               <textarea autoFocus value={focusModal.value} onChange={(e) => focusModal.onChange(e.target.value)} className="w-full flex-1 bg-transparent text-sm md:text-base text-wade-text-main outline-none resize-none leading-relaxed" placeholder="Write your heart out..." />
             </div>
           </div>
