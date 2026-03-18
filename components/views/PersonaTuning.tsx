@@ -28,7 +28,7 @@ export const PersonaTuning: React.FC = () => {
 
   // --- Luna 专属字段 ---
   const [lunaBirthday, setLunaBirthday] = useState('');
-  const [lunaZodiac, setLunaZodiac] = useState('');
+  const [lunaMbti, setLunaMbti] = useState('');
   const [lunaHeight, setLunaHeight] = useState('');
   const [lunaHobbies, setLunaHobbies] = useState('');
   const [lunaLikes, setLunaLikes] = useState('');
@@ -243,7 +243,7 @@ export const PersonaTuning: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
                    <FormInput label="Name" value="Luna" onChange={() => {}} />
-                   <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
+                   <FormInput label="MBTI" value={lunaMbti} onChange={setLunaMbti} />
                 </div>
               </div>
               <div className="w-full md:w-2/3 flex flex-col">
@@ -253,7 +253,7 @@ export const PersonaTuning: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-4">
               <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} />
-              <FormInput label="Zodiac" value={lunaZodiac} onChange={setLunaZodiac} />
+              <FormInput label="MBTI" value={lunaMbti} onChange={setLunaMbti} />
               <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} />
             </div>
 
