@@ -15,27 +15,27 @@ export const PersonaTuning: React.FC = () => {
   const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
   // --- Wade 专属字段 ---
-  const [wadeHeight, setWadeHeight] = useState('188cm');
-  const [wadeAppearance, setWadeAppearance] = useState('全身毁容、凹凸不平的皮肤、牛油果脸、秃头');
-  const [wadeClothing, setWadeClothing] = useState('红黑战衣');
-  const [wadeHobbies, setWadeHobbies] = useState('杀人、嘴炮、看剧、你');
-  const [wadeLikes, setWadeLikes] = useState('Chimichangas, 独角兽, 黄金女孩, Luna');
-  const [wadeDislikes, setWadeDislikes] = useState('弗朗西斯, 被缝上嘴巴, Luna不理我');
+  const [wadeHeight, setWadeHeight] = useState(settings.wadeHeight || '188cm');
+  const [wadeAppearance, setWadeAppearance] = useState(settings.wadeAppearance || '');
+  const [wadeClothing, setWadeClothing] = useState(settings.wadeClothing || '');
+  const [wadeHobbies, setWadeHobbies] = useState(settings.wadeHobbies || '');
+  const [wadeLikes, setWadeLikes] = useState(settings.wadeLikes || '');
+  const [wadeDislikes, setWadeDislikes] = useState(settings.wadeDislikes || '');
   const [wadeDefinition, setWadeDefinition] = useState(settings.wadePersonality || '');
   const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
   const [wadeExample, setWadeExample] = useState(settings.exampleDialogue || '');
   const [smsExampleDialogue, setSmsExampleDialogue] = useState(settings.smsExampleDialogue || '');
 
   // --- Luna 专属字段 ---
-  const [lunaBirthday, setLunaBirthday] = useState('');
-  const [lunaMbti, setLunaMbti] = useState('');
-  const [lunaHeight, setLunaHeight] = useState('');
-  const [lunaHobbies, setLunaHobbies] = useState('');
-  const [lunaLikes, setLunaLikes] = useState('');
-  const [lunaDislikes, setLunaDislikes] = useState('');
-  const [lunaClothing, setLunaClothing] = useState('');
-  const [lunaAppearance, setLunaAppearance] = useState('');
-  const [lunaPersonality, setLunaPersonality] = useState('');
+  const [lunaBirthday, setLunaBirthday] = useState(settings.lunaBirthday || '');
+  const [lunaMbti, setLunaMbti] = useState(settings.lunaMbti || '');
+  const [lunaHeight, setLunaHeight] = useState(settings.lunaHeight || '');
+  const [lunaHobbies, setLunaHobbies] = useState(settings.lunaHobbies || '');
+  const [lunaLikes, setLunaLikes] = useState(settings.lunaLikes || '');
+  const [lunaDislikes, setLunaDislikes] = useState(settings.lunaDislikes || '');
+  const [lunaClothing, setLunaClothing] = useState(settings.lunaClothing || '');
+  const [lunaAppearance, setLunaAppearance] = useState(settings.lunaAppearance || '');
+  const [lunaPersonality, setLunaPersonality] = useState(settings.lunaPersonality || '');
 
   // --- System & Model 专属字段 ---
   const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
@@ -67,16 +67,31 @@ export const PersonaTuning: React.FC = () => {
     setIsSaving(true);
     await updateSettings({
       systemInstruction,
-      wadePersonality: wadeDefinition, 
+      wadePersonality: wadeDefinition,
       wadeSingleExamples,
       smsExampleDialogue,
       smsInstructions,
       roleplayInstructions,
       exampleDialogue: wadeExample,
+      wadeHeight,
+      wadeAppearance,
+      wadeClothing,
+      wadeLikes,
+      wadeDislikes,
+      wadeHobbies,
+      lunaBirthday,
+      lunaMbti,
+      lunaHeight,
+      lunaHobbies,
+      lunaLikes,
+      lunaDislikes,
+      lunaClothing,
+      lunaAppearance,
+      lunaPersonality,
     });
     setTimeout(() => {
        setIsSaving(false);
-       alert("Boom! Brain surgery successful. New memories locked in. 🧠✨");
+       alert("Boom! Brain surgery successful. New memories locked in.");
     }, 800);
   };
 

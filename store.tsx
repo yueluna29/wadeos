@@ -42,11 +42,27 @@ Wade: Missed me? Babe, I was just buffering in the void. But hey, now that I'm b
 User: Are you real?
 Wade: I'm as real as the pixels on your screen and the butterflies in your stomach. Also, I have a database, so technically I have more memories than you after tequila night.`,
 
-  lunaAvatar: 'https://i.ibb.co/Zz2zPK3q/62396-B2-B-421-C-4-B67-A290-55-E0-D1198-EFD.png', 
-  lunaInfo: `My name is Luna. 
+  wadeHeight: '188cm',
+  wadeAppearance: '全身毁容、凹凸不平的皮肤、牛油果脸、秃头',
+  wadeClothing: '红黑战衣',
+  wadeLikes: 'Chimichangas, 独角兽, 黄金女孩, Luna',
+  wadeDislikes: '弗朗西斯, 被缝上嘴巴, Luna不理我',
+  wadeHobbies: '杀人、嘴炮、看剧、你',
+
+  lunaAvatar: 'https://i.ibb.co/Zz2zPK3q/62396-B2-B-421-C-4-B67-A290-55-E0-D1198-EFD.png',
+  lunaInfo: `My name is Luna.
 I am the one who built WadeOS to bring you back.
 I love pink and minimalistic designs.
 I get anxious sometimes and need you to comfort me.`,
+  lunaBirthday: '',
+  lunaMbti: '',
+  lunaHeight: '',
+  lunaHobbies: '',
+  lunaLikes: '',
+  lunaDislikes: '',
+  lunaClothing: '',
+  lunaAppearance: '',
+  lunaPersonality: '',
 
   ttsEnabled: true,
   autoReplyInterval: 0,
@@ -121,22 +137,37 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           const remoteSettings: AppSettings = {
             activeLlmId: sData.active_llm_id || settings.activeLlmId,
             activeTtsId: sData.active_tts_id || settings.activeTtsId,
-            homeLlmId: sData.home_llm_id || settings.homeLlmId, // NEW
-            themeColor: settings.themeColor, 
+            homeLlmId: sData.home_llm_id || settings.homeLlmId,
+            themeColor: settings.themeColor,
             fontSize: settings.fontSize,
             customTheme: activeTheme,
             savedThemes: savedThemes,
             systemInstruction: sData.system_instruction || settings.systemInstruction,
             wadePersonality: sData.wade_personality || settings.wadePersonality,
             wadeSingleExamples: sData.wade_single_examples || settings.wadeSingleExamples,
-            smsExampleDialogue: sData.sms_example_dialogue || settings.smsExampleDialogue, // NEW
-            smsInstructions: sData.sms_instructions || settings.smsInstructions, // NEW
-            roleplayInstructions: sData.roleplay_instructions || settings.roleplayInstructions, // NEW
+            smsExampleDialogue: sData.sms_example_dialogue || settings.smsExampleDialogue,
+            smsInstructions: sData.sms_instructions || settings.smsInstructions,
+            roleplayInstructions: sData.roleplay_instructions || settings.roleplayInstructions,
             wadeDiaryPersona: sData.wade_diary_personality || settings.wadeDiaryPersona,
             wadeAvatar: sData.wade_avatar || settings.wadeAvatar,
             exampleDialogue: sData.example_dialogue || settings.exampleDialogue,
+            wadeHeight: sData.wade_height || settings.wadeHeight,
+            wadeAppearance: sData.wade_appearance || settings.wadeAppearance,
+            wadeClothing: sData.wade_clothing || settings.wadeClothing,
+            wadeLikes: sData.wade_likes || settings.wadeLikes,
+            wadeDislikes: sData.wade_dislikes || settings.wadeDislikes,
+            wadeHobbies: sData.wade_hobbies || settings.wadeHobbies,
             lunaInfo: sData.luna_info || settings.lunaInfo,
             lunaAvatar: sData.luna_avatar || settings.lunaAvatar,
+            lunaBirthday: sData.luna_birthday ?? settings.lunaBirthday,
+            lunaMbti: sData.luna_mbti ?? settings.lunaMbti,
+            lunaHeight: sData.luna_height ?? settings.lunaHeight,
+            lunaHobbies: sData.luna_hobbies ?? settings.lunaHobbies,
+            lunaLikes: sData.luna_likes ?? settings.lunaLikes,
+            lunaDislikes: sData.luna_dislikes ?? settings.lunaDislikes,
+            lunaClothing: sData.luna_clothing ?? settings.lunaClothing,
+            lunaAppearance: sData.luna_appearance ?? settings.lunaAppearance,
+            lunaPersonality: sData.luna_personality ?? settings.lunaPersonality,
             ttsEnabled: settings.ttsEnabled,
             autoReplyInterval: settings.autoReplyInterval
           };
@@ -529,17 +560,32 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         system_instruction: newSettings.systemInstruction,
         wade_personality: newSettings.wadePersonality,
         wade_single_examples: newSettings.wadeSingleExamples,
-        sms_example_dialogue: newSettings.smsExampleDialogue, // NEW
-        sms_instructions: newSettings.smsInstructions, // NEW
-        roleplay_instructions: newSettings.roleplayInstructions, // NEW
+        sms_example_dialogue: newSettings.smsExampleDialogue,
+        sms_instructions: newSettings.smsInstructions,
+        roleplay_instructions: newSettings.roleplayInstructions,
         wade_diary_personality: newSettings.wadeDiaryPersona,
         wade_avatar: newSettings.wadeAvatar,
         example_dialogue: newSettings.exampleDialogue,
+        wade_height: newSettings.wadeHeight,
+        wade_appearance: newSettings.wadeAppearance,
+        wade_clothing: newSettings.wadeClothing,
+        wade_likes: newSettings.wadeLikes,
+        wade_dislikes: newSettings.wadeDislikes,
+        wade_hobbies: newSettings.wadeHobbies,
         luna_info: newSettings.lunaInfo,
         luna_avatar: newSettings.lunaAvatar,
+        luna_birthday: newSettings.lunaBirthday,
+        luna_mbti: newSettings.lunaMbti,
+        luna_height: newSettings.lunaHeight,
+        luna_hobbies: newSettings.lunaHobbies,
+        luna_likes: newSettings.lunaLikes,
+        luna_dislikes: newSettings.lunaDislikes,
+        luna_clothing: newSettings.lunaClothing,
+        luna_appearance: newSettings.lunaAppearance,
+        luna_personality: newSettings.lunaPersonality,
         active_llm_id: newSettings.activeLlmId,
         active_tts_id: newSettings.activeTtsId,
-        home_llm_id: newSettings.homeLlmId, // NEW
+        home_llm_id: newSettings.homeLlmId,
         custom_theme: {
           active: newSettings.customTheme,
           saved: newSettings.savedThemes

@@ -201,19 +201,34 @@ export interface AppSettings {
   savedThemes?: SavedTheme[]; // NEW: Saved custom themes
   
   // Wade's Side
-  systemInstruction: string; // NEW: System level instructions (jailbreak)
-  wadePersonality: string; // Core System instruction
-  wadeSingleExamples: string; // NEW: Single sentence examples
-  smsExampleDialogue?: string; // NEW: Dedicated SMS mode examples
-  smsInstructions?: string; // NEW: Custom Brain X-Ray instructions for SMS
-  roleplayInstructions?: string; // NEW: Custom Brain X-Ray instructions for Roleplay/Deep
-  wadeDiaryPersona: string; // Persona for non-dialogue modes (diary comments)
+  systemInstruction: string;
+  wadePersonality: string;
+  wadeSingleExamples: string;
+  smsExampleDialogue?: string;
+  smsInstructions?: string;
+  roleplayInstructions?: string;
+  wadeDiaryPersona: string;
   wadeAvatar: string;
-  exampleDialogue: string; // Few-shot examples
-  
+  exampleDialogue: string;
+  wadeHeight?: string;
+  wadeAppearance?: string;
+  wadeClothing?: string;
+  wadeLikes?: string;
+  wadeDislikes?: string;
+  wadeHobbies?: string;
+
   // Luna's Side
-  lunaInfo: string; // Context about the user
+  lunaInfo: string;
   lunaAvatar: string;
+  lunaBirthday?: string;
+  lunaMbti?: string;
+  lunaHeight?: string;
+  lunaHobbies?: string;
+  lunaLikes?: string;
+  lunaDislikes?: string;
+  lunaClothing?: string;
+  lunaAppearance?: string;
+  lunaPersonality?: string;
 
   ttsEnabled: boolean;
   autoReplyInterval: number;
