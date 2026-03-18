@@ -226,7 +226,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
       {/* =========================================
           🔥 完美复原的顶部沉浸式导航栏 🔥
           ========================================= */}
-      <div className="w-full p-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
+      <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
         <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"><Icons.Back /></button>
 
         <div className="flex-1 flex items-center gap-2 ml-2">
