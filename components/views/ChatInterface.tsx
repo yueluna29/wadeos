@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
+import { Icons } from '../ui/Icons'; // 引入你最爱的原装 Icon 组件！
 
 type ViewState = 'home' | 'wade' | 'luna' | 'system';
 
@@ -113,65 +114,68 @@ export const PersonaTuning: React.FC = () => {
   );
 
   return (
-    <div 
-      className="h-full overflow-y-auto bg-wade-bg-app relative pb-20"
-      style={{
-        backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
-        backgroundSize: '20px 20px',
-        backgroundPosition: 'center top'
-      }}
-    >
+    // 终极修复：把布局逻辑改成了跟 ChatInterface 完！全！一！致！的 flex 结构
+    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in relative">
       
-      {/* ========================================================================= 
-          🔥 完全复刻 ChatInterface 的高级导航栏布局 (w-8 h-8 小圆扣 + 绝对居中) 🔥 
-          ========================================================================= */}
-      <div className="sticky top-0 z-20 w-full h-[68px] px-6 md:px-10 bg-wade-bg-app/90 backdrop-blur-md flex items-center justify-between border-b border-wade-border shadow-sm mb-6">
+      {/* =========================================
+          🔥 1:1 像素级复刻 ChatInterface 的 Header 🔥
+          ========================================= */}
+      <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent relative">
         
-        {/* 左侧：返回按钮 */}
         <div className="flex z-10">
           {currentView !== 'home' ? (
             <button 
               onClick={() => setCurrentView('home')}
+              // 按钮大小和阴影完全照抄 ChatInterface
               className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="-ml-0.5"><path d="m15 18-6-6 6-6"/></svg>
+              <Icons.Back />
             </button>
           ) : (
             <div className="w-8 h-8"></div> /* 占位符，保持左右平衡 */
           )}
         </div>
 
-        {/* 中间：绝对居中的标题 */}
+        {/* 绝对居中的标题 */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <h2 className="font-hand text-2xl md:text-3xl text-wade-accent leading-tight pointer-events-auto">
+          <h2 className="font-hand text-2xl text-wade-accent capitalize pointer-events-auto">
             {currentView === 'home' ? 'The Brains of the Operation' : 
              currentView === 'wade' ? 'Wade\'s File' : 
              currentView === 'luna' ? 'Luna\'s File' : 'System Override'}
           </h2>
         </div>
         
-        {/* 右侧：保存按钮 */}
         <div className="flex items-center gap-2 z-10">
           {currentView !== 'home' ? (
              <button 
                onClick={saveChanges} 
                disabled={isUploading || isSaving}
-               className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors active:scale-95 disabled:opacity-50"
-               title="Save"
+               // 和 ChatInterface 一模一样的圆扣尺寸
+               className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors disabled:opacity-50"
              >
                {isSaving ? (
-                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                 <div className="animate-spin text-[10px]">⏳</div>
                ) : (
-                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                )}
              </button>
           ) : (
-            <div className="w-8 h-8"></div> /* 占位符 */
+            <div className="w-8 h-8"></div>
           )}
         </div>
       </div>
 
-      <div className="w-full max-w-5xl mx-auto px-6 md:px-10">
+      {/* =========================================
+          🔥 独立滚动的身体区域 (带上了你爱的网格背景) 🔥
+          ========================================= */}
+      <div 
+        className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-6 md:px-10 pt-4 pb-24 custom-scrollbar"
+        style={{
+          backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+          backgroundPosition: 'center top'
+        }}
+      >
 
         {/* ================= HOME VIEW ================= */}
         {currentView === 'home' && (
@@ -361,7 +365,7 @@ export const PersonaTuning: React.FC = () => {
             >
               <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
               
-              {/* 这里也统一成了 32px 的精致小圆扣 (w-8 h-8) */}
+              {/* 沉浸模式里的关闭按钮也统一成了 32x32 小圆扣 */}
               <button 
                 onClick={() => setFocusModal(null)} 
                 className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors border border-wade-border/50"
