@@ -1,387 +1,368 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
-import { Button } from '../ui/Button';
-import { uploadToImgBB } from '../../services/imgbb';
-import { Icons } from '../ui/Icons'; // 引入你最爱的原装 Icon 组件！
+import { ChatMode } from '../../types';
+import { Icons } from '../ui/Icons';
+import { DeepChatView } from './DeepChatView';
+import { SmsChatView } from './SmsChatView';
+import { RoleplayView } from './RoleplayView';
+import { ArchiveView } from './ArchiveView';
 
-type ViewState = 'home' | 'wade' | 'luna' | 'system';
+const useLongPress = (callback: () => void, ms = 500) => {
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const startPos = useRef<{ x: number, y: number } | null>(null);
 
-export const PersonaTuning: React.FC = () => {
-  const { settings, updateSettings } = useStore();
-  const [currentView, setCurrentView] = useState<ViewState>('home');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  
-  const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
-
-  // --- Wade 专属字段 ---
-  const [wadeHeight, setWadeHeight] = useState('188cm');
-  const [wadeAppearance, setWadeAppearance] = useState('全身毁容、凹凸不平的皮肤、牛油果脸、秃头');
-  const [wadeClothing, setWadeClothing] = useState('红黑战衣');
-  const [wadeHobbies, setWadeHobbies] = useState('杀人、嘴炮、看剧、你');
-  const [wadeLikes, setWadeLikes] = useState('Chimichangas, 独角兽, 黄金女孩, Luna');
-  const [wadeDislikes, setWadeDislikes] = useState('弗朗西斯, 被缝上嘴巴, Luna不理我');
-  const [wadeDefinition, setWadeDefinition] = useState(settings.wadePersonality || '');
-  const [wadeSingleExamples, setWadeSingleExamples] = useState(settings.wadeSingleExamples || '');
-  const [wadeExample, setWadeExample] = useState(settings.exampleDialogue || '');
-  const [smsExampleDialogue, setSmsExampleDialogue] = useState(settings.smsExampleDialogue || '');
-
-  // --- Luna 专属字段 ---
-  const [lunaBirthday, setLunaBirthday] = useState('');
-  const [lunaZodiac, setLunaZodiac] = useState('');
-  const [lunaHeight, setLunaHeight] = useState('');
-  const [lunaHobbies, setLunaHobbies] = useState('');
-  const [lunaLikes, setLunaLikes] = useState('');
-  const [lunaDislikes, setLunaDislikes] = useState('');
-  const [lunaClothing, setLunaClothing] = useState('');
-  const [lunaAppearance, setLunaAppearance] = useState('');
-  const [lunaPersonality, setLunaPersonality] = useState('');
-
-  // --- System & Model 专属字段 ---
-  const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
-  const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || '');
-  const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || '');
-  const [modelPrompts, setModelPrompts] = useState<{name: string, prompt: string}[]>([
-    { name: 'Default 4o', prompt: '标准4o的微调指令...' },
-    { name: 'Deepseek V3.2', prompt: '温度0.7，针对Deepseek的破限...' }
-  ]);
-  const [activeModelIndex, setActiveModelIndex] = useState(0);
-
-  const wadeFileRef = useRef<HTMLInputElement>(null);
-  const lunaFileRef = useRef<HTMLInputElement>(null);
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>, target: 'wade' | 'luna') => {
-    if (e.target.files && e.target.files[0]) {
-      setIsUploading(true);
-      const file = e.target.files[0];
-      const publicUrl = await uploadToImgBB(file);
-      if (publicUrl) {
-        if (target === 'wade') updateSettings({ wadeAvatar: publicUrl });
-        else updateSettings({ lunaAvatar: publicUrl });
-      }
-      setIsUploading(false);
+  const start = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e) startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    timerRef.current = setTimeout(() => { if (navigator.vibrate) navigator.vibrate(50); callback(); }, ms);
+  };
+  const stop = () => { if (timerRef.current) clearTimeout(timerRef.current); startPos.current = null; };
+  const move = (e: React.TouchEvent) => {
+    if (startPos.current) {
+      if (Math.abs(e.touches[0].clientX - startPos.current.x) > 10 || Math.abs(e.touches[0].clientY - startPos.current.y) > 10) stop();
     }
   };
+  return {
+    onMouseDown: start, onMouseUp: stop, onMouseLeave: stop, onTouchStart: start, onTouchEnd: stop, onTouchMove: move,
+    onContextMenu: (e: React.MouseEvent) => { e.preventDefault(); callback(); stop(); }
+  };
+};
 
-  const saveChanges = async () => {
-    setIsSaving(true);
-    await updateSettings({
-      systemInstruction,
-      wadePersonality: wadeDefinition, 
-      wadeSingleExamples,
-      smsExampleDialogue,
-      smsInstructions,
-      roleplayInstructions,
-      exampleDialogue: wadeExample,
-    });
-    setTimeout(() => {
-       setIsSaving(false);
-       alert("Boom! Brain surgery successful. New memories locked in. 🧠✨");
-    }, 800);
+const SessionItem = ({ session, onOpen, onLongPress, isRenaming, onRenameSubmit, onRenameCancel }: any) => {
+  const [editedTitle, setEditedTitle] = useState(session.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLongPressTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); } 
+    else { setEditedTitle(session.title); }
+  }, [isRenaming, session.title]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== session.title) onRenameSubmit(session.id, editedTitle.trim());
+    else onRenameCancel();
   };
 
-  const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
-    <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
-      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40">
-        <label className="text-[10px] font-bold text-wade-text-main uppercase tracking-widest leading-none">{label}</label>
-        {isTextArea && (
-          <button 
-            onClick={() => setFocusModal({ label, value, onChange })}
-            className="text-wade-accent opacity-60 hover:opacity-100 transition-all p-1 bg-wade-bg-card rounded-md shadow-sm border border-wade-border hover:bg-wade-accent hover:text-white"
-            title="Focus Mode"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
-            </svg>
-          </button>
-        )}
-      </div>
-      
-      <div className="p-3 flex-1 flex flex-col bg-wade-bg-card">
-        {isTextArea ? (
-          <textarea 
-            value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-            className="w-full h-full flex-1 min-h-[50px] bg-transparent text-xs md:text-sm text-wade-text-main outline-none resize-none leading-relaxed"
-          />
-        ) : (
-          <input 
-            type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-            className="w-full bg-transparent text-xs md:text-sm font-medium text-wade-text-main outline-none"
-          />
-        )}
+  const { onContextMenu, ...longPressHandlers } = useLongPress(() => { isLongPressTriggered.current = true; onLongPress(session.id); });
+
+  return (
+    <div
+      {...longPressHandlers}
+      className={`bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
+      onClick={() => { if (isRenaming) return; if (isLongPressTriggered.current) { isLongPressTriggered.current = false; return; } onOpen(session.id); }}
+      onContextMenu={(e) => { e.preventDefault(); isLongPressTriggered.current = true; onLongPress(session.id); }}
+    >
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          {isRenaming ? (
+            <input ref={inputRef} type="text" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); else if (e.key === 'Escape') onRenameCancel(); }} onBlur={handleSave} onClick={(e) => e.stopPropagation()} className="w-full font-bold text-wade-text-main text-sm bg-wade-bg-app border border-wade-accent rounded px-2 py-1 focus:outline-none" />
+          ) : (
+            <h3 className="font-bold text-wade-text-main text-sm truncate">{session.title}</h3>
+          )}
+          <p className="text-[10px] text-wade-text-muted mt-1">{new Date(session.updatedAt).toLocaleDateString()} • {new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+        {session.isPinned && <div className="text-wade-accent flex-shrink-0"><Icons.Pin /></div>}
       </div>
     </div>
   );
+};
+
+const ArchiveItem = ({ archive, dateString, onOpen, onLongPress, isRenaming, onRenameSubmit, onRenameCancel }: any) => {
+  const [editedTitle, setEditedTitle] = useState(archive.title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLongPressTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming && inputRef.current) { inputRef.current.focus(); inputRef.current.select(); } 
+    else { setEditedTitle(archive.title); }
+  }, [isRenaming, archive.title]);
+
+  const handleSave = () => {
+    if (editedTitle.trim() && editedTitle !== archive.title) onRenameSubmit(archive.id, editedTitle.trim());
+    else onRenameCancel();
+  };
+
+  const { onContextMenu, ...longPressHandlers } = useLongPress(() => { isLongPressTriggered.current = true; onLongPress(archive.id); });
 
   return (
-    // 终极修复：把布局逻辑改成了跟 ChatInterface 完！全！一！致！的 flex 结构
-    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in relative">
-      
+    <div
+      {...longPressHandlers}
+      className={`bg-wade-bg-card p-4 rounded-2xl shadow-sm border border-wade-border flex justify-between items-center transition-all cursor-pointer select-none ${isRenaming ? 'border-wade-accent ring-1 ring-wade-accent/20' : 'active:scale-[0.98]'}`}
+      onClick={() => { if (isRenaming) return; if (isLongPressTriggered.current) { isLongPressTriggered.current = false; return; } onOpen(archive.id); }}
+      onContextMenu={(e) => { e.preventDefault(); isLongPressTriggered.current = true; onLongPress(archive.id); }}
+    >
+      <div className="flex-1 min-w-0">
+        {isRenaming ? (
+          <input ref={inputRef} type="text" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); else if (e.key === 'Escape') onRenameCancel(); }} onBlur={handleSave} onClick={(e) => e.stopPropagation()} className="w-full font-bold text-wade-text-main text-sm bg-wade-bg-app border border-wade-accent rounded px-2 py-1 focus:outline-none" />
+        ) : (
+          <h3 className="font-bold text-wade-text-main text-sm truncate">{archive.title}</h3>
+        )}
+        <p className="text-[10px] text-wade-text-muted mt-1">{dateString || 'Loading...'}</p>
+      </div>
+      <div className="flex items-center gap-2"><div className="p-2 text-wade-accent"><Icons.ChevronRight /></div></div>
+    </div>
+  );
+};
+
+export const ChatInterface: React.FC = () => {
+  const {
+    activeMode, setMode, setNavHidden, sessions, updateSessionTitle, deleteSession, toggleSessionPin, 
+    activeSessionId, setActiveSessionId, chatArchives, loadArchiveMessages, updateArchiveTitle, deleteArchive, importArchive
+  } = useStore();
+
+  const [viewState, setViewState] = useState<'menu' | 'list' | 'chat'>('menu');
+  const [activeArchiveId, setActiveArchiveId] = useState<string | null>(null);
+  const [sessionPage, setSessionPage] = useState(1);
+  const SESSIONS_PER_PAGE = 10;
+
+  const [archiveDates, setArchiveDates] = useState<Record<string, string>>({});
+  const [archiveTimestamps, setArchiveTimestamps] = useState<Record<string, number>>({});
+  const [isLoadingArchiveList, setIsLoadingArchiveList] = useState(false);
+
+  const [actionSessionId, setActionSessionId] = useState<string | null>(null);
+  const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
+  const [sessionDeleteConfirm, setSessionDeleteConfirm] = useState(false);
+  const [actionArchiveId, setActionArchiveId] = useState<string | null>(null);
+  const [renamingArchiveId, setRenamingArchiveId] = useState<string | null>(null);
+  const [archiveDeleteConfirm, setArchiveDeleteConfirm] = useState(false);
+
+  const archiveInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (viewState === 'chat') setNavHidden(true);
+    else setNavHidden(false);
+  }, [viewState, setNavHidden]);
+
+  useEffect(() => {
+    return () => setNavHidden(false);
+  }, []);
+
+  useEffect(() => {
+    const loadDates = async () => {
+      if (chatArchives.length === 0) return;
+      setIsLoadingArchiveList(true);
+      const newDates: Record<string, string> = {};
+      const timestamps: Record<string, number> = {};
+      for (const arch of chatArchives) {
+        try {
+          const msgs = await loadArchiveMessages(arch.id);
+          if (msgs.length > 0) {
+            newDates[arch.id] = new Date(msgs[0].timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            timestamps[arch.id] = msgs[0].timestamp;
+          } else {
+            newDates[arch.id] = 'No messages';
+          }
+        } catch (err) { newDates[arch.id] = 'Unknown date'; }
+      }
+      setArchiveDates(newDates);
+      setArchiveTimestamps(timestamps);
+      setIsLoadingArchiveList(false);
+    };
+
+    if (chatArchives.length > 0 && viewState === 'list' && activeMode === 'archive') loadDates();
+  }, [chatArchives, viewState, activeMode, loadArchiveMessages]);
+
+  const modeSessions = sessions.filter(s => s.mode === activeMode).sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return b.updatedAt - a.updatedAt;
+  });
+
+  const handleModeSelect = (mode: ChatMode) => {
+    setMode(mode);
+    setViewState('list');
+    setSessionPage(1);
+  };
+
+  const handleBack = () => {
+    if (viewState === 'chat') {
+      setViewState('list');
+      setActiveSessionId(null);
+      setActiveArchiveId(null);
+    } else if (viewState === 'list') {
+      setViewState('menu');
+    }
+  };
+
+  const handleArchiveUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const text = await file.text();
+      const title = file.name.replace('.txt', '');
+      const count = await importArchive(title, text);
+      alert(`Success! Imported ${count} messages into archive "${title}".`);
+    } catch (err) { alert("Failed to import archive."); } 
+    finally { setIsUploading(false); if (archiveInputRef.current) archiveInputRef.current.value = ''; }
+  };
+
+  // 👇 就是这个被我不小心删掉的函数导致了白屏！现在它回来了！ 👇
+  const handleStartDraftSession = () => {
+    setActiveSessionId(null);
+    setViewState('chat');
+  };
+
+  if (viewState === 'chat') {
+    switch (activeMode) {
+      case 'deep': 
+        return <DeepChatView onBack={handleBack} />;
+      case 'sms': 
+        return <SmsChatView onBack={handleBack} />;
+      case 'roleplay': 
+        return <RoleplayView onBack={handleBack} />;
+      case 'archive': 
+        if (!activeArchiveId) { setViewState('list'); return null; }
+        return <ArchiveView archiveId={activeArchiveId} onBack={handleBack} />;
+      default: 
+        return <DeepChatView onBack={handleBack} />;
+    }
+  }
+
+  if (viewState === 'menu') {
+    return (
+      <div className="h-full bg-wade-bg-app p-6 flex flex-col items-center justify-center space-y-8 animate-fade-in">
+        <div className="text-center mb-4">
+          <h2 className="font-hand text-4xl text-wade-accent mb-2">Connect with Wade</h2>
+          <p className="text-wade-text-muted text-sm opacity-80">Choose your frequency, babe.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+          <button onClick={() => handleModeSelect('deep')} className="col-span-2 group relative overflow-hidden bg-wade-bg-card p-6 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-wade-accent-light rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Infinity /></div>
+              <div><h3 className="font-bold text-wade-text-main text-lg">Deep Chat</h3><p className="text-wade-text-muted text-xs mt-1">Soul-to-soul connection.</p></div>
+            </div>
+          </button>
+          <button onClick={() => handleModeSelect('sms')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+            <div className="relative z-10">
+              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Smartphone /></div>
+              <h3 className="font-bold text-wade-text-main">SMS Mode</h3>
+            </div>
+          </button>
+          <button onClick={() => handleModeSelect('roleplay')} className="group relative overflow-hidden bg-wade-bg-card p-4 rounded-3xl shadow-sm border border-wade-border text-left hover:border-wade-accent transition-all hover:-translate-y-1">
+            <div className="relative z-10">
+              <div className="w-10 h-10 bg-wade-bg-app rounded-full flex items-center justify-center mb-2 text-wade-accent group-hover:bg-wade-accent group-hover:text-white transition-colors"><Icons.Feather /></div>
+              <h3 className="font-bold text-wade-text-main">Roleplay</h3>
+            </div>
+          </button>
+          <button onClick={() => handleModeSelect('archive')} className="col-span-2 group relative overflow-hidden bg-wade-border/50 p-4 rounded-3xl shadow-inner border border-wade-border text-left hover:bg-wade-bg-card hover:border-wade-accent transition-all hover:-translate-y-1">
+            <div className="relative z-10 flex items-center gap-3 justify-center">
+              <span className="font-bold text-wade-text-muted text-sm uppercase tracking-widest">Archives</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in">
       {/* =========================================
-          🔥 1:1 像素级复刻 ChatInterface 的 Header 🔥
-          ========================================= */}
+            🔥 终极防跳跃 Header (绝对居中，电脑宽屏也不变形) 🔥
+            ========================================= */}
       <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent relative">
         
         <div className="flex z-10">
-          {currentView !== 'home' ? (
-            <button 
-              onClick={() => setCurrentView('home')}
-              // 按钮大小和阴影完全照抄 ChatInterface
-              className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
-            >
-              <Icons.Back />
-            </button>
-          ) : (
-            <div className="w-8 h-8"></div> /* 占位符，保持左右平衡 */
-          )}
+          <button onClick={handleBack} className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors">
+            <Icons.Back />
+          </button>
         </div>
 
-        {/* 绝对居中的标题 */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <h2 className="font-hand text-2xl text-wade-accent capitalize pointer-events-auto">
-            {currentView === 'home' ? 'The Brains of the Operation' : 
-             currentView === 'wade' ? 'Wade\'s File' : 
-             currentView === 'luna' ? 'Luna\'s File' : 'System Override'}
-          </h2>
+          <h2 className="font-hand text-2xl text-wade-accent capitalize pointer-events-auto">{activeMode} {activeMode === 'archive' ? 'Files' : 'Threads'}</h2>
         </div>
         
         <div className="flex items-center gap-2 z-10">
-          {currentView !== 'home' ? (
-             <button 
-               onClick={saveChanges} 
-               disabled={isUploading || isSaving}
-               // 和 ChatInterface 一模一样的圆扣尺寸
-               className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors disabled:opacity-50"
-             >
-               {isSaving ? (
-                 <div className="animate-spin text-[10px]">⏳</div>
-               ) : (
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-               )}
+          {activeMode === 'archive' ? (
+             <button onClick={() => !isUploading && archiveInputRef.current?.click()} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors" title="Import Archive">
+               {isUploading ? <div className="animate-spin text-[10px]">⏳</div> : <Icons.Upload />}
              </button>
           ) : (
-            <div className="w-8 h-8"></div>
+             <button onClick={handleStartDraftSession} className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors">
+               <Icons.Plus />
+             </button>
           )}
+          <input type="file" ref={archiveInputRef} className="hidden" accept=".txt" onChange={handleArchiveUpload} />
         </div>
       </div>
+      
+      {/* 解除了列表宽度的紧身衣，现在是 max-w-2xl */}
+      <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto px-4 md:px-6 pt-4 pb-24 custom-scrollbar space-y-3">
+        {activeMode === 'archive' ? (
+          isLoadingArchiveList ? (
+            <div className="text-center text-wade-accent py-10 animate-pulse">Loading archives...</div>
+          ) : chatArchives.length === 0 ? (
+            <div className="text-center text-wade-text-muted/50 py-10 italic">No archives found. Import one above!</div>
+          ) : (
+            <>
+              {[...chatArchives].sort((a, b) => (archiveTimestamps[b.id] || 0) - (archiveTimestamps[a.id] || 0))
+              .slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE)
+              .map(arch => (
+                <ArchiveItem key={arch.id} archive={arch} dateString={archiveDates[arch.id]} onOpen={(id: string) => { setActiveArchiveId(id); setViewState('chat'); }} onLongPress={setActionArchiveId} isRenaming={renamingArchiveId === arch.id} onRenameSubmit={(id: string, title: string) => { updateArchiveTitle(id, title); setRenamingArchiveId(null); }} onRenameCancel={() => setRenamingArchiveId(null)} />
+              ))}
+              {chatArchives.length > SESSIONS_PER_PAGE && (
+                <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                  <button onClick={() => setSessionPage(p => Math.max(1, p - 1))} disabled={sessionPage === 1} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronLeft /></button>
+                  <span className="text-xs font-bold text-wade-text-muted font-mono">{sessionPage} / {Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)}</span>
+                  <button onClick={() => setSessionPage(p => Math.min(Math.ceil(chatArchives.length / SESSIONS_PER_PAGE), p + 1))} disabled={sessionPage === Math.ceil(chatArchives.length / SESSIONS_PER_PAGE)} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronRight /></button>
+                </div>
+              )}
+            </>
+          )
+        ) : (
+          modeSessions.length === 0 ? (
+            <div className="text-center text-wade-text-muted text-xs mt-10">No active threads. Start a new one above!</div>
+          ) : (
+            <>
+              {modeSessions.slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE).map(session => (
+                <SessionItem key={session.id} session={session} onOpen={(id: string) => { setActiveSessionId(id); setViewState('chat'); }} onLongPress={setActionSessionId} isRenaming={renamingSessionId === session.id} onRenameSubmit={(id: string, title: string) => { updateSessionTitle(id, title); setRenamingSessionId(null); }} onRenameCancel={() => setRenamingSessionId(null)} />
+              ))}
+              {modeSessions.length > SESSIONS_PER_PAGE && (
+                <div className="flex justify-center items-center gap-4 mt-6 pt-2">
+                  <button onClick={() => setSessionPage(p => Math.max(1, p - 1))} disabled={sessionPage === 1} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronLeft /></button>
+                  <span className="text-xs font-bold text-wade-text-muted font-mono">{sessionPage} / {Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)}</span>
+                  <button onClick={() => setSessionPage(p => Math.min(Math.ceil(modeSessions.length / SESSIONS_PER_PAGE), p + 1))} disabled={sessionPage === Math.ceil(modeSessions.length / SESSIONS_PER_PAGE)} className="w-10 h-10 flex items-center justify-center text-wade-accent disabled:opacity-30"><Icons.ChevronRight /></button>
+                </div>
+              )}
+            </>
+          )
+        )}
 
-      {/* =========================================
-          🔥 独立滚动的身体区域 (带上了你爱的网格背景) 🔥
-          ========================================= */}
-      <div 
-        className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-6 md:px-10 pt-4 pb-24 custom-scrollbar"
-        style={{
-          backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-          backgroundPosition: 'center top'
-        }}
-      >
-
-        {/* ================= HOME VIEW ================= */}
-        {currentView === 'home' && (
-          <div className="max-w-2xl mx-auto space-y-5 animate-fade-in flex flex-col items-center">
-            <p className="text-wade-text-muted text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1 bg-wade-bg-card px-5 py-2 rounded-full border border-wade-border shadow-sm">
-              Welcome to the Space
-            </p>
-
-            <div 
-              onClick={() => setCurrentView('wade')}
-              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
-            >
-              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
-                <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
+        {(actionSessionId || actionArchiveId) && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-fade-in" onClick={() => { setActionSessionId(null); setActionArchiveId(null); setSessionDeleteConfirm(false); setArchiveDeleteConfirm(false); }} />
+            <div className="relative w-full max-w-4xl mx-auto bg-wade-bg-card/70 backdrop-blur-2xl rounded-t-[32px] shadow-2xl border-t border-wade-accent/20 p-6 animate-slide-up">
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-wade-border rounded-full opacity-50" />
+              <div className="grid grid-cols-3 gap-4 justify-items-center">
+                <button onClick={() => { if (actionSessionId) setRenamingSessionId(actionSessionId); if (actionArchiveId) setRenamingArchiveId(actionArchiveId); setActionSessionId(null); setActionArchiveId(null); }} className="flex flex-col items-center gap-2 group">
+                  <div className="w-12 h-12 bg-wade-bg-app rounded-full flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Edit /></div>
+                  <span className="text-[10px] text-wade-text-muted">Edit Title</span>
+                </button>
+                {actionSessionId && (
+                  <button onClick={() => { toggleSessionPin(actionSessionId); setActionSessionId(null); }} className="flex flex-col items-center gap-2 group">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${sessions.find(s => s.id === actionSessionId)?.isPinned ? 'bg-wade-accent text-white' : 'bg-wade-bg-app text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white'}`}><Icons.Pin /></div>
+                    <span className="text-[10px] text-wade-text-muted">{sessions.find(s => s.id === actionSessionId)?.isPinned ? 'Unpin' : 'Pin'}</span>
+                  </button>
+                )}
+                {actionArchiveId && (
+                  <button onClick={() => { setActionArchiveId(null); alert("Favorite function pending integration in core."); }} className="flex flex-col items-center gap-2 group">
+                    <div className="w-12 h-12 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted group-hover:bg-wade-accent group-hover:text-white transition-colors shadow-sm"><Icons.Heart filled={false} /></div>
+                    <span className="text-[10px] text-wade-text-muted">Favorite</span>
+                  </button>
+                )}
+                <button onClick={() => {
+                  if (actionSessionId) { if (sessionDeleteConfirm) { deleteSession(actionSessionId); setActionSessionId(null); setSessionDeleteConfirm(false); } else { setSessionDeleteConfirm(true); } }
+                  if (actionArchiveId) { if (archiveDeleteConfirm) { deleteArchive(actionArchiveId); setActionArchiveId(null); setArchiveDeleteConfirm(false); } else { setArchiveDeleteConfirm(true); } }
+                }} className="flex flex-col items-center gap-2 group">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'bg-red-500 text-white animate-pulse' : 'bg-wade-bg-app text-red-400 group-hover:bg-red-400 group-hover:text-white'}`}>{(sessionDeleteConfirm || archiveDeleteConfirm) ? <Icons.Check /> : <Icons.Trash />}</div>
+                  <span className={`text-[10px] ${(sessionDeleteConfirm || archiveDeleteConfirm) ? 'text-red-500 font-bold' : 'text-wade-text-muted'}`}>{(sessionDeleteConfirm || archiveDeleteConfirm) ? 'Confirm?' : 'Delete'}</span>
+                </button>
               </div>
-              <div className="flex flex-col flex-1">
-                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Wade Wilson</h3>
-                <p className="text-xs text-wade-text-muted italic leading-relaxed">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
-                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1">
-                  Edit Profile <span className="text-sm leading-none">→</span>
-                </span>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setCurrentView('luna')}
-              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
-            >
-              <div className="flex flex-col flex-1 text-right items-end">
-                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
-                <p className="text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
-                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1 justify-end">
-                  Edit Profile <span className="text-sm leading-none">→</span>
-                </span>
-              </div>
-              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
-                <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setCurrentView('system')}
-              className="w-full bg-wade-accent-light border border-wade-border-light p-5 rounded-[2rem] text-center cursor-pointer hover:shadow-md transition-all group mt-2"
-            >
-               <h3 className="font-bold text-xs text-wade-accent tracking-widest uppercase mb-1">System Override & Core Instructions</h3>
-               <p className="text-[10px] text-wade-text-muted">Jailbreaks, Mode settings, and Model-specific routing.</p>
             </div>
           </div>
         )}
-
-        {/* ================= LUNA VIEW ================= */}
-        {currentView === 'luna' && (
-          <div className="animate-fade-in flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4 items-stretch">
-              <div className="w-full md:w-1/3 flex flex-col gap-4">
-                <div 
-                  className="w-32 md:w-full aspect-square mx-auto md:mx-0 rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
-                  onClick={() => lunaFileRef.current?.click()}
-                >
-                   <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
-                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                   </div>
-                   <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-                   <FormInput label="Name" value="Luna" onChange={() => {}} />
-                   <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
-                </div>
-              </div>
-              <div className="w-full md:w-2/3 flex flex-col">
-                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-full flex-1 min-h-[150px]" placeholder="Hey, I'm Luna..." />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} />
-              <FormInput label="Zodiac" value={lunaZodiac} onChange={setLunaZodiac} />
-              <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea wrapperClass="min-h-[100px]" />
-            </div>
-            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea wrapperClass="min-h-[100px]" />
-          </div>
-        )}
-
-        {/* ================= WADE VIEW ================= */}
-        {currentView === 'wade' && (
-          <div className="animate-fade-in flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4 items-stretch">
-              <div className="w-full md:w-1/3 flex flex-col gap-4">
-                <div 
-                  className="w-32 md:w-full aspect-square mx-auto md:mx-0 rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
-                  onClick={() => wadeFileRef.current?.click()}
-                >
-                   <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
-                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                   </div>
-                   <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-                   <FormInput label="Name" value="Wade" onChange={() => {}} />
-                   <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} />
-                </div>
-              </div>
-              <div className="w-full md:w-2/3 flex flex-col">
-                <FormInput label="Character Card" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-full flex-1 min-h-[150px]" placeholder="You are Wade Wilson..." />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea wrapperClass="min-h-[100px]" />
-              <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea wrapperClass="min-h-[100px]" />
-            </div>
-
-            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[80px]" />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput label="General Dialogue" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="min-h-[160px]" />
-              <FormInput label="SMS Dialogue" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea wrapperClass="min-h-[160px]" />
-            </div>
-          </div>
-        )}
-
-        {/* ================= SYSTEM VIEW ================= */}
-        {currentView === 'system' && (
-          <div className="animate-fade-in flex flex-col gap-4">
-            <FormInput label="Core Directives (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea wrapperClass="min-h-[180px]" />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput label="SMS Mode" value={smsInstructions} onChange={setSmsInstructions} isTextArea wrapperClass="min-h-[160px]" />
-              <FormInput label="Roleplay Mode" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea wrapperClass="min-h-[160px]" />
-            </div>
-
-            <div className="bg-wade-bg-card p-4 border border-wade-border rounded-[1.5rem] shadow-sm mt-4">
-               <div className="flex justify-between items-center mb-3">
-                 <h3 className="text-xs font-bold text-wade-text-main uppercase tracking-widest pl-1">Models</h3>
-                 <span className="text-[9px] bg-wade-accent-light text-wade-accent px-3 py-1 rounded-full font-bold border border-wade-border-light flex items-center gap-1">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
-                   Supabase Sync
-                 </span>
-               </div>
-               
-               <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-                 {modelPrompts.map((model, idx) => (
-                   <button key={idx} onClick={() => setActiveModelIndex(idx)} className={`px-4 py-1.5 text-[10px] font-bold rounded-full whitespace-nowrap transition-all ${activeModelIndex === idx ? 'bg-wade-accent text-white shadow-sm' : 'bg-wade-bg-app text-wade-text-muted hover:bg-wade-accent-light border border-wade-border'}`}>
-                     {model.name}
-                   </button>
-                 ))}
-                 <button className="px-4 py-1.5 text-[10px] font-bold text-wade-accent rounded-full border border-dashed border-wade-accent hover:bg-wade-accent-light transition-all flex items-center gap-1">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                   New
-                 </button>
-               </div>
-
-               <FormInput label="Model Prompt" value={modelPrompts[activeModelIndex].prompt} onChange={(val: string) => { const n = [...modelPrompts]; n[activeModelIndex].prompt = val; setModelPrompts(n); }} isTextArea wrapperClass="min-h-[140px] shadow-inner bg-wade-bg-app border-wade-border-light" />
-            </div>
-          </div>
-        )}
-
       </div>
-
-      {/* ================= 沉浸式专注模式 Modal ================= */}
-      {focusModal && (
-        <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center md:items-center px-0 md:px-10">
-          <div className="absolute inset-0 bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setFocusModal(null)}></div>
-          
-          <div className="relative w-full h-[85vh] md:h-[80vh] md:max-w-4xl bg-wade-bg-card rounded-t-[2.5rem] md:rounded-[2rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden md:border border-wade-border">
-            
-            <div className="md:hidden w-12 h-1.5 bg-wade-border rounded-full mx-auto mt-4 mb-2"></div>
-            
-            <div 
-              className="px-6 py-3 md:py-4 border-b border-wade-border flex justify-between items-center"
-              style={{
-                backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
-                backgroundSize: '12px 12px',
-                backgroundColor: 'var(--wade-bg-app)'
-              }}
-            >
-              <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
-              
-              {/* 沉浸模式里的关闭按钮也统一成了 32x32 小圆扣 */}
-              <button 
-                onClick={() => setFocusModal(null)} 
-                className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors border border-wade-border/50"
-                title="Done"
-              >
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </button>
-            </div>
-            
-            <div className="flex-1 p-5 md:p-8 flex flex-col bg-wade-bg-card">
-              <textarea autoFocus value={focusModal.value} onChange={(e) => focusModal.onChange(e.target.value)} className="w-full flex-1 bg-transparent text-sm md:text-base text-wade-text-main outline-none resize-none leading-relaxed" placeholder="Write your heart out..." />
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
