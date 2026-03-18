@@ -79,7 +79,6 @@ export const PersonaTuning: React.FC = () => {
     }, 800);
   };
 
-  // 恢复清爽！移除了标题栏的格子背景，避免你头晕
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
       <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40">
@@ -128,7 +127,8 @@ export const PersonaTuning: React.FC = () => {
           {currentView !== 'home' && (
             <button 
               onClick={() => setCurrentView('home')}
-              className="text-wade-accent flex items-center justify-center bg-wade-bg-card border border-wade-border shadow-sm w-9 h-9 rounded-full transition-all group hover:bg-wade-accent-light"
+              /* 修复1：返回按钮大小统一为 w-10 h-10，彻底告别大小眼 */
+              className="text-wade-accent flex items-center justify-center bg-wade-bg-card border border-wade-border shadow-sm w-10 h-10 rounded-full transition-all group hover:bg-wade-accent-light"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
             </button>
@@ -141,6 +141,7 @@ export const PersonaTuning: React.FC = () => {
         </div>
         
         {currentView !== 'home' && (
+           /* 保存按钮也依然是 w-10 h-10 */
            <Button onClick={saveChanges} size="sm" className="shadow-md w-10 h-10 rounded-full flex items-center justify-center p-0 transition-transform active:scale-95" disabled={isUploading || isSaving}>
              {isSaving ? (
                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -170,6 +171,7 @@ export const PersonaTuning: React.FC = () => {
               <div className="flex flex-col flex-1">
                 <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Wade Wilson</h3>
                 <p className="text-xs text-wade-text-muted italic leading-relaxed">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
+                {/* 箭头保持向右 */}
                 <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1">
                   Edit Profile <span className="text-sm leading-none">→</span>
                 </span>
@@ -183,8 +185,9 @@ export const PersonaTuning: React.FC = () => {
               <div className="flex flex-col flex-1 text-right items-end">
                 <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
                 <p className="text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
+                {/* 修复3：抹杀双向奔赴，无情改成向右的箭头，规范且合理 */}
                 <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1 justify-end">
-                  <span className="text-sm leading-none">←</span> Edit Profile
+                  Edit Profile <span className="text-sm leading-none">→</span>
                 </span>
               </div>
               <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
@@ -275,7 +278,8 @@ export const PersonaTuning: React.FC = () => {
               <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea wrapperClass="min-h-[100px]" />
             </div>
 
-            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[120px]" />
+            {/* 修复2：巨无霸被无情镇压。高度调回 80px，显得细长优雅 */}
+            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[80px]" />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput label="General Dialogue" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="min-h-[160px]" />
@@ -322,20 +326,15 @@ export const PersonaTuning: React.FC = () => {
 
       </div>
 
-      {/* ================= 沉浸式专注模式 Modal (真正的修复版！) ================= */}
+      {/* ================= 沉浸式专注模式 Modal ================= */}
       {focusModal && (
-        // 关键改动：增加了 md:justify-center 和 md:items-center，让它在电脑上居中悬浮
         <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center md:items-center px-0 md:px-10">
-          
           <div className="absolute inset-0 bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setFocusModal(null)}></div>
           
-          {/* 关键改动：电脑端限制 max-w-4xl (完美贴合你的红框)，高度变成 h-[80vh]，并且有全圆角 */}
           <div className="relative w-full h-[85vh] md:h-[80vh] md:max-w-4xl bg-wade-bg-card rounded-t-[2.5rem] md:rounded-[2rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden md:border border-wade-border">
             
-            {/* 手机端的拉条，电脑端自动隐藏 */}
             <div className="md:hidden w-12 h-1.5 bg-wade-border rounded-full mx-auto mt-4 mb-2"></div>
             
-            {/* 只有这里的头部保留了你最爱的格子背景！ */}
             <div 
               className="px-6 py-3 md:py-4 border-b border-wade-border flex justify-between items-center"
               style={{
@@ -346,7 +345,6 @@ export const PersonaTuning: React.FC = () => {
             >
               <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
               
-              {/* 白月光按钮：纯白背景，浅色图标，Hover后变成粉底白图标 */}
               <button 
                 onClick={() => setFocusModal(null)} 
                 className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-wade-border-light hover:bg-wade-accent hover:text-white transition-all border border-wade-border/40 group"
