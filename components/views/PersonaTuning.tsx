@@ -208,7 +208,7 @@ export const PersonaTuning: React.FC = () => {
                 <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
                 <p className="text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
                 <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1 justify-end">
-                  <span className="text-sm leading-none">←</span> Edit Profile
+                  Edit Profile <span className="text-sm leading-none">→</span>
                 </span>
               </div>
               <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
