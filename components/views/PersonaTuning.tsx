@@ -80,6 +80,7 @@ export const PersonaTuning: React.FC = () => {
     }, 800);
   };
 
+  // 响应式 FormInput：手机上边距变小 (p-2.5 px-3)，电脑上恢复宽敞 (md:p-3 md:px-4)
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1rem] md:rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
       <div className="flex justify-between items-center px-3 md:px-4 py-1.5 md:py-2 border-b border-wade-border bg-wade-bg-app/40">
@@ -117,17 +118,15 @@ export const PersonaTuning: React.FC = () => {
     <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in relative">
       
       {/* =========================================
-          🔥 终极修正：提取 DeepChatView 的完美顶栏基因 🔥
-          bg-wade-bg-card/90 让浅灰按钮更突出
+          🔥 1:1 像素级复刻 ChatInterface 的 Header 🔥
           ========================================= */}
-      <div className="w-full h-[60px] md:h-[68px] px-4 md:px-6 bg-wade-bg-card/90 backdrop-blur-md shadow-sm flex items-center justify-between z-20 shrink-0 border-b border-wade-border relative">
+      <div className="w-full h-[60px] md:h-[68px] px-4 md:px-6 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent relative">
         
         <div className="flex z-10">
           {currentView !== 'home' ? (
             <button 
               onClick={() => setCurrentView('home')}
-              /* 原汁原味的按钮代码：没有阴影，bg-wade-bg-app，hover变色 */
-              className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
+              className="w-8 h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors"
             >
               <Icons.Back />
             </button>
@@ -149,8 +148,7 @@ export const PersonaTuning: React.FC = () => {
              <button 
                onClick={saveChanges} 
                disabled={isUploading || isSaving}
-               /* 完全一致的保存按钮代码 */
-               className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50"
+               className="w-8 h-8 shrink-0 rounded-full bg-wade-accent text-white shadow-md flex items-center justify-center hover:bg-wade-accent-hover transition-colors disabled:opacity-50"
              >
                {isSaving ? (
                  <div className="animate-spin text-[10px]">⏳</div>
@@ -164,6 +162,10 @@ export const PersonaTuning: React.FC = () => {
         </div>
       </div>
 
+      {/* =========================================
+          🔥 独立滚动的身体区域 (带上了你爱的网格背景) 🔥
+          手机端内边距缩减 (px-4 pt-4)，不会觉得挤
+          ========================================= */}
       <div 
         className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-4 md:px-10 pt-4 md:pt-6 pb-24 custom-scrollbar"
         style={{
@@ -184,6 +186,7 @@ export const PersonaTuning: React.FC = () => {
               onClick={() => setCurrentView('wade')}
               className="w-full bg-wade-bg-card border border-wade-border p-4 md:p-5 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-4 md:gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
             >
+              {/* 手机头像变小 w-16 h-16，电脑 w-20 h-20 */}
               <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-xl md:rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
                 <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
               </div>
@@ -228,6 +231,7 @@ export const PersonaTuning: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch">
               <div className="w-full md:w-1/3 flex flex-col gap-3 md:gap-4">
                 <div 
+                  // 手机端头像居中并缩小为 w-28 h-28，不再拉伸成满屏宽狗皮膏药
                   className="w-28 h-28 md:w-full md:aspect-square mx-auto md:mx-0 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
                   onClick={() => lunaFileRef.current?.click()}
                 >
@@ -237,12 +241,15 @@ export const PersonaTuning: React.FC = () => {
                    </div>
                    <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
                 </div>
+                
+                {/* 手机上两列并排，电脑上单列垂直，完美利用空间 */}
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                    <FormInput label="Name" value="Luna" onChange={() => {}} />
                    <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
                 </div>
               </div>
               <div className="w-full md:w-2/3 flex flex-col">
+                {/* 手机端高度智能缩小，不会占满一整屏 */}
                 <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-full flex-1 min-h-[120px] md:min-h-[150px]" placeholder="Hey, I'm Luna..." />
               </div>
             </div>
@@ -361,10 +368,9 @@ export const PersonaTuning: React.FC = () => {
             >
               <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
               
-              {/* 沉浸模式关闭按钮同样应用原版基因 */}
               <button 
                 onClick={() => setFocusModal(null)} 
-                className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
+                className="w-7 h-7 md:w-8 md:h-8 shrink-0 rounded-full bg-wade-bg-card shadow-sm flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors border border-wade-border/50"
                 title="Done"
               >
                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
