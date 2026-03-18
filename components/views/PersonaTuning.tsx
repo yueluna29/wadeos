@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
-import { Icons } from '../ui/Icons';
 
 type ViewState = 'home' | 'wade' | 'luna' | 'system';
 
@@ -81,13 +80,13 @@ export const PersonaTuning: React.FC = () => {
   };
 
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
-    <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1rem] md:rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
-      <div className="flex justify-between items-center px-3 md:px-4 py-1.5 md:py-2 border-b border-wade-border bg-wade-bg-app/40">
-        <label className="text-[9px] md:text-[10px] font-bold text-wade-text-main uppercase tracking-widest leading-none">{label}</label>
+    <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
+      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40">
+        <label className="text-[10px] font-bold text-wade-text-main uppercase tracking-widest leading-none">{label}</label>
         {isTextArea && (
           <button 
             onClick={() => setFocusModal({ label, value, onChange })}
-            className="text-wade-accent opacity-60 hover:opacity-100 transition-all p-1 md:p-1.5 bg-wade-bg-card rounded-md shadow-sm border border-wade-border hover:bg-wade-accent hover:text-white"
+            className="text-wade-accent opacity-60 hover:opacity-100 transition-all p-1 bg-wade-bg-card rounded-md shadow-sm border border-wade-border hover:bg-wade-accent hover:text-white"
             title="Focus Mode"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -97,11 +96,11 @@ export const PersonaTuning: React.FC = () => {
         )}
       </div>
       
-      <div className="p-2.5 md:p-3 flex-1 flex flex-col bg-wade-bg-card">
+      <div className="p-3 flex-1 flex flex-col bg-wade-bg-card">
         {isTextArea ? (
           <textarea 
             value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-            className="w-full h-full flex-1 min-h-[40px] md:min-h-[50px] bg-transparent text-xs md:text-sm text-wade-text-main outline-none resize-none leading-relaxed"
+            className="w-full h-full flex-1 min-h-[50px] bg-transparent text-xs md:text-sm text-wade-text-main outline-none resize-none leading-relaxed"
           />
         ) : (
           <input 
@@ -114,83 +113,66 @@ export const PersonaTuning: React.FC = () => {
   );
 
   return (
-    <div className="h-full bg-wade-bg-app flex flex-col overflow-hidden animate-fade-in relative">
+    <div 
+      className="h-full overflow-y-auto bg-wade-bg-app relative pb-20"
+      style={{
+        backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+        backgroundPosition: 'center top'
+      }}
+    >
       
-      {/* =========================================
-          🔥 终极修正：提取 DeepChatView 的完美顶栏基因 🔥
-          bg-wade-bg-card/90 让浅灰按钮更突出
-          ========================================= */}
-      <div className="w-full h-[60px] md:h-[68px] px-4 md:px-6 bg-wade-bg-card/90 backdrop-blur-md shadow-sm flex items-center justify-between z-20 shrink-0 border-b border-wade-border relative">
-        
-        <div className="flex z-10">
-          {currentView !== 'home' ? (
+      <div className="sticky top-0 z-10 bg-wade-bg-app/90 backdrop-blur-md px-6 md:px-10 py-4 border-b border-wade-border mb-6 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-4">
+          {currentView !== 'home' && (
             <button 
               onClick={() => setCurrentView('home')}
-              /* 原汁原味的按钮代码：没有阴影，bg-wade-bg-app，hover变色 */
-              className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
+              /* 修复1：返回按钮大小统一为 w-10 h-10，彻底告别大小眼 */
+              className="text-wade-accent flex items-center justify-center bg-wade-bg-card border border-wade-border shadow-sm w-10 h-10 rounded-full transition-all group hover:bg-wade-accent-light"
             >
-              <Icons.Back />
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
             </button>
-          ) : (
-            <div className="w-8 h-8"></div>
           )}
-        </div>
-
-        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <h2 className="font-hand text-xl md:text-2xl text-wade-accent capitalize pointer-events-auto">
+          <h2 className="font-hand text-2xl md:text-3xl text-wade-accent leading-tight">
             {currentView === 'home' ? 'The Brains of the Operation' : 
              currentView === 'wade' ? 'Wade\'s File' : 
              currentView === 'luna' ? 'Luna\'s File' : 'System Override'}
           </h2>
         </div>
         
-        <div className="flex items-center gap-2 z-10">
-          {currentView !== 'home' ? (
-             <button 
-               onClick={saveChanges} 
-               disabled={isUploading || isSaving}
-               /* 完全一致的保存按钮代码 */
-               className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50"
-             >
-               {isSaving ? (
-                 <div className="animate-spin text-[10px]">⏳</div>
-               ) : (
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-               )}
-             </button>
-          ) : (
-            <div className="w-8 h-8"></div>
-          )}
-        </div>
+        {currentView !== 'home' && (
+           /* 保存按钮也依然是 w-10 h-10 */
+           <Button onClick={saveChanges} size="sm" className="shadow-md w-10 h-10 rounded-full flex items-center justify-center p-0 transition-transform active:scale-95" disabled={isUploading || isSaving}>
+             {isSaving ? (
+               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+             ) : (
+               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+             )}
+           </Button>
+        )}
       </div>
 
-      <div 
-        className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-4 md:px-10 pt-4 md:pt-6 pb-24 custom-scrollbar"
-        style={{
-          backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-          backgroundPosition: 'center top'
-        }}
-      >
+      <div className="w-full max-w-5xl mx-auto px-6 md:px-10">
 
         {/* ================= HOME VIEW ================= */}
         {currentView === 'home' && (
-          <div className="max-w-2xl mx-auto space-y-4 md:space-y-5 animate-fade-in flex flex-col items-center">
-            <p className="text-wade-text-muted text-[9px] md:text-[10px] uppercase tracking-widest font-bold mb-1 bg-wade-bg-card px-4 md:px-5 py-1.5 md:py-2 rounded-full border border-wade-border shadow-sm">
+          <div className="max-w-2xl mx-auto space-y-5 animate-fade-in flex flex-col items-center">
+            <p className="text-wade-text-muted text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1 bg-wade-bg-card px-5 py-2 rounded-full border border-wade-border shadow-sm">
               Welcome to the Space
             </p>
 
             <div 
               onClick={() => setCurrentView('wade')}
-              className="w-full bg-wade-bg-card border border-wade-border p-4 md:p-5 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-4 md:gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
+              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
             >
-              <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-xl md:rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
+              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
                 <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col flex-1">
-                <h3 className="font-bold text-base md:text-lg text-wade-text-main pb-0.5 mb-1">Wade Wilson</h3>
-                <p className="text-[11px] md:text-xs text-wade-text-muted italic leading-relaxed">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
-                <span className="text-[9px] md:text-[10px] uppercase font-bold text-wade-accent mt-2 md:mt-3 flex items-center gap-1">
+                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Wade Wilson</h3>
+                <p className="text-xs text-wade-text-muted italic leading-relaxed">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
+                {/* 箭头保持向右 */}
+                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1">
                   Edit Profile <span className="text-sm leading-none">→</span>
                 </span>
               </div>
@@ -198,144 +180,146 @@ export const PersonaTuning: React.FC = () => {
 
             <div 
               onClick={() => setCurrentView('luna')}
-              className="w-full bg-wade-bg-card border border-wade-border p-4 md:p-5 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-4 md:gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
+              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
             >
               <div className="flex flex-col flex-1 text-right items-end">
-                <h3 className="font-bold text-base md:text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
-                <p className="text-[11px] md:text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
-                <span className="text-[9px] md:text-[10px] uppercase font-bold text-wade-accent mt-2 md:mt-3 flex items-center gap-1 justify-end">
+                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
+                <p className="text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
+                {/* 修复3：抹杀双向奔赴，无情改成向右的箭头，规范且合理 */}
+                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1 justify-end">
                   Edit Profile <span className="text-sm leading-none">→</span>
                 </span>
               </div>
-              <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-xl md:rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
+              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
                 <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
               </div>
             </div>
 
             <div 
               onClick={() => setCurrentView('system')}
-              className="w-full bg-wade-accent-light border border-wade-border-light p-4 md:p-5 rounded-[1.5rem] md:rounded-[2rem] text-center cursor-pointer hover:shadow-md transition-all group mt-2"
+              className="w-full bg-wade-accent-light border border-wade-border-light p-5 rounded-[2rem] text-center cursor-pointer hover:shadow-md transition-all group mt-2"
             >
-               <h3 className="font-bold text-[11px] md:text-xs text-wade-accent tracking-widest uppercase mb-1">System Override & Core Instructions</h3>
-               <p className="text-[9px] md:text-[10px] text-wade-text-muted">Jailbreaks, Mode settings, and Model-specific routing.</p>
+               <h3 className="font-bold text-xs text-wade-accent tracking-widest uppercase mb-1">System Override & Core Instructions</h3>
+               <p className="text-[10px] text-wade-text-muted">Jailbreaks, Mode settings, and Model-specific routing.</p>
             </div>
           </div>
         )}
 
         {/* ================= LUNA VIEW ================= */}
         {currentView === 'luna' && (
-          <div className="animate-fade-in flex flex-col gap-3 md:gap-4">
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch">
-              <div className="w-full md:w-1/3 flex flex-col gap-3 md:gap-4">
+          <div className="animate-fade-in flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+              <div className="w-full md:w-1/3 flex flex-col gap-4">
                 <div 
-                  className="w-28 h-28 md:w-full md:aspect-square mx-auto md:mx-0 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
+                  className="w-32 md:w-full aspect-square mx-auto md:mx-0 rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
                   onClick={() => lunaFileRef.current?.click()}
                 >
                    <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                    </div>
                    <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
                    <FormInput label="Name" value="Luna" onChange={() => {}} />
                    <FormInput label="Pronouns" value="She/Her" onChange={() => {}} />
                 </div>
               </div>
               <div className="w-full md:w-2/3 flex flex-col">
-                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-full flex-1 min-h-[120px] md:min-h-[150px]" placeholder="Hey, I'm Luna..." />
+                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-full flex-1 min-h-[150px]" placeholder="Hey, I'm Luna..." />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} />
               <FormInput label="Zodiac" value={lunaZodiac} onChange={setLunaZodiac} />
               <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea wrapperClass="min-h-[100px]" />
             </div>
-            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
+            <FormInput label="Hobbies / Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea wrapperClass="min-h-[100px]" />
           </div>
         )}
 
         {/* ================= WADE VIEW ================= */}
         {currentView === 'wade' && (
-          <div className="animate-fade-in flex flex-col gap-3 md:gap-4">
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch">
-              <div className="w-full md:w-1/3 flex flex-col gap-3 md:gap-4">
+          <div className="animate-fade-in flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+              <div className="w-full md:w-1/3 flex flex-col gap-4">
                 <div 
-                  className="w-28 h-28 md:w-full md:aspect-square mx-auto md:mx-0 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
+                  className="w-32 md:w-full aspect-square mx-auto md:mx-0 rounded-[2rem] overflow-hidden border-2 border-wade-border shadow-sm relative group cursor-pointer bg-wade-bg-card flex-shrink-0" 
                   onClick={() => wadeFileRef.current?.click()}
                 >
                    <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                    </div>
                    <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
                    <FormInput label="Name" value="Wade" onChange={() => {}} />
                    <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} />
                 </div>
               </div>
               <div className="w-full md:w-2/3 flex flex-col">
-                <FormInput label="Character Card" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-full flex-1 min-h-[120px] md:min-h-[150px]" placeholder="You are Wade Wilson..." />
+                <FormInput label="Character Card" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-full flex-1 min-h-[150px]" placeholder="You are Wade Wilson..." />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
-              <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea wrapperClass="min-h-[80px] md:min-h-[100px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Clothing" value={wadeClothing} onChange={setWadeClothing} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea wrapperClass="min-h-[100px]" />
+              <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea wrapperClass="min-h-[100px]" />
             </div>
 
-            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[70px] md:min-h-[80px]" />
+            {/* 修复2：巨无霸被无情镇压。高度调回 80px，显得细长优雅 */}
+            <FormInput label="Single Sentence Examples" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="min-h-[80px]" />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <FormInput label="General Dialogue" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="min-h-[120px] md:min-h-[160px]" />
-              <FormInput label="SMS Dialogue" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea wrapperClass="min-h-[120px] md:min-h-[160px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput label="General Dialogue" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="min-h-[160px]" />
+              <FormInput label="SMS Dialogue" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea wrapperClass="min-h-[160px]" />
             </div>
           </div>
         )}
 
         {/* ================= SYSTEM VIEW ================= */}
         {currentView === 'system' && (
-          <div className="animate-fade-in flex flex-col gap-3 md:gap-4">
-            <FormInput label="Core Directives (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea wrapperClass="min-h-[140px] md:min-h-[180px]" />
+          <div className="animate-fade-in flex flex-col gap-4">
+            <FormInput label="Core Directives (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea wrapperClass="min-h-[180px]" />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <FormInput label="SMS Mode" value={smsInstructions} onChange={setSmsInstructions} isTextArea wrapperClass="min-h-[120px] md:min-h-[160px]" />
-              <FormInput label="Roleplay Mode" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea wrapperClass="min-h-[120px] md:min-h-[160px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput label="SMS Mode" value={smsInstructions} onChange={setSmsInstructions} isTextArea wrapperClass="min-h-[160px]" />
+              <FormInput label="Roleplay Mode" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea wrapperClass="min-h-[160px]" />
             </div>
 
-            <div className="bg-wade-bg-card p-3 md:p-4 border border-wade-border rounded-[1.2rem] md:rounded-[1.5rem] shadow-sm mt-3 md:mt-4">
-               <div className="flex justify-between items-center mb-2 md:mb-3">
-                 <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest pl-1">Models</h3>
-                 <span className="text-[8px] md:text-[9px] bg-wade-accent-light text-wade-accent px-2 md:px-3 py-0.5 md:py-1 rounded-full font-bold border border-wade-border-light flex items-center gap-1">
+            <div className="bg-wade-bg-card p-4 border border-wade-border rounded-[1.5rem] shadow-sm mt-4">
+               <div className="flex justify-between items-center mb-3">
+                 <h3 className="text-xs font-bold text-wade-text-main uppercase tracking-widest pl-1">Models</h3>
+                 <span className="text-[9px] bg-wade-accent-light text-wade-accent px-3 py-1 rounded-full font-bold border border-wade-border-light flex items-center gap-1">
                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
                    Supabase Sync
                  </span>
                </div>
                
-               <div className="flex gap-2 mb-2 md:mb-3 overflow-x-auto pb-1 scrollbar-hide">
+               <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
                  {modelPrompts.map((model, idx) => (
-                   <button key={idx} onClick={() => setActiveModelIndex(idx)} className={`px-3 md:px-4 py-1 md:py-1.5 text-[9px] md:text-[10px] font-bold rounded-full whitespace-nowrap transition-all ${activeModelIndex === idx ? 'bg-wade-accent text-white shadow-sm' : 'bg-wade-bg-app text-wade-text-muted hover:bg-wade-accent-light border border-wade-border'}`}>
+                   <button key={idx} onClick={() => setActiveModelIndex(idx)} className={`px-4 py-1.5 text-[10px] font-bold rounded-full whitespace-nowrap transition-all ${activeModelIndex === idx ? 'bg-wade-accent text-white shadow-sm' : 'bg-wade-bg-app text-wade-text-muted hover:bg-wade-accent-light border border-wade-border'}`}>
                      {model.name}
                    </button>
                  ))}
-                 <button className="px-3 md:px-4 py-1 md:py-1.5 text-[9px] md:text-[10px] font-bold text-wade-accent rounded-full border border-dashed border-wade-accent hover:bg-wade-accent-light transition-all flex items-center gap-1">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                 <button className="px-4 py-1.5 text-[10px] font-bold text-wade-accent rounded-full border border-dashed border-wade-accent hover:bg-wade-accent-light transition-all flex items-center gap-1">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                    New
                  </button>
                </div>
 
-               <FormInput label="Model Prompt" value={modelPrompts[activeModelIndex].prompt} onChange={(val: string) => { const n = [...modelPrompts]; n[activeModelIndex].prompt = val; setModelPrompts(n); }} isTextArea wrapperClass="min-h-[100px] md:min-h-[140px] shadow-inner bg-wade-bg-app border-wade-border-light" />
+               <FormInput label="Model Prompt" value={modelPrompts[activeModelIndex].prompt} onChange={(val: string) => { const n = [...modelPrompts]; n[activeModelIndex].prompt = val; setModelPrompts(n); }} isTextArea wrapperClass="min-h-[140px] shadow-inner bg-wade-bg-app border-wade-border-light" />
             </div>
           </div>
         )}
@@ -347,12 +331,12 @@ export const PersonaTuning: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center md:items-center px-0 md:px-10">
           <div className="absolute inset-0 bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setFocusModal(null)}></div>
           
-          <div className="relative w-full h-[85vh] md:h-[80vh] md:max-w-4xl bg-wade-bg-card rounded-t-[2rem] md:rounded-[2rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden md:border border-wade-border">
+          <div className="relative w-full h-[85vh] md:h-[80vh] md:max-w-4xl bg-wade-bg-card rounded-t-[2.5rem] md:rounded-[2rem] shadow-[0_-15px_40px_rgba(var(--wade-accent-rgb),0.2)] flex flex-col animate-slide-up overflow-hidden md:border border-wade-border">
             
-            <div className="md:hidden w-12 h-1.5 bg-wade-border rounded-full mx-auto mt-3 mb-2"></div>
+            <div className="md:hidden w-12 h-1.5 bg-wade-border rounded-full mx-auto mt-4 mb-2"></div>
             
             <div 
-              className="px-5 md:px-6 py-2.5 md:py-4 border-b border-wade-border flex justify-between items-center"
+              className="px-6 py-3 md:py-4 border-b border-wade-border flex justify-between items-center"
               style={{
                 backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
                 backgroundSize: '12px 12px',
@@ -361,18 +345,17 @@ export const PersonaTuning: React.FC = () => {
             >
               <h3 className="text-[10px] md:text-xs font-bold text-wade-text-main uppercase tracking-widest leading-none bg-wade-bg-card/80 px-2 py-1 rounded backdrop-blur-sm">{focusModal.label}</h3>
               
-              {/* 沉浸模式关闭按钮同样应用原版基因 */}
               <button 
                 onClick={() => setFocusModal(null)} 
-                className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors"
+                className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-wade-border-light hover:bg-wade-accent hover:text-white transition-all border border-wade-border/40 group"
                 title="Done"
               >
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-wade-border group-hover:text-white transition-colors"><polyline points="20 6 9 17 4 12"/></svg>
               </button>
             </div>
             
-            <div className="flex-1 p-4 md:p-8 flex flex-col bg-wade-bg-card">
-              <textarea autoFocus value={focusModal.value} onChange={(e) => focusModal.onChange(e.target.value)} className="w-full flex-1 bg-transparent text-base text-wade-text-main outline-none resize-none leading-relaxed" placeholder="Write your heart out..." />
+            <div className="flex-1 p-5 md:p-8 flex flex-col bg-wade-bg-card">
+              <textarea autoFocus value={focusModal.value} onChange={(e) => focusModal.onChange(e.target.value)} className="w-full flex-1 bg-transparent text-sm md:text-base text-wade-text-main outline-none resize-none leading-relaxed" placeholder="Write your heart out..." />
             </div>
           </div>
         </div>
