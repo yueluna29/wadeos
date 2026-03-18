@@ -188,7 +188,7 @@ export const PersonaTuning: React.FC = () => {
               onClick={() => setCurrentView('wade')}
               className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
             >
-              <div className="w-16 h-24 shrink-0 rounded-[0.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
+              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
                 <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col flex-1">
@@ -211,7 +211,7 @@ export const PersonaTuning: React.FC = () => {
                   <span className="text-sm leading-none">←</span> Edit Profile
                 </span>
               </div>
-              <div className="w-16 h-24 shrink-0 rounded-[0.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
+              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
                 <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
               </div>
             </div>
