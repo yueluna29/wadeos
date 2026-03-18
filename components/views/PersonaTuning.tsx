@@ -82,7 +82,11 @@ export const PersonaTuning: React.FC = () => {
 
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col bg-wade-bg-card border border-wade-border rounded-[1.2rem] overflow-hidden shadow-sm transition-all focus-within:border-wade-accent focus-within:shadow-md relative group ${wrapperClass}`}>
-      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40">
+      <div className="flex justify-between items-center px-4 py-2 border-b border-wade-border bg-wade-bg-app/40" style={{
+        backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+        backgroundPosition: 'center top'
+      }}>
         <label className="text-[10px] font-bold text-wade-text-main uppercase tracking-widest leading-none">{label}</label>
         {isTextArea && (
           <button 
