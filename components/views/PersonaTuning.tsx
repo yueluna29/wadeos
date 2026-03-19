@@ -2,16 +2,28 @@ import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/Button';
 import { uploadToImgBB } from '../../services/imgbb';
-import { Icons } from '../ui/Icons'; // 引入你最爱的原装 Icon 组件！
+import { Icons } from '../ui/Icons';
+import { motion } from 'framer-motion'; // 引入你最爱的原装 Icon 组件！
 
 type ViewState = 'home' | 'wade' | 'luna' | 'system';
 
 export const PersonaTuning: React.FC = () => {
   const { settings, updateSettings } = useStore();
   const [currentView, setCurrentView] = useState<ViewState>('home');
+  const [currentIndex, setCurrentIndex] = useState(1); // 0: System, 1: Wade, 2: Luna
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
+  const handleDragEnd = (event: any, info: any) => {
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+    if (offset < -50 || velocity < -500) {
+      if (currentIndex < 2) setCurrentIndex(currentIndex + 1);
+    } else if (offset > 50 || velocity > 500) {
+      if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+    }
+  };
+
   const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
   // --- Wade 专属字段 ---
@@ -135,9 +147,9 @@ export const PersonaTuning: React.FC = () => {
       {/* =========================================
           🔥 1:1 像素级复刻 ChatInterface 的 Header 🔥
           ========================================= */}
-      <div className="w-full h-[68px] px-4 bg-wade-bg-app flex items-center justify-between z-20 shrink-0 border-b border-transparent relative">
+      <div className={`w-full h-[68px] px-4 flex items-center justify-between z-20 shrink-0 border-b border-transparent ${currentView === 'home' ? 'absolute top-0 left-0 right-0 bg-transparent pointer-events-none' : 'bg-wade-bg-app relative'}`}>
         
-        <div className="flex z-10">
+        <div className="flex z-10 pointer-events-auto">
           {currentView !== 'home' ? (
             <button 
               onClick={() => setCurrentView('home')}
@@ -154,13 +166,13 @@ export const PersonaTuning: React.FC = () => {
         {/* 绝对居中的标题 */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
           <h2 className="font-hand text-2xl text-wade-accent capitalize pointer-events-auto">
-            {currentView === 'home' ? 'The Brains of the Operation' : 
+            {currentView === 'home' ? '' : 
              currentView === 'wade' ? 'Wade\'s File' : 
              currentView === 'luna' ? 'Luna\'s File' : 'System Override'}
           </h2>
         </div>
         
-        <div className="flex items-center gap-2 z-10">
+        <div className="flex items-center gap-2 z-10 pointer-events-auto">
           {currentView !== 'home' ? (
              <button 
                onClick={saveChanges} 
@@ -183,65 +195,90 @@ export const PersonaTuning: React.FC = () => {
       {/* =========================================
           🔥 独立滚动的身体区域 (带上了你爱的网格背景) 🔥
           ========================================= */}
-      <div 
-        className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-6 md:px-10 pt-4 pb-24 custom-scrollbar"
-        style={{
-          backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-          backgroundPosition: 'center top'
-        }}
-      >
-
-        {/* ================= HOME VIEW ================= */}
-        {currentView === 'home' && (
-          <div className="max-w-2xl mx-auto space-y-5 animate-fade-in flex flex-col items-center">
-            <p className="text-wade-text-muted text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1 bg-wade-bg-card px-5 py-2 rounded-full border border-wade-border shadow-sm">
-              Welcome to the Space
-            </p>
-
-            <div 
-              onClick={() => setCurrentView('wade')}
-              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
-            >
-              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
-                <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex flex-col flex-1">
-                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Wade Wilson</h3>
-                <p className="text-xs text-wade-text-muted italic leading-relaxed">"Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."</p>
-                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1">
-                  <span className="text-sm leading-none">←</span> Edit Profile
-                </span>
-              </div>
+      {currentView === 'home' ? (
+        <div className="flex-1 w-full relative overflow-hidden bg-wade-bg-app">
+          <motion.div
+            className="flex w-full h-full"
+            animate={{ x: `-${currentIndex * 100}%` }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+          >
+            {/* System Slide */}
+            <div className="w-full h-full shrink-0 relative group bg-wade-accent-light">
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
+               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
+                 <h2 
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   onClick={() => setCurrentView('system')}
+                 >
+                   System Override
+                 </h2>
+                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
+                   "Jailbreaks, Mode settings, and Model-specific routing."
+                 </p>
+                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
+                   Tap name to configure
+                 </p>
+               </div>
             </div>
-
-            <div 
-              onClick={() => setCurrentView('luna')}
-              className="w-full bg-wade-bg-card border border-wade-border p-5 rounded-[2rem] flex items-center gap-5 cursor-pointer hover:border-wade-accent hover:shadow-lg transition-all group"
-            >
-              <div className="flex flex-col flex-1 text-right items-end">
-                <h3 className="font-bold text-lg text-wade-text-main pb-0.5 mb-1">Luna</h3>
-                <p className="text-xs text-wade-text-muted italic leading-relaxed">"The architect. The brain. The only one who can put up with me."</p>
-                <span className="text-[10px] uppercase font-bold text-wade-accent mt-3 flex items-center gap-1 justify-end">
-                  Edit Profile <span className="text-sm leading-none">→</span>
-                </span>
-              </div>
-              <div className="w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden border-[3px] border-wade-bg-app group-hover:border-wade-accent-light transition-colors shadow-inner">
-                <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
-              </div>
+            {/* Wade Slide */}
+            <div className="w-full h-full shrink-0 relative group">
+               <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
+               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
+                 <h2 
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   onClick={() => setCurrentView('wade')}
+                 >
+                   Wade Wilson
+                 </h2>
+                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
+                   "Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."
+                 </p>
+                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
+                   Tap name to configure
+                 </p>
+               </div>
             </div>
-
-            <div 
-              onClick={() => setCurrentView('system')}
-              className="w-full bg-wade-accent-light border border-wade-border-light p-5 rounded-[2rem] text-center cursor-pointer hover:shadow-md transition-all group mt-2"
-            >
-               <h3 className="font-bold text-xs text-wade-accent tracking-widest uppercase mb-1">System Override & Core Instructions</h3>
-               <p className="text-[10px] text-wade-text-muted">Jailbreaks, Mode settings, and Model-specific routing.</p>
+            {/* Luna Slide */}
+            <div className="w-full h-full shrink-0 relative group">
+               <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
+               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
+                 <h2 
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   onClick={() => setCurrentView('luna')}
+                 >
+                   Luna
+                 </h2>
+                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
+                   "The architect. The heart. The only one who can put up with me."
+                 </p>
+                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
+                   Tap name to configure
+                 </p>
+               </div>
             </div>
+          </motion.div>
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-30 pointer-events-none">
+             {[0, 1, 2].map(i => (
+               <div key={i} className={`h-2 rounded-full transition-all duration-300 shadow-sm ${currentIndex === i ? 'bg-white w-6' : 'bg-white/40 w-2'}`} />
+             ))}
           </div>
-        )}
-
-        {/* ================= LUNA VIEW ================= */}
+        </div>
+      ) : (
+        <div 
+          className="flex-1 w-full max-w-5xl mx-auto overflow-y-auto px-6 md:px-10 pt-4 pb-24 custom-scrollbar"
+          style={{
+            backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+            backgroundPosition: 'center top'
+          }}
+        >
+          {/* ================= LUNA VIEW ================= */}
         {currentView === 'luna' && (
           <div className="animate-fade-in flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
@@ -359,7 +396,8 @@ export const PersonaTuning: React.FC = () => {
           </div>
         )}
 
-      </div>
+        </div>
+      )}
 
       {/* ================= 沉浸式专注模式 Modal ================= */}
       {focusModal && (
