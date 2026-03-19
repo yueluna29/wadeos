@@ -204,7 +204,9 @@ export const PersonaTuning: React.FC = () => {
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
+            dragDirectionLock
             onDragEnd={handleDragEnd}
+            style={{ touchAction: "pan-y", willChange: "transform" }}
           >
             {/* System Slide */}
             <div className="w-full h-full shrink-0 relative group bg-wade-accent-light">
