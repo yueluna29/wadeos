@@ -211,7 +211,7 @@ export const PersonaTuning: React.FC = () => {
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
                  <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
                    onClick={() => setCurrentView('system')}
                  >
                    System Override
@@ -226,11 +226,11 @@ export const PersonaTuning: React.FC = () => {
             </div>
             {/* Wade Slide */}
             <div className="w-full h-full shrink-0 relative group">
-               <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover" />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
                  <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
                    onClick={() => setCurrentView('wade')}
                  >
                    Wade Wilson
@@ -245,11 +245,11 @@ export const PersonaTuning: React.FC = () => {
             </div>
             {/* Luna Slide */}
             <div className="w-full h-full shrink-0 relative group">
-               <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover" />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
                  <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer hover:scale-110 transition-transform drop-shadow-lg"
+                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
                    onClick={() => setCurrentView('luna')}
                  >
                    Luna
