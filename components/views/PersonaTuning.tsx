@@ -202,7 +202,6 @@ export const PersonaTuning: React.FC = () => {
             animate={{ x: `-${currentIndex * 100}%` }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
           >
