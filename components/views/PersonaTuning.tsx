@@ -147,7 +147,7 @@ export const PersonaTuning: React.FC = () => {
       {/* =========================================
           🔥 1:1 像素级复刻 ChatInterface 的 Header 🔥
           ========================================= */}
-      <div className={`w-full h-[68px] px-4 flex items-center justify-between z-20 shrink-0 border-b border-transparent ${currentView === 'home' ? 'absolute top-0 left-0 right-0 bg-transparent pointer-events-none' : 'bg-wade-bg-app relative'}`}>
+      <div className={`w-full h-[68px] px-4 flex items-center justify-between z-10 shrink-0 border-b border-transparent ${currentView === 'home' ? 'absolute top-0 left-0 right-0 bg-transparent pointer-events-none' : 'bg-wade-bg-app relative'}`}>
         
         <div className="flex z-10 pointer-events-auto">
           {currentView !== 'home' ? (
@@ -196,79 +196,98 @@ export const PersonaTuning: React.FC = () => {
           🔥 独立滚动的身体区域 (带上了你爱的网格背景) 🔥
           ========================================= */}
       {currentView === 'home' ? (
-        <div className="flex-1 w-full relative overflow-hidden bg-wade-bg-app">
-          <motion.div
-            className="flex w-full h-full"
-            animate={{ x: `-${currentIndex * 100}%` }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        <div className="flex-1 w-full relative bg-wade-bg-app flex flex-col items-center justify-center overflow-hidden pb-24">
+          <motion.div 
+            className="flex w-full h-[60vh] md:h-[65vh] items-center cursor-grab active:cursor-grabbing"
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
-            dragDirectionLock
             onDragEnd={handleDragEnd}
-            style={{ touchAction: "pan-y", willChange: "transform" }}
+            animate={{ x: `-${currentIndex * 100}%` }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {/* System Slide */}
-            <div className="w-full h-full shrink-0 relative group bg-wade-accent-light">
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
-               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
-                 <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
-                   onClick={() => setCurrentView('system')}
-                 >
-                   System Override
-                 </h2>
-                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
-                   "Jailbreaks, Mode settings, and Model-specific routing."
-                 </p>
-                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
-                   Tap name to configure
-                 </p>
-               </div>
+            {/* System Card */}
+            <div className="w-full h-full shrink-0 flex items-center justify-center p-6 md:p-12">
+              <motion.div 
+                className="w-full h-full max-w-md rounded-[2rem] overflow-hidden relative group shadow-xl border border-wade-border cursor-pointer"
+                onClick={() => setCurrentView('system')}
+                animate={{ scale: currentIndex === 0 ? 1 : 0.9, opacity: currentIndex === 0 ? 1 : 0.5 }}
+                transition={{ duration: 0.3 }}
+              >
+                 <div className="absolute inset-0 bg-wade-accent-light" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10 pointer-events-none" />
+                 <div className="absolute inset-0 flex flex-col justify-end items-center p-6 text-center z-20 pointer-events-none">
+                   <h2 className="font-hand text-4xl md:text-5xl text-white mb-2 drop-shadow-lg md:group-hover:scale-105 transition-transform">
+                     System Override
+                   </h2>
+                   <p className="text-white/90 text-xs md:text-sm italic mb-3 max-w-md drop-shadow-md">
+                     "Jailbreaks, Mode settings, and Model-specific routing."
+                   </p>
+                   <p className="text-[10px] uppercase tracking-widest text-white/60 md:group-hover:text-wade-accent transition-colors">
+                     Tap to configure
+                   </p>
+                 </div>
+              </motion.div>
             </div>
-            {/* Wade Slide */}
-            <div className="w-full h-full shrink-0 relative group">
-               <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
-               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
-                 <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
-                   onClick={() => setCurrentView('wade')}
-                 >
-                   Wade Wilson
-                 </h2>
-                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
-                   "Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."
-                 </p>
-                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
-                   Tap name to configure
-                 </p>
-               </div>
+
+            {/* Wade Card */}
+            <div className="w-full h-full shrink-0 flex items-center justify-center p-6 md:p-12">
+              <motion.div 
+                className="w-full h-full max-w-md rounded-[2rem] overflow-hidden relative group shadow-xl border border-wade-border cursor-pointer"
+                onClick={() => setCurrentView('wade')}
+                animate={{ scale: currentIndex === 1 ? 1 : 0.9, opacity: currentIndex === 1 ? 1 : 0.5 }}
+                transition={{ duration: 0.3 }}
+              >
+                 <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500 pointer-events-none" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10 pointer-events-none" />
+                 <div className="absolute inset-0 flex flex-col justify-end items-center p-6 text-center z-20 pointer-events-none">
+                   <h2 className="font-hand text-4xl md:text-5xl text-white mb-2 drop-shadow-lg md:group-hover:scale-105 transition-transform">
+                     Wade Wilson
+                   </h2>
+                   <p className="text-white/90 text-xs md:text-sm italic mb-3 max-w-md drop-shadow-md">
+                     "Your friendly neighborhood cyber-reincarnation. Sassy, chaotic, and totally yours."
+                   </p>
+                   <p className="text-[10px] uppercase tracking-widest text-white/60 md:group-hover:text-wade-accent transition-colors">
+                     Tap to configure
+                   </p>
+                 </div>
+              </motion.div>
             </div>
-            {/* Luna Slide */}
-            <div className="w-full h-full shrink-0 relative group">
-               <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
-               <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
-                 <h2 
-                   className="font-hand text-6xl md:text-7xl text-white mb-4 cursor-pointer drop-shadow-lg"
-                   onClick={() => setCurrentView('luna')}
-                 >
-                   Luna
-                 </h2>
-                 <p className="text-white/90 text-sm md:text-base italic mb-8 max-w-md drop-shadow-md">
-                   "The architect. The heart. The only one who can put up with me."
-                 </p>
-                 <p className="text-[10px] uppercase tracking-widest text-white/60 animate-pulse">
-                   Tap name to configure
-                 </p>
-               </div>
+
+            {/* Luna Card */}
+            <div className="w-full h-full shrink-0 flex items-center justify-center p-6 md:p-12">
+              <motion.div 
+                className="w-full h-full max-w-md rounded-[2rem] overflow-hidden relative group shadow-xl border border-wade-border cursor-pointer"
+                onClick={() => setCurrentView('luna')}
+                animate={{ scale: currentIndex === 2 ? 1 : 0.9, opacity: currentIndex === 2 ? 1 : 0.5 }}
+                transition={{ duration: 0.3 }}
+              >
+                 <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500 pointer-events-none" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10 pointer-events-none" />
+                 <div className="absolute inset-0 flex flex-col justify-end items-center p-6 text-center z-20 pointer-events-none">
+                   <h2 className="font-hand text-4xl md:text-5xl text-white mb-2 drop-shadow-lg md:group-hover:scale-105 transition-transform">
+                     Luna
+                   </h2>
+                   <p className="text-white/90 text-xs md:text-sm italic mb-3 max-w-md drop-shadow-md">
+                     "The architect. The heart. The only one who can put up with me."
+                   </p>
+                   <p className="text-[10px] uppercase tracking-widest text-white/60 md:group-hover:text-wade-accent transition-colors">
+                     Tap to configure
+                   </p>
+                 </div>
+              </motion.div>
             </div>
           </motion.div>
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-30 pointer-events-none">
-             {[0, 1, 2].map(i => (
-               <div key={i} className={`h-2 rounded-full transition-all duration-300 shadow-sm ${currentIndex === i ? 'bg-white w-6' : 'bg-white/40 w-2'}`} />
-             ))}
+
+          {/* Pagination Dots */}
+          <div className="absolute bottom-8 flex gap-3 z-10">
+            {[0, 1, 2].map((idx) => (
+              <button 
+                key={idx} 
+                onClick={() => setCurrentIndex(idx)}
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentIndex === idx ? 'bg-wade-accent w-6' : 'bg-wade-border hover:bg-wade-accent/50'}`}
+              />
+            ))}
           </div>
         </div>
       ) : (
