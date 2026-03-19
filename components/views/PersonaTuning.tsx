@@ -200,7 +200,7 @@ export const PersonaTuning: React.FC = () => {
           <motion.div
             className="flex w-full h-full"
             animate={{ x: `-${currentIndex * 100}%` }}
-            transition={{ type: "tween", ease: "circOut", duration: 0.4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             drag="x"
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
@@ -262,7 +262,7 @@ export const PersonaTuning: React.FC = () => {
                </div>
             </div>
           </motion.div>
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-50 pointer-events-none">
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-30 pointer-events-none">
              {[0, 1, 2].map(i => (
                <div key={i} className={`h-2 rounded-full transition-all duration-300 shadow-sm ${currentIndex === i ? 'bg-white w-6' : 'bg-white/40 w-2'}`} />
              ))}
