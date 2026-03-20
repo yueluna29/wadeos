@@ -5,15 +5,8 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 核心修复 1：把输入框组件彻底搬到外面来！它再也不会每次打字都自爆了！
+// 🔥 核心修复：把那些该死的 handleFocus 和 onFocus 统统删掉！让原生浏览器自己去处理滚动！
 const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextArea = false, isCode = false, wrapperClass = "" }: any) => {
-  // 🔥 核心修复 2：赛博追踪器。点哪个框，屏幕就自动滚到正中间！
-  const handleFocus = (e: any) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300); // 留出 300 毫秒给手机键盘弹出来的时间
-  };
-
   return (
     <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
       <div className="flex justify-between items-center px-1">
@@ -31,12 +24,12 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
       </div>
       {isTextArea ? (
         <textarea 
-          value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
+          value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
           className={`w-full flex-1 min-h-[80px] bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar ${isCode ? 'font-mono leading-relaxed' : 'font-main'}`}
         />
       ) : (
         <input 
-          type="text" value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
+          type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
           className={`w-full bg-wade-bg-card border border-wade-border rounded-xl px-4 py-2.5 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all ${isCode ? 'font-mono' : 'font-main'}`}
         />
       )}
@@ -44,18 +37,13 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
   );
 };
 
-// 🔥 终极核武器版：手机端直接全屏霸占，绝对定位大法！
+// 保持我们修改后的全屏绝对定位 Modal！
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
   return (
-    // 外层背景：手机端纯色遮挡，电脑端毛玻璃半透明
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-bg-base md:bg-wade-text-main/20 md:backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
-      
-      {/* 核心修复 1：手机端强行 w-full h-full 铺满全屏！不要悬浮了！这样键盘弹出来时系统就能完美自适应！电脑端保留悬浮圆角。 */}
       <div className="bg-wade-bg-base w-full h-full md:h-[85vh] md:max-w-4xl md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col md:border border-wade-accent-light md:ring-1 md:ring-wade-border" onClick={e => e.stopPropagation()}>
-        
-        {/* 顶部导航栏 */}
         <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Edit size={14} /></div>
@@ -66,9 +54,7 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
           </button>
         </div>
         
-        {/* 核心修复 2：父级设置为 relative，取消所有 padding */}
         <div className="flex-1 bg-wade-bg-base relative">
-          {/* 绝对定位大法！(absolute inset-4) 像四根钉子一样把文本框死死钉在边缘！它没有选择，必须 100% 填满！ */}
           <textarea 
             autoFocus 
             value={val} 
@@ -183,7 +169,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
         </button>
       </div>
 
-      {/* TABS - 极简文案，完美居中 */}
+      {/* TABS */}
       <div className="px-6 pt-4 pb-2 bg-wade-bg-app shrink-0 z-10 flex justify-center gap-3 overflow-x-auto custom-scrollbar">
          {[
            { id: 'wade', label: "Wade", icon: <Icons.User size={14} /> },
@@ -213,25 +199,27 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {activeTab === 'wade' && (
             <div className="space-y-6 animate-slide-up">
               
-              {/* 🔥 极度性感的封面档案卡 🔥 */}
+              {/* 封面档案卡 */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
-                <div className="h-28 w-full bg-gradient-to-r from-wade-accent-light to-wade-border-light relative overflow-hidden">
-                   <div className="absolute inset-0 bg-wade-text-muted opacity-5 mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle, var(--wade-text-muted) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                <div className="h-32 w-full bg-gradient-to-r from-wade-accent-light/50 to-wade-border-light/50 relative overflow-hidden flex items-center justify-center">
+                   <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundColor: 'var(--wade-bg-app)' }}></div>
+                   <div className="z-10 bg-wade-bg-card/60 backdrop-blur-sm px-6 py-2 rounded-full border border-wade-border/50 text-[10px] uppercase tracking-[0.3em] font-bold text-wade-accent">
+                     Target Identified
+                   </div>
                 </div>
                 
                 <div className="px-5 pb-6 relative">
-                   <div className="relative -mt-12 mb-3 flex justify-between items-end">
-                      <div className="w-24 h-24 shrink-0 rounded-[1.5rem] overflow-hidden border-4 border-wade-bg-card group cursor-pointer shadow-md bg-wade-bg-card relative" onClick={() => wadeFileRef.current?.click()}>
+                   <div className="relative -mt-10 mb-4 flex justify-between items-end">
+                      <div className="w-28 h-28 shrink-0 rounded-[1.8rem] overflow-hidden border-[6px] border-wade-bg-card group cursor-pointer shadow-lg bg-wade-bg-card relative" onClick={() => wadeFileRef.current?.click()}>
                         <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-wade-text-main/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                           <Icons.Edit className="text-white" />
                         </div>
                         <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
                       </div>
-                      <span className="bg-wade-accent-light text-wade-accent text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest border border-wade-accent/20 mb-2">Target</span>
                    </div>
                    
-                   <h3 className="font-bold text-2xl text-wade-text-main mb-4 px-1">Wade</h3>
+                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Wade</h3>
                    
                    {/* 胶囊状基础属性框 */}
                    <div className="flex flex-wrap gap-2">
@@ -263,7 +251,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 <FormInput label="Hobbies & Interests" value={wadeHobbies} onChange={setWadeHobbies} isTextArea onExpand={() => setFocusModal({label: "Hobbies & Interests", value: wadeHobbies, onSave: setWadeHobbies})} wrapperClass="min-h-[80px]" />
               </div>
 
-              {/* 语言校准 - 大框在上，小框在下 */}
+              {/* 语言校准 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
                   <span className="text-wade-accent"><Icons.Chat size={16} /></span> Linguistic Calibration
@@ -281,27 +269,27 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {activeTab === 'luna' && (
             <div className="space-y-6 animate-slide-up">
               
-              {/* 🔥 极度性感的封面档案卡 🔥 */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
-                <div className="h-28 w-full bg-gradient-to-r from-wade-border-light to-wade-accent-light relative overflow-hidden">
-                   <div className="absolute inset-0 bg-wade-text-muted opacity-5 mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle, var(--wade-text-muted) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                <div className="h-32 w-full bg-gradient-to-r from-wade-border-light/50 to-wade-accent-light/50 relative overflow-hidden flex items-center justify-center">
+                   <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundColor: 'var(--wade-bg-app)' }}></div>
+                   <div className="z-10 bg-wade-bg-card/60 backdrop-blur-sm px-6 py-2 rounded-full border border-wade-border/50 text-[10px] uppercase tracking-[0.3em] font-bold text-wade-accent">
+                     Architect Online
+                   </div>
                 </div>
                 
                 <div className="px-5 pb-6 relative">
-                   <div className="relative -mt-12 mb-3 flex justify-between items-end">
-                      <div className="w-24 h-24 shrink-0 rounded-[1.5rem] overflow-hidden border-4 border-wade-bg-card group cursor-pointer shadow-md bg-wade-bg-card relative" onClick={() => lunaFileRef.current?.click()}>
+                   <div className="relative -mt-10 mb-4 flex justify-between items-end">
+                      <div className="w-28 h-28 shrink-0 rounded-[1.8rem] overflow-hidden border-[6px] border-wade-bg-card group cursor-pointer shadow-lg bg-wade-bg-card relative" onClick={() => lunaFileRef.current?.click()}>
                         <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-wade-text-main/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                           <Icons.Edit className="text-white" />
                         </div>
                         <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
                       </div>
-                      <span className="bg-wade-border-light text-wade-accent hover:text-wade-accent-hover text-[10px] font-bold px-3 py-1.5 rounded-full uppercase border border-wade-accent/30 tracking-widest mb-2">Architect</span>
                    </div>
                    
-                   <h3 className="font-bold text-2xl text-wade-text-main mb-4 px-1">Luna</h3>
+                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Luna</h3>
                    
-                   {/* 胶囊状基础属性框 */}
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
                        <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Birthday</span>
