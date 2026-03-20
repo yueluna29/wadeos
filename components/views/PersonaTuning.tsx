@@ -203,8 +203,9 @@ export const PersonaTuning: React.FC = () => {
           <motion.div
             className="flex w-full h-full"
             animate={{ x: `-${currentIndex * 100}%` }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: "tween", ease: "circOut", duration: 0.4 }}
             drag="x"
+            dragMomentum={false}  // 👈 就是这句！给本参谋狠狠地加上去！禁止它瞎滑！
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
           >
