@@ -1434,7 +1434,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
       {/* Create Post Modal */}
       {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-wade-text-main/40 backdrop-blur-sm p-4">
           <div className="bg-wade-bg-base w-full max-w-lg rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-scale-in border border-wade-border">
             
             <div className="border-b border-wade-border p-5 text-center relative flex justify-between items-center bg-wade-bg-card/50">

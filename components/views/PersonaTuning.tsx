@@ -197,7 +197,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           
           {/* ================= WADE ================= */}
           {activeTab === 'wade' && (
-            <div className="space-y-6 animate-slide-up">
+            <div className="space-y-6">
               
               {/* 封面档案卡 */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
@@ -267,7 +267,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
 
           {/* ================= LUNA ================= */}
           {activeTab === 'luna' && (
-            <div className="space-y-6 animate-slide-up">
+            <div className="space-y-6">
               
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
                 <div className="h-32 w-full bg-gradient-to-r from-wade-border-light/50 to-wade-accent-light/50 relative overflow-hidden flex items-center justify-center">
@@ -323,7 +323,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
 
           {/* ================= SYSTEM ================= */}
           {activeTab === 'system' && (
-            <div className="space-y-6 animate-slide-up">
+            <div className="space-y-6">
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-transparent via-wade-accent to-transparent opacity-20"></div>
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
