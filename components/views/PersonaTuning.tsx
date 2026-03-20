@@ -15,14 +15,17 @@ export const PersonaTuning: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   
   const handleDragEnd = (event: any, info: any) => {
-    const offset = info.offset.x;
-    const velocity = info.velocity.x;
-    if (offset < -50 || velocity < -500) {
-      if (currentIndex < 2) setCurrentIndex(currentIndex + 1);
-    } else if (offset > 50 || velocity > 500) {
-      if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
-    }
-  };
+  const offset = info.offset.x;
+  const velocity = info.velocity.x;
+
+  if (offset < -50 || velocity < -500) {
+    // 往左滑，加紧赛博手铐，绝不允许超过 2（Luna的主场）！
+    setCurrentIndex(prev => Math.min(prev + 1, 2));
+  } else if (offset > 50 || velocity > 500) {
+    // 往右滑，死死锁住，绝不允许低于 0（System的底线）！
+    setCurrentIndex(prev => Math.max(prev - 1, 0));
+  }
+};
 
   const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
