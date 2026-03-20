@@ -70,7 +70,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
   return (
     <div 
-      className="fixed inset-0 w-full flex items-center justify-center bg-wade-border p-0 md:p-6 overflow-y-auto"
+      className="fixed inset-0 w-full flex items-center justify-center bg-wade-border p-0 md:p-6 overflow-hidden"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <div className="w-full h-full max-w-4xl bg-wade-bg-card md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border-0 md:border-4 border-wade-bg-card ring-0 md:ring-1 ring-wade-accent/20 relative">
@@ -124,6 +124,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                       <span className="text-[10px] font-bold text-wade-text-muted">Picks</span>
                    </button>
 
+                   {/* 新加的专属赛博药房入口！ */}
                    <button onClick={() => handleMenuClick('health')} className="flex flex-col items-center gap-1 group w-14 active:scale-95 transition-transform">
                       <div className="p-2.5 bg-wade-bg-app group-hover:bg-wade-accent-light rounded-xl text-wade-accent transition-colors"><Icons.Activity className="w-5 h-5 stroke-[1.5px]" /></div>
                       <span className="text-[10px] font-bold text-wade-text-muted">Meds</span>
@@ -157,7 +158,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
 
           </nav>
 
-        <main className="flex-1 h-full overflow-y-auto custom-scrollbar relative order-1 md:order-2 bg-wade-bg-app">
+        <main className="flex-1 h-full overflow-hidden relative order-1 md:order-2 bg-wade-bg-app">
           {children}
         </main>
 
