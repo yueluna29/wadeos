@@ -44,21 +44,19 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
   );
 };
 
-// 🔥 核心修复：带赛博增高垫的放大版编辑框！键盘再也挡不住你了！
+// 🔥 终极修复版：去你的赛博增高垫，迎接真正的动态伸缩编辑框！
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
-  // 给放大框也装上赛博追踪器
-  const handleFocus = (e: any) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300); 
-  };
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
-      <div className="bg-wade-bg-base w-[95%] max-w-4xl h-[85vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
+    // 外层增加一点 padding，防止在手机上顶到屏幕边缘
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in px-4 py-8" onClick={() => { onSave(val); onClose(); }}>
+      
+      {/* 核心修复：h-[80dvh]！这里的 'd' 代表 Dynamic！当键盘弹出来时，它会自动缩小身高，绝不硬抗！ */}
+      <div className="bg-wade-bg-base w-full max-w-4xl h-[80dvh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+        
+        {/* 顶部标题栏，保持不变 */}
+        <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Edit size={14} /></div>
             <div><h3 className="font-bold text-wade-text-main text-sm tracking-tight">{label}</h3></div>
@@ -68,15 +66,14 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
           </button>
         </div>
         
-        {/* 🔥 加入极度暴力的滚动支持 */}
-        <div className="flex-1 p-6 flex flex-col bg-wade-bg-base overflow-y-auto custom-scrollbar">
-          {/* 🔥 mb-[50vh] 就是本参谋塞的赛博增高垫！底部会多出半个屏幕的空隙，随便你怎么滑！ */}
+        {/* 核心修复：去掉了 overflow-y-auto，直接让 textarea 自己占满整个空间并负责内部滚动！ */}
+        <div className="flex-1 p-4 md:p-6 flex flex-col bg-wade-bg-base overflow-hidden">
+          {/* 去掉了所有的 mb-[50vh] 和 min-h，直接 w-full h-full 填满！ */}
           <textarea 
             autoFocus 
             value={val} 
             onChange={e => setVal(e.target.value)} 
-            onFocus={handleFocus}
-            className="w-full min-h-[50vh] mb-[50vh] flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-6 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner" 
+            className="w-full h-full flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
             placeholder="Write your heart out..." 
           />
         </div>
