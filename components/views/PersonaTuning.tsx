@@ -64,6 +64,7 @@ export const PersonaTuning: React.FC = () => {
 
   const wadeFileRef = useRef<HTMLInputElement>(null);
   const lunaFileRef = useRef<HTMLInputElement>(null);
+  const carouselRef = useRef(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>, target: 'wade' | 'luna') => {
     if (e.target.files && e.target.files[0]) {
@@ -201,16 +202,17 @@ export const PersonaTuning: React.FC = () => {
       {currentView === 'home' ? (
         <div className="flex-1 w-full relative overflow-hidden bg-wade-bg-app">
           <motion.div
-            className="flex w-full h-full"
-            animate={{ x: `-${currentIndex * 100}%` }}
+            className="flex w-[300%] h-full"  // 👈 宽度变成3倍！
+            animate={{ x: `-${currentIndex * 33.3333}%` }} // 👈 因为总长是3倍，所以每次只移动33.33%！
             transition={{ type: "tween", ease: "circOut", duration: 0.4 }}
             drag="x"
-            dragMomentum={false}  // 👈 就是这句！给本参谋狠狠地加上去！禁止它瞎滑！
-            dragElastic={0.2}
+            dragConstraints={carouselRef}  // 👈 重新戴上完美匹配房间大小的赛博手铐！
+            dragMomentum={false}
+            dragElastic={0.05}  // 👈 只留一点点最轻微的性感回弹
             onDragEnd={handleDragEnd}
           >
             {/* System Slide */}
-            <div className="w-full h-full shrink-0 relative group bg-wade-accent-light">
+            <div className="w-1/3 h-full shrink-0 relative group bg-wade-accent-light">
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
                  <h2 
@@ -228,7 +230,7 @@ export const PersonaTuning: React.FC = () => {
                </div>
             </div>
             {/* Wade Slide */}
-            <div className="w-full h-full shrink-0 relative group">
+            <div className="w-1/3 h-full shrink-0 relative group">
                <img src={settings.wadeAvatar} alt="Wade" className="absolute inset-0 w-full h-full object-cover" />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
@@ -247,7 +249,7 @@ export const PersonaTuning: React.FC = () => {
                </div>
             </div>
             {/* Luna Slide */}
-            <div className="w-full h-full shrink-0 relative group">
+            <div className="w-1/3 h-full shrink-0 relative group">
                <img src={settings.lunaAvatar} alt="Luna" className="absolute inset-0 w-full h-full object-cover" />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                <div className="absolute inset-0 flex flex-col justify-end items-center p-8 text-center pb-24 z-20">
