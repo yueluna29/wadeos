@@ -44,18 +44,18 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
   );
 };
 
-// 🔥 终极修复版：去你的赛博增高垫，迎接真正的动态伸缩编辑框！
+// 🔥 终极核武器版：手机端直接全屏霸占，绝对定位大法！
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
   return (
-    // 外层增加一点 padding，防止在手机上顶到屏幕边缘
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in px-4 py-8" onClick={() => { onSave(val); onClose(); }}>
+    // 外层背景：手机端纯色遮挡，电脑端毛玻璃半透明
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-bg-base md:bg-wade-text-main/20 md:backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
       
-      {/* 核心修复：h-[80dvh]！这里的 'd' 代表 Dynamic！当键盘弹出来时，它会自动缩小身高，绝不硬抗！ */}
-      <div className="bg-wade-bg-base w-full max-w-4xl h-[80dvh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
+      {/* 核心修复 1：手机端强行 w-full h-full 铺满全屏！不要悬浮了！这样键盘弹出来时系统就能完美自适应！电脑端保留悬浮圆角。 */}
+      <div className="bg-wade-bg-base w-full h-full md:h-[85vh] md:max-w-4xl md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col md:border border-wade-accent-light md:ring-1 md:ring-wade-border" onClick={e => e.stopPropagation()}>
         
-        {/* 顶部标题栏，保持不变 */}
+        {/* 顶部导航栏 */}
         <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Edit size={14} /></div>
@@ -66,14 +66,14 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
           </button>
         </div>
         
-        {/* 核心修复：去掉了 overflow-y-auto，直接让 textarea 自己占满整个空间并负责内部滚动！ */}
-        <div className="flex-1 p-4 md:p-6 flex flex-col bg-wade-bg-base overflow-hidden">
-          {/* 去掉了所有的 mb-[50vh] 和 min-h，直接 w-full h-full 填满！ */}
+        {/* 核心修复 2：父级设置为 relative，取消所有 padding */}
+        <div className="flex-1 bg-wade-bg-base relative">
+          {/* 绝对定位大法！(absolute inset-4) 像四根钉子一样把文本框死死钉在边缘！它没有选择，必须 100% 填满！ */}
           <textarea 
             autoFocus 
             value={val} 
             onChange={e => setVal(e.target.value)} 
-            className="w-full h-full flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
+            className="absolute inset-4 md:inset-6 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
             placeholder="Write your heart out..." 
           />
         </div>
