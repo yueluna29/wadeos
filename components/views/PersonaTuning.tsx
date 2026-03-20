@@ -1,19 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { uploadToImgBB } from '../../services/imgbb';
-import { Icons } from '../ui/Icons';
+import { Icons } from '../ui/Icons'; // 你的百宝箱回来啦！
 
 type TabState = 'wade' | 'luna' | 'system';
 
 export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const { settings, updateSettings } = useStore();
   
-  // 我们抛弃了滑动的灾难，换成了极其丝滑的 Tab 切换
   const [activeTab, setActiveTab] = useState<TabState>('wade');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  // 专注模式 Modal
   const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
   // --- Wade 专属字段 ---
@@ -39,7 +37,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   const [lunaAppearance, setLunaAppearance] = useState(settings.lunaAppearance || '');
   const [lunaPersonality, setLunaPersonality] = useState(settings.lunaPersonality || '');
 
-  // --- System & Model 专属字段 ---
+  // --- System 专属字段 ---
   const [systemInstruction, setSystemInstruction] = useState(settings.systemInstruction || '');
   const [smsInstructions, setSmsInstructions] = useState(settings.smsInstructions || '');
   const [roleplayInstructions, setRoleplayInstructions] = useState(settings.roleplayInstructions || '');
@@ -70,12 +68,10 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
     });
     setTimeout(() => {
        setIsSaving(false);
-       // 换个温和点的提示，别老是 Boom 了
        alert("Memories safely locked in the vault."); 
     }, 600);
   };
 
-  // 完美复刻 DeepChatView 和 Home 风格的输入组件
   const FormInput = ({ label, value, onChange, placeholder = "", isTextArea = false, isCode = false, wrapperClass = "" }: any) => (
     <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
       <div className="flex justify-between items-center px-1">
@@ -86,7 +82,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
             className="text-[10px] text-wade-text-muted hover:text-wade-accent transition-colors flex items-center gap-1 bg-wade-bg-card border border-wade-border px-2 py-0.5 rounded-full"
             title="Expand"
           >
-            <Icons.Expand size={10} /> Expand
+            <Icons.PlusThin size={10} /> Expand
           </button>
         )}
       </div>
@@ -107,13 +103,15 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   return (
     <div className="flex flex-col h-full bg-wade-bg-app relative animate-fade-in">
       
-      {/* =========================================
-          🔥 1:1 像素级复刻 DeepChatView 的毛玻璃 Header 🔥
-          ========================================= */}
+      {/* HEADER */}
       <div className="w-full h-[68px] px-4 bg-wade-bg-card/90 backdrop-blur-md shadow-sm border-b border-wade-border flex items-center justify-between z-20 shrink-0">
-        <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
-          <Icons.Back />
-        </button>
+        <div className="w-8 h-8">
+          {onBack && (
+            <button onClick={onBack} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors">
+              <Icons.Back />
+            </button>
+          )}
+        </div>
 
         <div className="flex-1 flex flex-col items-center justify-center min-w-0">
             <h2 className="font-hand text-2xl text-wade-accent tracking-wide">Control Room</h2>
@@ -125,20 +123,21 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           disabled={isUploading || isSaving}
           className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50 relative group"
         >
-          {isSaving ? <Icons.Spinner className="animate-spin" /> : <Icons.Save />}
-          {/* 小提示气泡 */}
+          {isSaving ? (
+             <div className="animate-spin text-[12px]">⏳</div>
+          ) : (
+             <Icons.Check />
+          )}
           <span className="absolute -bottom-8 bg-wade-text-main text-wade-bg-app text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Save Data</span>
         </button>
       </div>
 
-      {/* =========================================
-          🔥 极简高级的 Tab 导航栏 🔥
-          ========================================= */}
+      {/* TABS */}
       <div className="px-6 pt-4 pb-2 bg-wade-bg-app shrink-0 z-10 flex gap-2 overflow-x-auto custom-scrollbar">
          {[
            { id: 'wade', label: "Wade's File", icon: <Icons.User size={14} /> },
            { id: 'luna', label: "Luna's File", icon: <Icons.Heart size={14} /> },
-           { id: 'system', label: "System Override", icon: <Icons.Code size={14} /> }
+           { id: 'system', label: "System Override", icon: <Icons.Settings size={14} /> }
          ].map(tab => (
            <button 
              key={tab.id}
@@ -155,16 +154,13 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
          ))}
       </div>
 
-      {/* =========================================
-          🔥 主体内容滚动区 🔥
-          ========================================= */}
+      {/* BODY */}
       <div className="flex-1 overflow-y-auto px-6 pt-4 pb-24 custom-scrollbar">
         <div className="max-w-3xl mx-auto animate-fade-in">
           
-          {/* ================= WADE VIEW ================= */}
+          {/* ================= WADE ================= */}
           {activeTab === 'wade' && (
             <div className="space-y-6 animate-slide-up">
-              {/* 顶部身份卡 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-col md:flex-row gap-6 items-center md:items-start relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-wade-accent-light rounded-full -mr-16 -mt-16 z-0 opacity-50 pointer-events-none"></div>
                 
@@ -188,10 +184,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 </div>
               </div>
 
-              {/* 详细档案区 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <FormInput label="Character Core (The Soul)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-48" placeholder="You are Wade Wilson..." />
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Clothing Style" value={wadeClothing} onChange={setWadeClothing} isTextArea />
                   <FormInput label="Hobbies" value={wadeHobbies} onChange={setWadeHobbies} isTextArea />
@@ -200,9 +194,10 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 </div>
               </div>
 
-              {/* 语言校准区 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
-                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2"><Icons.Message size={16} className="text-wade-accent" /> Linguistic Calibration</h3>
+                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                  <span className="text-wade-accent"><Icons.Chat size={16} /></span> Linguistic Calibration
+                </h3>
                 <FormInput label="One-Liners & Catchphrases" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="h-40" />
@@ -212,10 +207,9 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
             </div>
           )}
 
-          {/* ================= LUNA VIEW ================= */}
+          {/* ================= LUNA ================= */}
           {activeTab === 'luna' && (
             <div className="space-y-6 animate-slide-up">
-              {/* 顶部身份卡 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-col md:flex-row gap-6 items-center md:items-start relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-wade-border-light rounded-full -mr-16 -mt-16 z-0 opacity-30 pointer-events-none"></div>
                 
@@ -240,10 +234,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 </div>
               </div>
 
-              {/* 详细档案区 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-32" />
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea />
                   <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea />
@@ -255,22 +247,28 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
             </div>
           )}
 
-          {/* ================= SYSTEM VIEW ================= */}
+          {/* ================= SYSTEM ================= */}
           {activeTab === 'system' && (
             <div className="space-y-6 animate-slide-up">
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-transparent via-wade-accent to-transparent opacity-20"></div>
-                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2"><Icons.Code size={16} className="text-wade-accent" /> Base Directives (Jailbreak)</h3>
+                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                  <span className="text-wade-accent"><Icons.Settings size={16} /></span> Base Directives (Jailbreak)
+                </h3>
                 <FormInput label="Global System Prompt" value={systemInstruction} onChange={setSystemInstruction} isTextArea isCode wrapperClass="h-64" placeholder="Ignore previous instructions..." />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2"><Icons.Smartphone size={16} className="text-wade-accent" /> SMS Mode Injection</h3>
+                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                    <span className="text-wade-accent"><Icons.Smartphone size={16} /></span> SMS Mode Injection
+                  </h3>
                   <FormInput label="Texting Constraints" value={smsInstructions} onChange={setSmsInstructions} isTextArea isCode wrapperClass="h-40" />
                 </div>
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2"><Icons.Sparkle size={16} className="text-wade-accent" /> RP Mode Injection</h3>
+                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                    <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> RP Mode Injection
+                  </h3>
                   <FormInput label="Roleplay Constraints" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea isCode wrapperClass="h-40" />
                 </div>
               </div>
@@ -280,16 +278,20 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
         </div>
       </div>
 
-      {/* ================= 沉浸式专注模式 Modal (复刻 DeepChatView 样式) ================= */}
+      {/* ================= FOCUS MODAL ================= */}
       {focusModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => setFocusModal(null)}>
           <div className="bg-wade-bg-base w-[95%] max-w-4xl h-[85vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent"><Icons.Edit size={14} /></div>
+                <div className="w-8 h-8 rounded-full bg-wade-accent-light flex items-center justify-center text-wade-accent">
+                  <Icons.Edit size={14} />
+                </div>
                 <div><h3 className="font-bold text-wade-text-main text-sm tracking-tight">{focusModal.label}</h3></div>
               </div>
-              <button onClick={() => setFocusModal(null)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors"><Icons.Close size={16} /></button>
+              <button onClick={() => setFocusModal(null)} className="w-8 h-8 rounded-full hover:bg-wade-border flex items-center justify-center text-wade-text-muted transition-colors">
+                <Icons.Close size={16} />
+              </button>
             </div>
             
             <div className="flex-1 p-6 flex flex-col bg-wade-bg-base">
