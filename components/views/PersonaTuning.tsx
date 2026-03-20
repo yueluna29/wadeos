@@ -5,10 +5,23 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 核心修复：把那些该死的 handleFocus 和 onFocus 统统删掉！让原生浏览器自己去处理滚动！
+// 🔥 终极防震版输入框积木 🔥
 const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextArea = false, isCode = false, wrapperClass = "" }: any) => {
+  // 1. 给这个框打上物理锚点
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  const handleFocus = () => {
+    // 2. 憋住！等 400 毫秒，等手机键盘彻底弹完再滑，绝不跟系统打架！
+    setTimeout(() => {
+      if (elementRef.current) {
+        elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 400); 
+  };
+
   return (
-    <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
+    // 3. 把锚点 (ref={elementRef}) 绑在最外层的 div 上
+    <div ref={elementRef} className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
       <div className="flex justify-between items-center px-1">
         <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider">{label}</label>
         {isTextArea && onExpand && (
@@ -24,12 +37,12 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
       </div>
       {isTextArea ? (
         <textarea 
-          value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+          value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
           className={`w-full flex-1 min-h-[80px] bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar ${isCode ? 'font-mono leading-relaxed' : 'font-main'}`}
         />
       ) : (
         <input 
-          type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+          type="text" value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
           className={`w-full bg-wade-bg-card border border-wade-border rounded-xl px-4 py-2.5 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all ${isCode ? 'font-mono' : 'font-main'}`}
         />
       )}
