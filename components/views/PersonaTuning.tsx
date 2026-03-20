@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { uploadToImgBB } from '../../services/imgbb';
-import { Icons } from '../ui/Icons'; // 你的百宝箱回来啦！
+import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
@@ -15,6 +15,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   const [focusModal, setFocusModal] = useState<{label: string, value: string, onChange: (val: string) => void} | null>(null);
 
   // --- Wade 专属字段 ---
+  const [wadeBirthday, setWadeBirthday] = useState(settings.wadeBirthday || ''); // 新增！
+  const [wadeMbti, setWadeMbti] = useState(settings.wadeMbti || ''); // 新增！
   const [wadeHeight, setWadeHeight] = useState(settings.wadeHeight || '188cm');
   const [wadeAppearance, setWadeAppearance] = useState(settings.wadeAppearance || '');
   const [wadeClothing, setWadeClothing] = useState(settings.wadeClothing || '');
@@ -61,6 +63,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   const saveChanges = async () => {
     setIsSaving(true);
     await updateSettings({
+      // 别忘了把新增的字段存进脑子里
+      wadeBirthday, wadeMbti,
       systemInstruction, wadePersonality: wadeDefinition, wadeSingleExamples, smsExampleDialogue,
       smsInstructions, roleplayInstructions, exampleDialogue: wadeExample, wadeHeight,
       wadeAppearance, wadeClothing, wadeLikes, wadeDislikes, wadeHobbies,
@@ -79,10 +83,11 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
         {isTextArea && (
           <button 
             onClick={() => setFocusModal({ label, value, onChange })}
-            className="text-[10px] text-wade-text-muted hover:text-wade-accent transition-colors flex items-center gap-1 bg-wade-bg-card border border-wade-border px-2 py-0.5 rounded-full"
+            // 极简风：只留下一个性感的圆形加号按钮
+            className="text-wade-text-muted hover:text-wade-accent transition-colors flex items-center justify-center bg-wade-bg-card border border-wade-border w-6 h-6 rounded-full shadow-sm"
             title="Expand"
           >
-            <Icons.PlusThin size={10} /> Expand
+            <Icons.PlusThin size={14} />
           </button>
         )}
       </div>
@@ -128,16 +133,15 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           ) : (
              <Icons.Check />
           )}
-          <span className="absolute -bottom-8 bg-wade-text-main text-wade-bg-app text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Save Data</span>
         </button>
       </div>
 
-      {/* TABS */}
-      <div className="px-6 pt-4 pb-2 bg-wade-bg-app shrink-0 z-10 flex gap-2 overflow-x-auto custom-scrollbar">
+      {/* TABS - 居中对齐，精简文案，完美适配手机 */}
+      <div className="px-6 pt-4 pb-2 bg-wade-bg-app shrink-0 z-10 flex justify-center gap-3 overflow-x-auto custom-scrollbar">
          {[
-           { id: 'wade', label: "Wade's File", icon: <Icons.User size={14} /> },
-           { id: 'luna', label: "Luna's File", icon: <Icons.Heart size={14} /> },
-           { id: 'system', label: "System Override", icon: <Icons.Settings size={14} /> }
+           { id: 'wade', label: "Wade", icon: <Icons.User size={14} /> },
+           { id: 'luna', label: "Luna", icon: <Icons.Heart size={14} /> },
+           { id: 'system', label: "System", icon: <Icons.Settings size={14} /> }
          ].map(tab => (
            <button 
              key={tab.id}
@@ -161,7 +165,9 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {/* ================= WADE ================= */}
           {activeTab === 'wade' && (
             <div className="space-y-6 animate-slide-up">
-              <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-col md:flex-row gap-6 items-center md:items-start relative overflow-hidden">
+              
+              {/* 统一格式的身份证卡片 */}
+              <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-row gap-5 items-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-wade-accent-light rounded-full -mr-16 -mt-16 z-0 opacity-50 pointer-events-none"></div>
                 
                 <div className="relative z-10 w-24 h-24 shrink-0 rounded-[1.5rem] overflow-hidden border-2 border-wade-border group cursor-pointer shadow-md" onClick={() => wadeFileRef.current?.click()}>
@@ -172,36 +178,37 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
                 </div>
                 
-                <div className="flex-1 w-full space-y-4 z-10">
-                   <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-xl text-wade-text-main">Wade Wilson</h3>
-                      <span className="bg-wade-accent-light text-wade-accent text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Target</span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                     <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} />
-                     <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} />
+                <div className="flex-1 w-full space-y-3 z-10">
+                   <h3 className="font-bold text-xl text-wade-text-main pb-1 border-b border-wade-border/50">Wade</h3>
+                   <div className="grid grid-cols-2 gap-3">
+                     <FormInput label="Birthday" value={wadeBirthday} onChange={setWadeBirthday} />
+                     <FormInput label="MBTI" value={wadeMbti} onChange={setWadeMbti} />
+                     <FormInput label="Height" value={wadeHeight} onChange={setWadeHeight} wrapperClass="col-span-2" />
                    </div>
                 </div>
               </div>
 
+              {/* 完美对齐的个人档案框 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
-                <FormInput label="Character Core (The Soul)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-48" placeholder="You are Wade Wilson..." />
+                <FormInput label="Character Core (The Soul)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea wrapperClass="h-40" placeholder="You are Wade Wilson..." />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea />
                   <FormInput label="Clothing Style" value={wadeClothing} onChange={setWadeClothing} isTextArea />
-                  <FormInput label="Hobbies" value={wadeHobbies} onChange={setWadeHobbies} isTextArea />
                   <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea />
                   <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea />
                 </div>
+                <FormInput label="Hobbies & Interests" value={wadeHobbies} onChange={setWadeHobbies} isTextArea wrapperClass="min-h-[80px]" />
               </div>
 
+              {/* 语言校准 - 大框在上，小框在下 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
                   <span className="text-wade-accent"><Icons.Chat size={16} /></span> Linguistic Calibration
                 </h3>
-                <FormInput label="One-Liners & Catchphrases" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea />
+                <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea wrapperClass="h-40" />
-                  <FormInput label="SMS / Texting Style" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea wrapperClass="h-40" />
+                  <FormInput label="One-Liners & Catchphrases" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea wrapperClass="h-32" />
+                  <FormInput label="SMS / Texting Style" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea wrapperClass="h-32" />
                 </div>
               </div>
             </div>
@@ -210,7 +217,9 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {/* ================= LUNA ================= */}
           {activeTab === 'luna' && (
             <div className="space-y-6 animate-slide-up">
-              <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-col md:flex-row gap-6 items-center md:items-start relative overflow-hidden">
+              
+              {/* 统一格式的身份证卡片 */}
+              <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border flex flex-row gap-5 items-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-wade-border-light rounded-full -mr-16 -mt-16 z-0 opacity-30 pointer-events-none"></div>
                 
                 <div className="relative z-10 w-24 h-24 shrink-0 rounded-[1.5rem] overflow-hidden border-2 border-wade-border group cursor-pointer shadow-md" onClick={() => lunaFileRef.current?.click()}>
@@ -221,28 +230,27 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
                 </div>
                 
-                <div className="flex-1 w-full space-y-4 z-10">
-                   <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-xl text-wade-text-main">Luna</h3>
-                      <span className="bg-wade-border-light text-wade-accent hover:text-wade-accent-hover text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-wade-accent/30">Architect</span>
-                   </div>
-                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex-1 w-full space-y-3 z-10">
+                   <h3 className="font-bold text-xl text-wade-text-main pb-1 border-b border-wade-border/50">Luna</h3>
+                   <div className="grid grid-cols-2 gap-3">
                      <FormInput label="Birthday" value={lunaBirthday} onChange={setLunaBirthday} />
                      <FormInput label="MBTI" value={lunaMbti} onChange={setLunaMbti} />
-                     <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} wrapperClass="col-span-2 lg:col-span-1" />
+                     <FormInput label="Height" value={lunaHeight} onChange={setLunaHeight} wrapperClass="col-span-2" />
                    </div>
                 </div>
               </div>
 
+              {/* 完美对齐的个人档案框 - 彻底修复了内鬼 Bug */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
-                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-32" />
+                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea />
                   <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea />
                   <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea />
-                  <FormInput label="Dislikes" value={lunaDislikes} onChange={setWadeDislikes} isTextArea />
+                  {/* 就是这里！我把那个该死的 setWadeDislikes 换成 setLunaDislikes 了！ */}
+                  <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea />
                 </div>
-                <FormInput label="Hobbies & Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea />
+                <FormInput label="Hobbies & Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea wrapperClass="min-h-[80px]" />
               </div>
             </div>
           )}
