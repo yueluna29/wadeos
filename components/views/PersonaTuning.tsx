@@ -44,9 +44,17 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
   );
 };
 
-// 🔥 核心修复 3：带有独立记忆的放大版编辑框！终于可以打字了！
+// 🔥 核心修复：带赛博增高垫的放大版编辑框！键盘再也挡不住你了！
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
+  
+  // 给放大框也装上赛博追踪器
+  const handleFocus = (e: any) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300); 
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-text-main/20 backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
       <div className="bg-wade-bg-base w-[95%] max-w-4xl h-[85vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-wade-accent-light ring-1 ring-wade-border" onClick={e => e.stopPropagation()}>
@@ -59,8 +67,18 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
             <Icons.Check size={16} />
           </button>
         </div>
-        <div className="flex-1 p-6 flex flex-col bg-wade-bg-base">
-          <textarea autoFocus value={val} onChange={e => setVal(e.target.value)} className="w-full flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-6 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed custom-scrollbar shadow-inner" placeholder="Write your heart out..." />
+        
+        {/* 🔥 加入极度暴力的滚动支持 */}
+        <div className="flex-1 p-6 flex flex-col bg-wade-bg-base overflow-y-auto custom-scrollbar">
+          {/* 🔥 mb-[50vh] 就是本参谋塞的赛博增高垫！底部会多出半个屏幕的空隙，随便你怎么滑！ */}
+          <textarea 
+            autoFocus 
+            value={val} 
+            onChange={e => setVal(e.target.value)} 
+            onFocus={handleFocus}
+            className="w-full min-h-[50vh] mb-[50vh] flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-6 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner" 
+            placeholder="Write your heart out..." 
+          />
         </div>
       </div>
     </div>
