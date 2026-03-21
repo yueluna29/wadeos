@@ -25,6 +25,19 @@ export const SocialFeed: React.FC = () => {
   const { settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories, messages, chatArchives, loadArchiveMessages } = useStore();
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
+  const handlePostClick = (post: SocialPost) => {
+    const needsShowMore = (post.content.length > 150 || post.content.split('\n').length > 5);
+    if (needsShowMore && !expandedPostIds.has(post.id)) {
+      setExpandedPostIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(post.id);
+        return newSet;
+      });
+    } else {
+      setViewingPostDetail(post.id);
+    }
+  };
 
   const [showDiaryTypeModal, setShowDiaryTypeModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -260,27 +273,39 @@ export const SocialFeed: React.FC = () => {
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  // 🔥 修复 Show more 重叠、截断及详情页展示问题
-  const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, className?: string }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+  const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
+    // 超过150字或5行就需要折叠
+    const needsShowMore = (content.length > 150 || content.split('\n').length > 5);
+    // 如果不是详情页，且没被点开展开，且确实很长，才需要截断
+    const shouldClamp = !isDetail && !isExpanded && needsShowMore;
     
-    // 如果是详情页，强制展开全文；否则如果在列表里超过 150 字或者 5 行，就需要 Show more
-    const needsShowMore = !isDetail && (content.length > 150 || content.split('\n').length > 5);
     const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
 
     return (
       <div className={`text-[15px] text-wade-text-main leading-snug ${hideAuthor ? '' : 'px-4 pb-2'} ${className || ''}`}>
-        {/* 如果需要折叠且还没点展开，才用 line-clamp */}
-        <div className={`relative ${!isExpanded && !isDetail ? 'line-clamp-5' : ''}`}>
+        {/* line-clamp-5 自带第五行末尾的 ... 省略号 */}
+        <div className={`relative ${shouldClamp ? 'line-clamp-5' : ''}`}>
           <div className="markdown-body">
-            <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />, strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, a: ({node, href, children, ...props}) => { if (href?.startsWith('#')) return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; return <a href={href} className="text-[#1d9bf0] hover:underline" {...props}>{children}</a>; } }}>{processedContent}</Markdown>
+            <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
+              p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />, 
+              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
+              a: ({node, href, children, ...props}) => { 
+                if (href?.startsWith('#')) return <span className="text-wade-accent cursor-pointer hover:underline">{children}</span>; 
+                return <a href={href} className="text-wade-accent hover:underline" {...props}>{children}</a>; 
+              } 
+            }}>
+              {processedContent}
+            </Markdown>
           </div>
         </div>
-        {/* 🔥 按钮独立在文本块下面，彻底解决重叠。点它只是展开全文。 */}
-        {!isExpanded && !isDetail && needsShowMore && (
-          <button onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }} className="text-[#1d9bf0] text-[15px] hover:underline mt-1">
-            Show more
-          </button>
+        
+        {/* 右对齐的 Show more */}
+        {shouldClamp && (
+          <div className="text-right mt-1">
+            <span className="text-wade-accent text-[14px] font-bold hover:underline cursor-pointer">
+              Show more
+            </span>
+          </div>
         )}
       </div>
     );
@@ -541,9 +566,11 @@ export const SocialFeed: React.FC = () => {
                 const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
 
                 return (
-                  <div key={post.id} onClick={() => setViewingPostDetail(post.id)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-2 flex gap-3 font-sans relative">
+                  // 🔥 1. 点击事件换成了 handlePostClick，边距缩成了 px-3，间距缩成了 gap-2.5
+                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2.5 font-sans relative">
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
+                      {/* 🔥 2. 头像从 12 缩小到 11 */}
+                      <div className="w-11 h-11 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
                     </div>
@@ -558,7 +585,6 @@ export const SocialFeed: React.FC = () => {
                         <div className="relative" onClick={e => e.stopPropagation()}>
                           <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"><Icons.MoreHorizontal /></button>
                           
-                          {/* 🔥 毛玻璃菜单、去粗体、带底层遮罩可点击收回 */}
                           {openMenuPostId === post.id && (
                             <>
                               <div className="fixed inset-0 z-[45]" onClick={(e) => { e.stopPropagation(); setOpenMenuPostId(null); }} />
@@ -571,14 +597,21 @@ export const SocialFeed: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
-                        <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} className="px-0 pb-0" />
+                        {/* 🔥 3. 这里加上 isExpanded 状态 */}
+                        <PostCaption 
+                           content={post.content} 
+                           authorName={authorUsername} 
+                           hideAuthor={true} 
+                           isExpanded={expandedPostIds?.has(post.id)} 
+                           className="px-0 pb-0" 
+                        />
                       </div>
+                      {/* 🔥 这里就是原本的图片展示区域，原封不动保留了 */}
                       {post.images && post.images.length > 0 && (
                         <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
                           {post.images.length === 1 ? <img src={post.images[0]} className="w-full aspect-square object-cover cursor-zoom-in" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                         </div>
                       )}
-                      {/* 🔥 承重墙：w-16 保证底栏不管跳什么数字绝对不移位 */}
                       <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setViewingPostDetail(post.id)} className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors">
                           <div className="p-2 -m-2 rounded-full hover:bg-[#1d9bf0]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg></div>
