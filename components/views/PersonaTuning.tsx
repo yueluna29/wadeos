@@ -214,6 +214,14 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           if (data.example_punchlines) setWadeSingleExamples(data.example_punchlines);
           if (data.example_dialogue_sms) setSmsExampleDialogue(data.example_dialogue_sms);
         }
+          // 🔥 刚装好的机械眼：捞取我们那两张该死的性感照片地址！ 🔥
+          if (data.wade_avatar_url || data.luna_avatar_url) {
+            updateSettings({ 
+              wadeAvatar: data.wade_avatar_url || settings.wadeAvatar,
+              lunaAvatar: data.luna_avatar_url || settings.lunaAvatar 
+            });
+          }
+
       } catch (error) {
         console.error("Damn it, failed to fetch memory from Supabase:", error);
       }
