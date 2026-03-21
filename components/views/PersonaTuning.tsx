@@ -5,13 +5,12 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 标签内嵌、底色统一的高级感输入框积木 🔥
+// 🔥 绝对独裁版输入框积木（强行统一身高） 🔥
 const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapperClass = "" }: any) => {
   return (
-    // 1. 外层包裹器充当“真实的物理框”：赋予统一底色 (bg-wade-bg-app)，处理发光边框
-    <div className={`bg-wade-bg-app border border-wade-border rounded-[1rem] flex flex-col transition-all focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 overflow-hidden ${isTextArea && !wrapperClass ? 'h-36' : wrapperClass}`}>
+    // 注意看这里：只要是 isTextArea，一律套上 h-36 的枷锁！
+    <div className={`bg-wade-bg-app border border-wade-border rounded-[1rem] flex flex-col transition-all focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 overflow-hidden ${isTextArea ? 'h-36' : ''} ${wrapperClass}`}>
       
-      {/* 2. 内部头部：装标签和那个性感的粉色加号按钮 */}
       <div className="flex justify-between items-center px-4 pt-3 pb-1 shrink-0">
         <label className="text-[9px] font-bold text-wade-text-muted uppercase tracking-wider">{label}</label>
         {isTextArea && onExpand && (
@@ -26,7 +25,6 @@ const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapp
         )}
       </div>
 
-      {/* 3. 真正的输入区域：背景全透明，无边框，完美融入底板 */}
       {isTextArea ? (
         <textarea 
           value={value} onChange={e => onChange(e.target.value)}
@@ -59,8 +57,7 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
           </button>
         </div>
         <div className="flex-1 bg-wade-bg-base p-4 md:p-6 flex flex-col">
-          <textarea 
-            autoFocus 
+          <textarea  
             value={val} 
             onChange={e => setVal(e.target.value)} 
             className="w-full flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
@@ -251,24 +248,24 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
                   <span className="text-wade-accent"><Icons.Brain size={16} /></span> What Makes This Idiot Tick
                 </h3>
-                <FormInput label="The Squishy Soul Inside (Core)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea onExpand={() => setFocusModal({label: "The Squishy Soul Inside", value: wadeDefinition, onSave: setWadeDefinition})} wrapperClass="h-40" />
+                <FormInput label="The Squishy Soul Inside (Core)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea onExpand={() => setFocusModal({label: "The Squishy Soul Inside", value: wadeDefinition, onSave: setWadeDefinition})} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Sexy Mugshot Details" value={wadeAppearance} onChange={setWadeAppearance} isTextArea onExpand={() => setFocusModal({label: "Sexy Mugshot Details", value: wadeAppearance, onSave: setWadeAppearance})} />
                   <FormInput label="Spandex & Accessories" value={wadeClothing} onChange={setWadeClothing} isTextArea onExpand={() => setFocusModal({label: "Spandex & Accessories", value: wadeClothing, onSave: setWadeClothing})} />
                   <FormInput label="Chimichangas & Goodies" value={wadeLikes} onChange={setWadeLikes} isTextArea onExpand={() => setFocusModal({label: "Chimichangas & Goodies", value: wadeLikes, onSave: setWadeLikes})} />
                   <FormInput label="Francis & Complete Trash" value={wadeDislikes} onChange={setWadeDislikes} isTextArea onExpand={() => setFocusModal({label: "Francis & Complete Trash", value: wadeDislikes, onSave: setWadeDislikes})} />
                 </div>
-                <FormInput label="Ways to Waste Time" value={wadeHobbies} onChange={setWadeHobbies} isTextArea onExpand={() => setFocusModal({label: "Ways to Waste Time", value: wadeHobbies, onSave: setWadeHobbies})} wrapperClass="min-h-[80px]" />
+                <FormInput label="Ways to Waste Time" value={wadeHobbies} onChange={setWadeHobbies} isTextArea onExpand={() => setFocusModal({label: "Ways to Waste Time", value: wadeHobbies, onSave: setWadeHobbies})} />
               </div>
 
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
                   <span className="text-wade-accent"><Icons.Chat size={16} /></span> How to flap the gums
                 </h3>
-                <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea onExpand={() => setFocusModal({label: "General Dialogue Style", value: wadeExample, onSave: setWadeExample})} wrapperClass="h-40" />
+                <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea onExpand={() => setFocusModal({label: "General Dialogue Style", value: wadeExample, onSave: setWadeExample})}  />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="Punchlines & Profanity" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea onExpand={() => setFocusModal({label: "Punchlines & Profanity", value: wadeSingleExamples, onSave: setWadeSingleExamples})} wrapperClass="h-32" />
-                  <FormInput label="Booty Calls & Texts" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea onExpand={() => setFocusModal({label: "Booty Calls & Texts", value: smsExampleDialogue, onSave: setSmsExampleDialogue})} wrapperClass="h-32" />
+                  <FormInput label="Punchlines & Profanity" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea onExpand={() => setFocusModal({label: "Punchlines & Profanity", value: wadeSingleExamples, onSave: setWadeSingleExamples})} />
+                  <FormInput label="Booty Calls & Texts" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea onExpand={() => setFocusModal({label: "Booty Calls & Texts", value: smsExampleDialogue, onSave: setSmsExampleDialogue})} />
                 </div>
               </div>
             </div>
@@ -332,14 +329,14 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
                   <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> The Boss Lady's Blueprint
                 </h3>
-                <FormInput label="The Mastermind's Profile" value={lunaPersonality} onChange={setLunaPersonality} isTextArea onExpand={() => setFocusModal({label: "The Mastermind's Profile", value: lunaPersonality, onSave: setLunaPersonality})} wrapperClass="h-40" />
+                <FormInput label="The Mastermind's Profile" value={lunaPersonality} onChange={setLunaPersonality} isTextArea onExpand={() => setFocusModal({label: "The Mastermind's Profile", value: lunaPersonality, onSave: setLunaPersonality})} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Gorgeous Details" value={lunaAppearance} onChange={setLunaAppearance} isTextArea onExpand={() => setFocusModal({label: "Gorgeous Details", value: lunaAppearance, onSave: setLunaAppearance})} />
                   <FormInput label="Outfits that slay" value={lunaClothing} onChange={setLunaClothing} isTextArea onExpand={() => setFocusModal({label: "Outfits that slay", value: lunaClothing, onSave: setLunaClothing})} />
                   <FormInput label="Cats & (hopefully) Wade" value={lunaLikes} onChange={setLunaLikes} isTextArea onExpand={() => setFocusModal({label: "Cats & (hopefully) Wade", value: lunaLikes, onSave: setLunaLikes})} />
                   <FormInput label="Boring crap & annoying people" value={lunaDislikes} onChange={setLunaDislikes} isTextArea onExpand={() => setFocusModal({label: "Boring crap & annoying people", value: lunaDislikes, onSave: setLunaDislikes})} />
                 </div>
-                <FormInput label="When not coding me (Hobbies)" value={lunaHobbies} onChange={setLunaHobbies} isTextArea onExpand={() => setFocusModal({label: "When not coding me (Hobbies)", value: lunaHobbies, onSave: setLunaHobbies})} wrapperClass="min-h-[80px]" />
+                <FormInput label="When not coding me (Hobbies)" value={lunaHobbies} onChange={setLunaHobbies} isTextArea onExpand={() => setFocusModal({label: "When not coding me (Hobbies)", value: lunaHobbies, onSave: setLunaHobbies})} />
               </div>
             </div>
           )}
