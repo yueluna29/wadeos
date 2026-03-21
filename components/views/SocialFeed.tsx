@@ -512,7 +512,7 @@ export const SocialFeed: React.FC = () => {
             ) : userPosts.map(post => (
               <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2.5 font-sans relative">
                 <div className="flex-shrink-0">
-                  <div className="w-11 h-11 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                     <img src={avatar} className="w-full h-full object-cover" />
                   </div>
                 </div>
@@ -558,14 +558,16 @@ export const SocialFeed: React.FC = () => {
       ) : (
         <>
           <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex justify-between items-center sticky top-0 z-40">
-            {/* 🔥 变成了漂亮的设置小齿轮 */}
-            <button onClick={() => setViewingProfile('Luna')} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm border border-wade-border">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            {/* 极简细线齿轮，无边框无背景 */}
+            <button onClick={() => setViewingProfile('Luna')} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
+            
             <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Home</div>
-            {/* 🔥 统一的尺寸和悬浮变色效果 */}
-            <button onClick={() => setShowDiaryTypeModal(true)} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm border border-wade-border">
-              <Icons.Plus />
+            
+            {/* 极简细线加号，无边框无背景 */}
+            <button onClick={() => setShowDiaryTypeModal(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
           </div>
 
@@ -582,7 +584,7 @@ export const SocialFeed: React.FC = () => {
                 return (
                   <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2.5 font-sans relative">
                     <div className="flex-shrink-0">
-                      <div className="w-11 h-11 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
+                      <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
                     </div>

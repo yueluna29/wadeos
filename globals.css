@@ -468,11 +468,3 @@ div.markdown-content blockquote p,
   overflow-x: auto !important;
   position: relative !important;
 }
-
-/* 🔥 终极封杀苹果系统所有图片的默认长按预览和拖拽动作 🔥 */
-img {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  -webkit-user-drag: none !important;
-}
