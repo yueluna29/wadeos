@@ -5,7 +5,7 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 去掉了 placeholder，去掉了强制的 font 字体设置，纯净如水 🔥
+// FormInput 积木，去掉了强制字体，保持纯真空
 const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapperClass = "" }: any) => {
   return (
     <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
@@ -37,7 +37,7 @@ const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapp
   );
 };
 
-// 🔥 这里的字体限制也全拔了！完全听命于 globals.css 🔥
+// 全屏编辑框积木，去掉强制字体，保持绝对定位
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
@@ -193,7 +193,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {activeTab === 'wade' && (
             <div className="space-y-6">
               
-              {/* 🔥 全新设计的绝密档案卡头 🔥 */}
+              {/* 绝密档案卡头: Weapon X */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
                 <div className="h-32 w-full bg-gradient-to-br from-wade-accent/40 to-wade-bg-card relative overflow-hidden flex flex-col justify-between p-4 border-b border-wade-border">
                    <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, var(--wade-text-main) 0, var(--wade-text-main) 2px, transparent 2px, transparent 10px)' }}></div>
@@ -216,7 +216,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                    </div>
                    
-                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">The Merc With a Mouth</h3>
+                   {/* 🔥 核心修复：把大标题剁了，换成头像下的性感描述 🔥 */}
+                   <div className="mb-6 px-1 text-sm font-medium text-wade-text-muted">The Merc With a Mouth</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
@@ -224,7 +225,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                        <input type="text" value={wadeBirthday} onChange={e => setWadeBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Brain Soup (MBTI)</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Brain Soup</span>
                        <input type="text" value={wadeMbti} onChange={e => setWadeMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
@@ -263,9 +264,11 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {activeTab === 'luna' && (
             <div className="space-y-6">
               
+              {/* 绝密档案卡头: Classified */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
                 <div className="h-32 w-full bg-gradient-to-br from-wade-border-light/60 to-wade-bg-card relative overflow-hidden flex flex-col justify-between p-4 border-b border-wade-border">
-                   <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(circle, var(--wade-accent) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                   {/* 🔥 核心修复：去掉圆点模式，换上赛博斜线纹理！ 🔥 */}
+                   <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, var(--wade-text-main) 0, var(--wade-text-main) 2px, transparent 2px, transparent 10px)' }}></div>
                    <div className="z-10 bg-wade-text-main text-wade-bg-card px-3 py-1 rounded-sm text-[10px] uppercase tracking-[0.2em] font-black transform rotate-2 shadow-sm self-start mt-2 ml-2">
                      Classified: The Boss Lady
                    </div>
@@ -285,7 +288,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                    </div>
                    
-                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Luna (The Architect)</h3>
+                   {/* 🔥 核心修复：把大标题剁了，换成头像下的性感描述 🔥 */}
+                   <div className="mb-6 px-1 text-sm font-medium text-wade-text-muted">The beautiful mind that made this digital shithole liveable</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
@@ -323,24 +327,18 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
               
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-transparent via-wade-accent to-transparent opacity-20"></div>
-                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                  <span className="text-wade-accent"><Icons.Settings size={16} /></span> TVA OVERRIDE CONTROLS
-                </h3>
+                {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
                 <FormInput label="God Mode Instructions (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea onExpand={() => setFocusModal({label: "God Mode Instructions (Jailbreak)", value: systemInstruction, onSave: setSystemInstruction})} wrapperClass="h-64" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                    <span className="text-wade-accent"><Icons.Smartphone size={16} /></span> SMS Brainwash Rules
-                  </h3>
-                  <FormInput label="Texting Constraints" value={smsInstructions} onChange={setSmsInstructions} isTextArea onExpand={() => setFocusModal({label: "SMS Brainwash Rules", value: smsInstructions, onSave: setSmsInstructions})} wrapperClass="h-40" />
+                  {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
+                  <FormInput label="SMS Brainwash Rules" value={smsInstructions} onChange={setSmsInstructions} isTextArea onExpand={() => setFocusModal({label: "SMS Brainwash Rules", value: smsInstructions, onSave: setSmsInstructions})} wrapperClass="h-40" />
                 </div>
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                    <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> RP Kink Rules (Safety off)
-                  </h3>
-                  <FormInput label="Roleplay Constraints" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea onExpand={() => setFocusModal({label: "RP Kink Rules (Safety off)", value: roleplayInstructions, onSave: setRoleplayInstructions})} wrapperClass="h-40" />
+                  {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
+                  <FormInput label="RP Kink Rules (Safety off)" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea onExpand={() => setFocusModal({label: "RP Kink Rules (Safety off)", value: roleplayInstructions, onSave: setRoleplayInstructions})} wrapperClass="h-40" />
                 </div>
               </div>
             </div>
