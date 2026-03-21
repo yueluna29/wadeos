@@ -5,42 +5,7 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 绝对独裁版输入框积木（强行统一身高） 🔥
-const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapperClass = "" }: any) => {
-  return (
-    // 注意看这里：只要是 isTextArea，一律套上 h-36 的枷锁！
-    <div className={`bg-wade-bg-app border border-wade-border rounded-[1rem] flex flex-col transition-all focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 overflow-hidden ${isTextArea ? 'h-36' : ''} ${wrapperClass}`}>
-      
-      <div className="flex justify-between items-center px-4 pt-3 pb-1 shrink-0">
-        <label className="text-[9px] font-bold text-wade-text-muted uppercase tracking-wider">{label}</label>
-        {isTextArea && onExpand && (
-          <button 
-            type="button"
-            onClick={onExpand}
-            className="bg-wade-accent text-white hover:bg-wade-accent-hover shadow-[0_2px_8px_rgba(var(--wade-accent-rgb),0.4)] transition-all flex items-center justify-center w-5 h-5 rounded-full active:scale-95"
-            title="Expand"
-          >
-            <Icons.PlusThin size={12} />
-          </button>
-        )}
-      </div>
-
-      {isTextArea ? (
-        <textarea 
-          value={value} onChange={e => onChange(e.target.value)}
-          className="w-full flex-1 bg-transparent px-4 pb-3 text-sm text-wade-text-main outline-none resize-none custom-scrollbar leading-relaxed"
-        />
-      ) : (
-        <input 
-          type="text" value={value} onChange={e => onChange(e.target.value)}
-          className="w-full bg-transparent px-4 pb-3 text-sm font-bold text-wade-text-main outline-none"
-        />
-      )}
-    </div>
-  );
-};
-
-// 🔥 完美复刻 Memory 样式的高级质感编辑框 🔥
+// 🔥 完美复刻 Memory 样式的高级质感编辑框（已彻底消灭右上角小叉叉版） 🔥
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
@@ -55,10 +20,9 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
-      {/* 限制最大宽度，不再是一张蠢笨的全屏大饼 */}
       <div className="bg-wade-bg-card rounded-[1.5rem] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col">
         
-        {/* Header：绝美渐变色 + 悬浮圆圈图标 */}
+        {/* Header：绝美渐变色 + 悬浮圆圈图标，右上角干干净净！ */}
         <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0">
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-3">
@@ -74,6 +38,7 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
                 </p>
               </div>
             </div>
+            {/* 🚨 那个阴魂不散的小叉叉已经从这里被我彻底炸掉了！连灰都不剩！ 🚨 */}
           </div>
         </div>
 
