@@ -357,8 +357,6 @@ export const SocialFeed: React.FC = () => {
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
-          <button onClick={() => setViewingPostDetail(null)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -ml-2 transition-colors"><Icons.ChevronLeft /></button>
-          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
           {/* 极简细线返回键 */}
           <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -372,6 +370,7 @@ export const SocialFeed: React.FC = () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
           </button>
         </div>
+          
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-2xl mx-auto w-full">
             <div className="flex gap-1 mb-1 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
