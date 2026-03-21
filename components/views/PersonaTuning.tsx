@@ -5,7 +5,7 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// FormInput 积木，去掉了强制字体，保持纯真空
+// FormInput 积木，🔥 固定高度版输入框积木 🔥
 const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapperClass = "" }: any) => {
   return (
     <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
@@ -25,7 +25,8 @@ const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapp
       {isTextArea ? (
         <textarea 
           value={value} onChange={e => onChange(e.target.value)}
-          className={`w-full flex-1 min-h-[80px] bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar leading-relaxed`}
+          // 🔥 就是这里！去掉了 flex-1，强制 h-32 固定高度 🔥
+          className={`w-full h-32 bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar leading-relaxed`}
         />
       ) : (
         <input 
