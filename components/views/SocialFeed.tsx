@@ -860,6 +860,10 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
             </div>
           </div>
         </>
+      )}
+    </div>
+  );
+};
 
       {/* Diary Type Selection Modal */}
       {showDiaryTypeModal && (
