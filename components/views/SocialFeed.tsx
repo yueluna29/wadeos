@@ -260,22 +260,28 @@ export const SocialFeed: React.FC = () => {
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  const PostCaption = ({ content, authorName, hideAuthor, postId, className }: { content: string, authorName: string, hideAuthor?: boolean, postId?: string, className?: string }) => {
-    const needsShowMore = hideAuthor && (content.length > 150 || content.split('\n').length > 5);
+  // 🔥 修复 Show more 重叠、截断及详情页展示问题
+  const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, className?: string }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    
+    // 如果是详情页，强制展开全文；否则如果在列表里超过 150 字或者 5 行，就需要 Show more
+    const needsShowMore = !isDetail && (content.length > 150 || content.split('\n').length > 5);
     const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
 
     return (
       <div className={`text-[15px] text-wade-text-main leading-snug ${hideAuthor ? '' : 'px-4 pb-2'} ${className || ''}`}>
-        <div className={`relative ${hideAuthor ? 'line-clamp-5' : ''}`}>
+        {/* 如果需要折叠且还没点展开，才用 line-clamp */}
+        <div className={`relative ${!isExpanded && !isDetail ? 'line-clamp-5' : ''}`}>
           <div className="markdown-body">
             <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />, strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, a: ({node, href, children, ...props}) => { if (href?.startsWith('#')) return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; return <a href={href} className="text-[#1d9bf0] hover:underline" {...props}>{children}</a>; } }}>{processedContent}</Markdown>
           </div>
-          {needsShowMore && postId && (
-            <button onClick={(e) => { e.stopPropagation(); setViewingPostDetail(postId); }} className="text-[#1d9bf0] text-[15px] absolute bottom-0 right-0 bg-transparent pl-2 pr-1 hover:text-[#1a8cd8]">
-              Show more
-            </button>
-          )}
         </div>
+        {/* 🔥 按钮独立在文本块下面，彻底解决重叠。点它只是展开全文。 */}
+        {!isExpanded && !isDetail && needsShowMore && (
+          <button onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }} className="text-[#1d9bf0] text-[15px] hover:underline mt-1">
+            Show more
+          </button>
+        )}
       </div>
     );
   };
@@ -311,7 +317,8 @@ export const SocialFeed: React.FC = () => {
 
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
-        <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        {/* 🔥 统一的顶部栏高度：h-14 (56px) */}
+        <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
           <button onClick={() => setViewingPostDetail(null)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -ml-2 transition-colors"><Icons.ChevronLeft /></button>
           <div className="font-bold text-[20px] text-wade-text-main absolute left-1/2 -translate-x-1/2">Post</div>
           <button className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -mr-2 transition-colors"><Icons.MoreHorizontal /></button>
@@ -327,7 +334,8 @@ export const SocialFeed: React.FC = () => {
             </div>
             
             <div className="text-[17px] text-wade-text-main leading-normal mb-3 whitespace-pre-wrap">
-               <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={true} className="px-0 pb-0" />
+               {/* 🔥 传 isDetail=true，绝对不折叠 */}
+               <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={true} isDetail={true} className="px-0 pb-0" />
             </div>
 
             {currentPost.images && currentPost.images.length > 0 && (
@@ -435,7 +443,6 @@ export const SocialFeed: React.FC = () => {
              
              <p className="mt-3 text-[15px] text-wade-text-main whitespace-pre-wrap leading-snug">{bio}</p>
              
-             {/* 🔥 修改了这里那个罪魁祸首的 SVG */}
              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-[14px] text-wade-text-muted">
                 <span className="flex items-center gap-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C7.93 2 4.66 5.23 4.66 9.17c0 4.9 6.55 12.18 6.94 12.63a.5.5 0 0 0 .8 0c.39-.45 6.94-7.73 6.94-12.63C19.34 5.23 16.07 2 12 2zm0 9.83a2.53 2.53 0 1 1 0-5.06 2.53 2.53 0 0 1 0 5.06z"></path></svg> Kodaira, Tokyo, Japan</span>
                 <span className="flex items-center gap-1 text-[#1d9bf0]"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> github.com/yueluna29</span>
@@ -481,18 +488,19 @@ export const SocialFeed: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
-                    <PostCaption content={post.content} authorName={username} hideAuthor={true} postId={post.id} className="px-0 pb-0" />
+                    <PostCaption content={post.content} authorName={username} hideAuthor={true} className="px-0 pb-0" />
                   </div>
                   {post.images && post.images.length > 0 && (
                     <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
                       {post.images.length === 1 ? <img src={post.images[0]} className="w-full aspect-square object-cover cursor-zoom-in" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                     </div>
                   )}
+                  {/* Action icons row simplified for profile */}
                   <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
-                     <button className="flex items-center gap-1"><div className="p-2 -m-2 rounded-full"><Icons.MessageCircle /></div><span className="text-[13px] ml-1">{post.comments?.length || ''}</span></button>
-                     <button className="flex items-center gap-1"><div className="p-2 -m-2 rounded-full"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></div></button>
-                     <button className={`flex items-center gap-1 ${post.likes > 0 ? 'text-[#f91880]' : ''}`}><div className="p-2 -m-2 rounded-full">{post.likes > 0 ? <Icons.Heart filled={true} /> : <Icons.Heart />}</div><span className="text-[13px] ml-1">{post.likes > 0 ? post.likes : ''}</span></button>
-                     <button className="flex items-center gap-1"><div className="p-2 -m-2 rounded-full"><Icons.Bookmark filled={post.isBookmarked} /></div></button>
+                     <button className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors"><div className="p-2 -m-2 rounded-full"><Icons.MessageCircle /></div><span className="text-[13px] ml-1">{post.comments?.length || ''}</span></button>
+                     <button className="flex items-center gap-1 w-16 hover:text-[#00ba7c] transition-colors"><div className="p-2 -m-2 rounded-full"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></div></button>
+                     <button className={`flex items-center gap-1 w-16 transition-colors ${post.likes > 0 ? 'text-[#f91880]' : 'hover:text-[#f91880]'}`}><div className="p-2 -m-2 rounded-full">{post.likes > 0 ? <Icons.Heart filled={true} /> : <Icons.Heart />}</div><span className="text-[13px] ml-1">{post.likes > 0 ? post.likes : ''}</span></button>
+                     <button className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors"><div className="p-2 -m-2 rounded-full"><Icons.Bookmark filled={post.isBookmarked} /></div></button>
                   </div>
                 </div>
               </div>
@@ -511,12 +519,13 @@ export const SocialFeed: React.FC = () => {
         renderProfileView()
       ) : (
         <>
-          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+          {/* 🔥 修复高度 h-14，和详情页绝对一致 */}
+          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex justify-between items-center sticky top-0 z-40">
             <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border border-wade-border" onClick={() => setViewingProfile('Luna')}>
                <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
             </div>
-            <div className="font-hand text-2xl tracking-tight text-wade-accent">Home</div>
-            <button onClick={() => setShowDiaryTypeModal(true)} className="w-8 h-8 rounded-full bg-wade-accent text-white flex items-center justify-center hover:bg-wade-accent-hover transition-colors shadow-sm">
+            <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Home</div>
+            <button onClick={() => setShowDiaryTypeModal(true)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full transition-colors shadow-sm">
               <Icons.Plus />
             </button>
           </div>
@@ -544,44 +553,47 @@ export const SocialFeed: React.FC = () => {
                           <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
                           <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
                           <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
-                          <span className="text-wade-text-muted hover:underline ml-1">{formatExactTime(post.timestamp)}</span>
+                          <span className="text-wade-text-muted ml-1">{formatExactTime(post.timestamp)}</span>
                         </div>
                         <div className="relative" onClick={e => e.stopPropagation()}>
                           <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"><Icons.MoreHorizontal /></button>
+                          
+                          {/* 🔥 毛玻璃菜单、去粗体、带底层遮罩可点击收回 */}
                           {openMenuPostId === post.id && (
                             <>
                               <div className="fixed inset-0 z-[45]" onClick={(e) => { e.stopPropagation(); setOpenMenuPostId(null); }} />
-                              <div className="absolute right-0 top-full mt-1 w-32 bg-wade-bg-card/80 backdrop-blur-md rounded-xl shadow-lg border border-wade-border z-50 overflow-hidden">
-                                <button onClick={(e) => { e.stopPropagation(); handleEditPost(post); setOpenMenuPostId(null); }} className="w-full text-left px-4 py-3 text-[15px] font-normal text-wade-text-main hover:bg-black/5">Edit</button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }} className={`w-full text-left px-4 py-3 text-[15px] font-normal ${deletingPostId === post.id ? 'bg-red-50 text-red-600' : 'text-red-500 hover:bg-red-50'}`}>{deletingPostId === post.id ? 'Confirm Delete' : 'Delete'}</button>
+                              <div className="absolute right-0 top-full mt-1 w-36 bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-200/50 z-50 overflow-hidden">
+                                <button onClick={(e) => { e.stopPropagation(); handleEditPost(post); setOpenMenuPostId(null); }} className="w-full text-left px-4 py-3 text-[15px] font-medium text-wade-text-main hover:bg-black/5 transition-colors">Edit</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }} className={`w-full text-left px-4 py-3 text-[15px] font-medium transition-colors ${deletingPostId === post.id ? 'bg-red-50 text-[#f91880]' : 'text-[#f91880] hover:bg-red-50'}`}>{deletingPostId === post.id ? 'Confirm Delete' : 'Delete'}</button>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
                       <div className="text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
-                        <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} postId={post.id} className="px-0 pb-0" />
+                        <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} className="px-0 pb-0" />
                       </div>
                       {post.images && post.images.length > 0 && (
                         <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
                           {post.images.length === 1 ? <img src={post.images[0]} className="w-full aspect-square object-cover cursor-zoom-in" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                         </div>
                       )}
+                      {/* 🔥 承重墙：w-16 保证底栏不管跳什么数字绝对不移位 */}
                       <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setViewingPostDetail(post.id)} className="flex items-center gap-1 hover:text-[#1d9bf0] group transition-colors">
-                          <div className="p-2 -m-2 rounded-full group-hover:bg-[#1d9bf0]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg></div>
+                        <button onClick={() => setViewingPostDetail(post.id)} className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors">
+                          <div className="p-2 -m-2 rounded-full hover:bg-[#1d9bf0]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg></div>
                           <span className="text-[13px] ml-1">{post.comments?.length > 0 ? post.comments.length : ''}</span>
                         </button>
-                        <button className="flex items-center gap-1 hover:text-[#00ba7c] group transition-colors">
-                          <div className="p-2 -m-2 rounded-full group-hover:bg-[#00ba7c]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></div>
+                        <button className="flex items-center gap-1 w-16 hover:text-[#00ba7c] transition-colors">
+                          <div className="p-2 -m-2 rounded-full hover:bg-[#00ba7c]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></div>
                         </button>
-                        <button onClick={() => { const updatedPost = { ...post, likes: post.likes > 0 ? 0 : 1 }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p)); }} className={`flex items-center gap-1 group transition-colors ${post.likes > 0 ? 'text-[#f91880]' : 'hover:text-[#f91880]'}`}>
-                          <div className={`p-2 -m-2 rounded-full transition-colors ${post.likes > 0 ? '' : 'group-hover:bg-[#f91880]/10'}`}>
+                        <button onClick={() => { const updatedPost = { ...post, likes: post.likes > 0 ? 0 : 1 }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p)); }} className={`flex items-center gap-1 w-16 transition-colors ${post.likes > 0 ? 'text-[#f91880]' : 'hover:text-[#f91880]'}`}>
+                          <div className={`p-2 -m-2 rounded-full transition-colors ${post.likes > 0 ? '' : 'hover:bg-[#f91880]/10'}`}>
                             {post.likes > 0 ? <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current text-[#f91880]"><g><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg>}
                           </div>
                           <span className="text-[13px] ml-1">{post.likes > 0 ? post.likes : ''}</span>
                         </button>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 w-16 transition-colors">
                           <button onClick={() => { const updatedPost = { ...post, isBookmarked: !post.isBookmarked }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p)); }} className={`p-2 -m-2 rounded-full transition-colors group ${post.isBookmarked ? 'text-[#1d9bf0]' : 'hover:text-[#1d9bf0]'}`}>
                             <div className="group-hover:bg-[#1d9bf0]/10 rounded-full transition-colors p-1.5 -m-1.5">
                               {post.isBookmarked ? <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></g></svg>}
@@ -618,16 +630,23 @@ export const SocialFeed: React.FC = () => {
       {isCreating && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-wade-bg-base w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-wade-border">
-            <div className="px-4 py-3 flex justify-between items-center border-b border-wade-border">
+            <div className="px-4 py-3 flex justify-between items-center border-b border-wade-border bg-wade-bg-base/50">
               <button onClick={() => { setIsCreating(false); setDiaryType(null); setNewPostContent(''); setSelectedFiles([]); setPreviewUrls([]); }} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -ml-2 transition-colors"><Icons.ChevronLeft /></button>
+              <span className="font-bold text-[16px] text-wade-text-main">{editingPost ? 'Edit Post' : 'New Post'}</span>
               <button onClick={handleSavePost} disabled={(!newPostContent && selectedFiles.length === 0) || isUploading} className="bg-[#1d9bf0] text-white px-4 py-1.5 rounded-full font-bold text-[14px] disabled:opacity-50 hover:bg-[#1a8cd8] transition-colors">Post</button>
             </div>
-            <div className="flex p-4 gap-3">
+            <div className="flex p-4 gap-3 bg-wade-bg-base">
               <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
               <div className="flex-1">
-                <textarea value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)} placeholder="What is happening?!" className="w-full bg-transparent border-none focus:outline-none focus:ring-0 resize-none min-h-[120px] text-[17px] text-wade-text-main placeholder-wade-text-muted mt-1" />
+                {/* 🔥 类似人设页的文本框：灰色背景，圆角，获取焦点时变色 */}
+                <textarea 
+                  value={newPostContent} 
+                  onChange={(e) => setNewPostContent(e.target.value)} 
+                  placeholder="What is happening?!" 
+                  className="w-full bg-gray-50/50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#1d9bf0]/50 focus:border-[#1d9bf0]/50 focus:outline-none resize-none min-h-[140px] text-[16px] text-wade-text-main placeholder-wade-text-muted mt-1 transition-all shadow-inner" 
+                />
                 {previewUrls.length > 0 && (
-                  <div className="mb-4 grid grid-cols-2 gap-2">
+                  <div className="mt-4 grid grid-cols-2 gap-2">
                     {previewUrls.map((url, idx) => (
                       <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border border-wade-border">
                         <img src={url} className="w-full h-full object-cover" />
@@ -638,7 +657,7 @@ export const SocialFeed: React.FC = () => {
                 )}
               </div>
             </div>
-            <div className="px-4 py-3 border-t border-wade-border flex items-center">
+            <div className="px-4 py-3 border-t border-wade-border flex items-center bg-wade-bg-base">
               <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="text-[#1d9bf0] hover:bg-[#1d9bf0]/10 p-2 rounded-full transition-colors"><Icons.Image /></button>
               <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleFileSelect} />
             </div>
