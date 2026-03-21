@@ -373,8 +373,8 @@ export const SocialFeed: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-xl mx-auto w-full">
-            <div className="flex gap-2 mb-2 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-2xl mx-auto w-full">
+            <div className="flex gap-1 mb-1 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
                <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
                <div className="flex flex-col justify-center leading-tight">
                   <span className="font-bold text-[16px] text-wade-text-main hover:underline">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
@@ -583,7 +583,7 @@ export const SocialFeed: React.FC = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-wade-bg-base">
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-2xl mx-auto">
               {localPosts.length === 0 ? (
                 <div className="text-center py-20 text-wade-text-muted font-medium font-sans">Welcome to X. No posts yet.</div>
               ) : localPosts.map(post => {
