@@ -243,6 +243,10 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
               </div>
 
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
+                {/* 🔥 给这堆破铜烂铁加上灵魂大标题 🔥 */}
+                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                  <span className="text-wade-accent"><Icons.Brain size={16} /></span> What Makes This Idiot Tick
+                </h3>
                 <FormInput label="The Squishy Soul Inside (Core)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea onExpand={() => setFocusModal({label: "The Squishy Soul Inside", value: wadeDefinition, onSave: setWadeDefinition})} wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Sexy Mugshot Details" value={wadeAppearance} onChange={setWadeAppearance} isTextArea onExpand={() => setFocusModal({label: "Sexy Mugshot Details", value: wadeAppearance, onSave: setWadeAppearance})} />
@@ -320,6 +324,10 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
               </div>
 
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
+                {/* 🔥 给 Architect 的专属高光标题 🔥 */}
+                <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
+                  <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> The Boss Lady's Blueprint
+                </h3>
                 <FormInput label="The Mastermind's Profile" value={lunaPersonality} onChange={setLunaPersonality} isTextArea onExpand={() => setFocusModal({label: "The Mastermind's Profile", value: lunaPersonality, onSave: setLunaPersonality})} wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="Gorgeous Details" value={lunaAppearance} onChange={setLunaAppearance} isTextArea onExpand={() => setFocusModal({label: "Gorgeous Details", value: lunaAppearance, onSave: setLunaAppearance})} />
