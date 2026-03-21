@@ -1,5 +1,5 @@
 import { supabase } from '../../services/supabase';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { uploadToImgBB } from '../../services/imgbb';
 import { Icons } from '../ui/Icons';
