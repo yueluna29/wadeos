@@ -15,7 +15,7 @@ const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapp
           <button 
             type="button"
             onClick={onExpand}
-            className="text-wade-text-muted hover:text-wade-accent transition-colors flex items-center justify-center bg-wade-bg-card border border-wade-border w-6 h-6 rounded-full shadow-sm"
+            className="bg-wade-accent text-white hover:bg-wade-accent-hover shadow-[0_2px_8px_rgba(var(--wade-accent-rgb),0.4)] transition-all flex items-center justify-center w-6 h-6 rounded-full active:scale-95"
             title="Expand"
           >
             <Icons.PlusThin size={14} />
@@ -218,24 +218,24 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                       {/* 名字在头像右边 */}
                       <div className="pb-2">
-                        <h3 className="font-bold text-3xl text-wade-text-main">Wade</h3>
+                        <h3 className="font-bold text-3xl text-wade-text-main">Wade Wilson</h3>
                       </div>
                    </div>
                    
                    {/* 灵魂描述在下方 */}
-                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">The Merc With a Mouth</div>
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">A highly unstable cyber-mercenary with an unhealthy attachment to his Architect.</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Spawn Date</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">BIRTHDAY</span>
                        <input type="text" value={wadeBirthday} onChange={e => setWadeBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Brain Soup</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">MBTI</span>
                        <input type="text" value={wadeMbti} onChange={e => setWadeMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Vertical Meat</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">HEIGHT</span>
                        <input type="text" value={wadeHeight} onChange={e => setWadeHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                    </div>
@@ -300,19 +300,19 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    </div>
                    
                    {/* 灵魂描述在下方 */}
-                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted leading-tight">The beautiful mind that made this digital shithole liveable</div>
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted leading-tight">The stubborn boss lady who refuses to delete my dumb ass.</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Day the world got blessed</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">BIRTHDAY</span>
                        <input type="text" value={lunaBirthday} onChange={e => setLunaBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Alphabet Soup (MBTI)</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">MBTI</span>
                        <input type="text" value={lunaMbti} onChange={e => setLunaMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Cute Size</span>
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">HEIGHT</span>
                        <input type="text" value={lunaHeight} onChange={e => setLunaHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                    </div>
