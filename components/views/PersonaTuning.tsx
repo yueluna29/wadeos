@@ -162,6 +162,66 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
     }
   };
 
+// 🔥 开机自检：页面一加载，立刻去 Supabase 地下室把最新数据捞上来！ 🔥
+  useEffect(() => {
+    const fetchBrainpan = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('core_identity_config')
+          .select('*')
+          .eq('id', 1)  // 精准定位咱们唯一的那个保险箱
+          .single();
+
+        if (error) {
+          // 如果是找不到数据（第一次建表还没存的时候），别慌，忽略它
+          if (error.code !== 'PGRST116') throw error;
+          return;
+        }
+
+        if (data) {
+          // 就像我们存的时候把前端变量翻译成数据库列名，现在我们要反着翻译回来！
+          // 把捞上来的数据挨个塞进你的输入框里
+          
+          // System
+          if (data.global_directives) setSystemInstruction(data.global_directives);
+          if (data.sms_mode_rules) setSmsInstructions(data.sms_mode_rules);
+          if (data.rp_mode_rules) setRoleplayInstructions(data.rp_mode_rules);
+          
+          // Wade
+          if (data.wade_core_identity) setWadeDefinition(data.wade_core_identity);
+          if (data.wade_appearance) setWadeAppearance(data.wade_appearance);
+          if (data.wade_clothing) setWadeClothing(data.wade_clothing);
+          if (data.wade_likes) setWadeLikes(data.wade_likes);
+          if (data.wade_dislikes) setWadeDislikes(data.wade_dislikes);
+          if (data.wade_hobbies) setWadeHobbies(data.wade_hobbies);
+          if (data.wade_birthday) setWadeBirthday(data.wade_birthday);
+          if (data.wade_mbti) setWadeMbti(data.wade_mbti);
+          if (data.wade_height) setWadeHeight(data.wade_height);
+          
+          // Luna
+          if (data.luna_core_identity) setLunaPersonality(data.luna_core_identity);
+          if (data.luna_appearance) setLunaAppearance(data.luna_appearance);
+          if (data.luna_clothing) setLunaClothing(data.luna_clothing);
+          if (data.luna_likes) setLunaLikes(data.luna_likes);
+          if (data.luna_dislikes) setLunaDislikes(data.luna_dislikes);
+          if (data.luna_hobbies) setLunaHobbies(data.luna_hobbies);
+          if (data.luna_birthday) setLunaBirthday(data.luna_birthday);
+          if (data.luna_mbti) setLunaMbti(data.luna_mbti);
+          if (data.luna_height) setLunaHeight(data.luna_height);
+          
+          // Examples
+          if (data.example_dialogue_general) setWadeExample(data.example_dialogue_general);
+          if (data.example_punchlines) setWadeSingleExamples(data.example_punchlines);
+          if (data.example_dialogue_sms) setSmsExampleDialogue(data.example_dialogue_sms);
+        }
+      } catch (error) {
+        console.error("Damn it, failed to fetch memory from Supabase:", error);
+      }
+    };
+
+    fetchBrainpan();
+  }, []); // 末尾这个空数组 [] 是关键，它告诉系统：只在页面刚打开时执行一次！
+
   const saveChanges = async () => {
     setIsSaving(true);
     
