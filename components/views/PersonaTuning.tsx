@@ -40,11 +40,10 @@ const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapp
   );
 };
 
-// 🔥 终极悬浮艺术版编辑框：带碎嘴子、带取消功能、绝不占满全屏 🔥
+// 🔥 完美复刻 Memory 样式的高级质感编辑框 🔥
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
-  // 随机的骚话语录，每次点开都有惊喜
   const quotes = [
     "Careful what you type, Muffin. I have to live with this personality.",
     "Make me sound sexy, would ya? The voices in my head are judging you.",
@@ -55,58 +54,70 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [quote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
 
   return (
-    // 外层遮罩：带模糊效果，点击遮罩直接触发“取消”
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 md:p-6 animate-fade-in" onClick={onClose}>
-      
-      {/* 核心卡片：不再是死板的全屏，而是一个有呼吸感的悬浮框 */}
-      <div className="bg-wade-bg-card w-full max-w-2xl max-h-[85vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
-
-        {/* 头部：完全复刻你那个绝美的 New Memory 布局 */}
-        <div className="px-6 pt-6 pb-4 flex justify-between items-start shrink-0">
-          <div className="flex gap-4 items-start">
-            {/* 左侧的性感小图标 */}
-            <div className="w-10 h-10 rounded-full border border-wade-accent/20 flex items-center justify-center text-wade-accent shrink-0 bg-wade-accent/5">
-              <Icons.Edit size={18} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in">
+      {/* 限制最大宽度，不再是一张蠢笨的全屏大饼 */}
+      <div className="bg-wade-bg-card rounded-[1.5rem] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col">
+        
+        {/* Header：绝美渐变色 + 悬浮圆圈图标 */}
+        <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0">
+          <div className="flex justify-between items-start">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0">
+                <div className="text-wade-accent">
+                  <Icons.Edit size={18} />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-wade-text-main">{label}</h2>
+                <p className="text-xs text-wade-text-muted mt-1 leading-tight italic">
+                  "{quote}"
+                </p>
+              </div>
             </div>
-            {/* 标题和碎嘴子 */}
-            <div>
-              <h2 className="text-xl font-bold text-wade-text-main tracking-tight">{label}</h2>
-              <p className="text-[11px] text-wade-text-muted italic mt-1.5 leading-relaxed max-w-[250px] md:max-w-sm">"{quote}"</p>
-            </div>
-          </div>
-
-          {/* 右上角：极简的取消和保存双子星 */}
-          <div className="flex gap-2 shrink-0 ml-2 mt-1">
+            {/* 顶部的极简小叉叉 */}
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:text-wade-text-main transition-colors border border-transparent hover:border-wade-border"
-              title="Cancel"
+              className="w-8 h-8 rounded-full bg-wade-bg-card/50 hover:bg-wade-bg-card flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors flex-shrink-0 ml-4"
             >
-              {/* 画一个极简的 X */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <button
-              onClick={() => { onSave(val); onClose(); }}
-              className="w-8 h-8 rounded-full bg-wade-accent text-white hover:bg-wade-accent-hover shadow-[0_2px_8px_rgba(var(--wade-accent-rgb),0.4)] transition-all active:scale-95 flex items-center justify-center"
-              title="Save"
-            >
-              <Icons.Check size={16} />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </button>
           </div>
         </div>
 
-        {/* 身体：内嵌式的输入区 */}
-        <div className="p-6 pt-2 flex-1 flex flex-col min-h-[40vh]">
-           <div className="flex-1 bg-wade-bg-app border border-wade-border rounded-[1.5rem] p-5 flex flex-col focus-within:border-wade-accent focus-within:ring-1 focus-within:ring-wade-accent/20 transition-all overflow-hidden">
-              <textarea
-                value={val}
-                onChange={e => setVal(e.target.value)}
-                className="w-full flex-1 bg-transparent text-sm md:text-base text-wade-text-main outline-none resize-none custom-scrollbar leading-relaxed"
-                placeholder="Feed my brain here..."
-              />
-           </div>
+        {/* Content：深陷式输入框 */}
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+          <div className="h-full flex flex-col">
+            <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">
+              Content Details
+            </label>
+            <textarea
+              value={val}
+              onChange={(e) => setVal(e.target.value)}
+              placeholder="Write the details here..."
+              className="w-full flex-1 px-4 py-4 rounded-xl border border-wade-border bg-wade-bg-base text-wade-text-main focus:outline-none focus:border-wade-accent min-h-[40vh] text-sm resize-none transition-colors custom-scrollbar leading-relaxed"
+            />
+          </div>
         </div>
 
+        {/* Footer：胖乎乎的取消和保存按钮 */}
+        <div className="px-6 py-6 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 rounded-xl bg-wade-bg-card border border-wade-border text-wade-text-muted font-bold text-xs hover:bg-wade-border/50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => { onSave(val); onClose(); }}
+            className="flex-1 px-4 py-3 rounded-xl bg-wade-accent text-white font-bold text-xs hover:bg-wade-accent-hover transition-colors shadow-sm"
+          >
+            Save Changes
+          </button>
+        </div>
+        
       </div>
     </div>
   );
