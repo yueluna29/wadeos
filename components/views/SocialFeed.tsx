@@ -372,11 +372,9 @@ export const SocialFeed: React.FC = () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
           </button>
         </div>
-          <button className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -mr-2 transition-colors"><Icons.MoreHorizontal /></button>
-        </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-xl mx-auto w-full">
-            <div className="flex gap-2 mb-3 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
+            <div className="flex gap-2 mb-2 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
                <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
                <div className="flex flex-col justify-center leading-tight">
                   <span className="font-bold text-[16px] text-wade-text-main hover:underline">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
