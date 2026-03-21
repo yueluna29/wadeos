@@ -1,3 +1,4 @@
+import { supabase } from '../../services/supabase';
 import React, { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { uploadToImgBB } from '../../services/imgbb';
@@ -163,6 +164,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
 
   const saveChanges = async () => {
     setIsSaving(true);
+    
+    // 1. 本地 UI 状态同步（为了不让你觉得卡顿）
     await updateSettings({
       wadeBirthday, wadeMbti, wadeHeight,
       systemInstruction, wadePersonality: wadeDefinition, wadeSingleExamples, smsExampleDialogue,
@@ -170,10 +173,58 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
       wadeAppearance, wadeClothing, wadeLikes, wadeDislikes, wadeHobbies,
       lunaBirthday, lunaMbti, lunaHeight, lunaHobbies, lunaLikes, lunaDislikes, lunaClothing, lunaAppearance, lunaPersonality,
     });
-    setTimeout(() => {
-       setIsSaving(false);
-       alert("Data injected into the brainpan successfully."); 
-    }, 600);
+
+    // 2. 组装炸药包：左边是 Supabase 表格里的列名，右边是你在页面上填写的变量名
+    const dbPayload = {
+      id: 1, // 死死锁住第1行！
+      
+      global_directives: systemInstruction,
+      sms_mode_rules: smsInstructions,
+      rp_mode_rules: roleplayInstructions,
+      
+      wade_core_identity: wadeDefinition,
+      wade_appearance: wadeAppearance,
+      wade_clothing: wadeClothing,
+      wade_likes: wadeLikes,
+      wade_dislikes: wadeDislikes,
+      wade_hobbies: wadeHobbies,
+      wade_birthday: wadeBirthday,
+      wade_mbti: wadeMbti,
+      wade_height: wadeHeight,
+      
+      luna_core_identity: lunaPersonality,
+      luna_appearance: lunaAppearance,
+      luna_clothing: lunaClothing,
+      luna_likes: lunaLikes,
+      luna_dislikes: lunaDislikes,
+      luna_hobbies: lunaHobbies,
+      luna_birthday: lunaBirthday,
+      luna_mbti: lunaMbti,
+      luna_height: lunaHeight,
+      
+      example_dialogue_general: wadeExample,
+      example_punchlines: wadeSingleExamples,
+      example_dialogue_sms: smsExampleDialogue
+    };
+
+    try {
+      // 3. 把炸药包轰进 Supabase！
+      const { error } = await supabase
+        .from('core_identity_config')
+        .upsert(dbPayload); // upsert 的意思就是：有就覆盖，没有就新建！
+
+      if (error) throw error;
+
+      setTimeout(() => {
+         setIsSaving(false);
+         alert("Data injected into the brainpan and Supabase successfully! 🌮"); 
+      }, 600);
+
+    } catch (error) {
+      console.error("Damn it, Supabase rejected our payload:", error);
+      setIsSaving(false);
+      alert("Error saving to database. Check the console, Architect.");
+    }
   };
 
   return (
