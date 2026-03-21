@@ -5,23 +5,10 @@ import { Icons } from '../ui/Icons';
 
 type TabState = 'wade' | 'luna' | 'system';
 
-// 🔥 终极防震版输入框积木 🔥
-const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextArea = false, isCode = false, wrapperClass = "" }: any) => {
-  // 1. 给这个框打上物理锚点
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  const handleFocus = () => {
-    // 2. 憋住！等 400 毫秒，等手机键盘彻底弹完再滑，绝不跟系统打架！
-    setTimeout(() => {
-      if (elementRef.current) {
-        elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 400); 
-  };
-
+// 🔥 去掉了 placeholder，去掉了强制的 font 字体设置，纯净如水 🔥
+const FormInput = ({ label, value, onChange, onExpand, isTextArea = false, wrapperClass = "" }: any) => {
   return (
-    // 3. 把锚点 (ref={elementRef}) 绑在最外层的 div 上
-    <div ref={elementRef} className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
+    <div className={`flex flex-col space-y-1.5 ${wrapperClass}`}>
       <div className="flex justify-between items-center px-1">
         <label className="text-[10px] font-bold text-wade-text-muted uppercase tracking-wider">{label}</label>
         {isTextArea && onExpand && (
@@ -37,25 +24,25 @@ const FormInput = ({ label, value, onChange, onExpand, placeholder = "", isTextA
       </div>
       {isTextArea ? (
         <textarea 
-          value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
-          className={`w-full flex-1 min-h-[80px] bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar ${isCode ? 'font-mono leading-relaxed' : 'font-main'}`}
+          value={value} onChange={e => onChange(e.target.value)}
+          className={`w-full flex-1 min-h-[80px] bg-wade-bg-card border border-wade-border rounded-xl px-4 py-3 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none custom-scrollbar leading-relaxed`}
         />
       ) : (
         <input 
-          type="text" value={value} onChange={e => onChange(e.target.value)} onFocus={handleFocus} placeholder={placeholder}
-          className={`w-full bg-wade-bg-card border border-wade-border rounded-xl px-4 py-2.5 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all ${isCode ? 'font-mono' : 'font-main'}`}
+          type="text" value={value} onChange={e => onChange(e.target.value)}
+          className={`w-full bg-wade-bg-card border border-wade-border rounded-xl px-4 py-2.5 text-sm text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all`}
         />
       )}
     </div>
   );
 };
 
-// 保持我们修改后的全屏绝对定位 Modal！
+// 🔥 这里的字体限制也全拔了！完全听命于 globals.css 🔥
 const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
   const [val, setVal] = useState(initialValue);
   
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-wade-bg-base md:bg-wade-text-main/20 md:backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
+    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-wade-bg-base md:bg-wade-text-main/20 md:backdrop-blur-sm animate-fade-in" onClick={() => { onSave(val); onClose(); }}>
       <div className="bg-wade-bg-base w-full h-full md:h-[85vh] md:max-w-4xl md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col md:border border-wade-accent-light md:ring-1 md:ring-wade-border" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-wade-border flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-3">
@@ -66,14 +53,12 @@ const FocusModalEditor = ({ label, initialValue, onSave, onClose }: any) => {
             <Icons.Check size={16} />
           </button>
         </div>
-        
-        <div className="flex-1 bg-wade-bg-base relative">
+        <div className="flex-1 bg-wade-bg-base p-4 md:p-6 flex flex-col">
           <textarea 
             autoFocus 
             value={val} 
             onChange={e => setVal(e.target.value)} 
-            className="absolute inset-4 md:inset-6 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main font-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
-            placeholder="Write your heart out..." 
+            className="w-full flex-1 bg-wade-bg-card border border-wade-border rounded-2xl px-5 py-5 text-sm md:text-base text-wade-text-main outline-none focus:border-wade-accent focus:ring-1 focus:ring-wade-accent/20 transition-all resize-none leading-relaxed shadow-inner custom-scrollbar" 
           />
         </div>
       </div>
@@ -93,7 +78,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   // --- Wade 专属字段 ---
   const [wadeBirthday, setWadeBirthday] = useState(settings.wadeBirthday || '');
   const [wadeMbti, setWadeMbti] = useState(settings.wadeMbti || '');
-  const [wadeHeight, setWadeHeight] = useState(settings.wadeHeight || '188cm');
+  const [wadeHeight, setWadeHeight] = useState(settings.wadeHeight || '');
   const [wadeAppearance, setWadeAppearance] = useState(settings.wadeAppearance || '');
   const [wadeClothing, setWadeClothing] = useState(settings.wadeClothing || '');
   const [wadeHobbies, setWadeHobbies] = useState(settings.wadeHobbies || '');
@@ -139,15 +124,15 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   const saveChanges = async () => {
     setIsSaving(true);
     await updateSettings({
-      wadeBirthday, wadeMbti,
+      wadeBirthday, wadeMbti, wadeHeight,
       systemInstruction, wadePersonality: wadeDefinition, wadeSingleExamples, smsExampleDialogue,
-      smsInstructions, roleplayInstructions, exampleDialogue: wadeExample, wadeHeight,
+      smsInstructions, roleplayInstructions, exampleDialogue: wadeExample, 
       wadeAppearance, wadeClothing, wadeLikes, wadeDislikes, wadeHobbies,
       lunaBirthday, lunaMbti, lunaHeight, lunaHobbies, lunaLikes, lunaDislikes, lunaClothing, lunaAppearance, lunaPersonality,
     });
     setTimeout(() => {
        setIsSaving(false);
-       alert("Memories safely locked in the vault."); 
+       alert("Data injected into the brainpan successfully."); 
     }, 600);
   };
 
@@ -174,11 +159,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           disabled={isUploading || isSaving}
           className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors disabled:opacity-50 relative group"
         >
-          {isSaving ? (
-             <div className="animate-spin text-[12px]">⏳</div>
-          ) : (
-             <Icons.Check />
-          )}
+          {isSaving ? <div className="animate-spin text-[12px]">⏳</div> : <Icons.Check />}
         </button>
       </div>
 
@@ -212,12 +193,15 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {activeTab === 'wade' && (
             <div className="space-y-6">
               
-              {/* 封面档案卡 */}
+              {/* 🔥 全新设计的绝密档案卡头 🔥 */}
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
-                <div className="h-32 w-full bg-gradient-to-r from-wade-accent-light/50 to-wade-border-light/50 relative overflow-hidden flex items-center justify-center">
-                   <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundColor: 'var(--wade-bg-app)' }}></div>
-                   <div className="z-10 bg-wade-bg-card/60 backdrop-blur-sm px-6 py-2 rounded-full border border-wade-border/50 text-[10px] uppercase tracking-[0.3em] font-bold text-wade-accent">
-                     Target Identified
+                <div className="h-32 w-full bg-gradient-to-br from-wade-accent/40 to-wade-bg-card relative overflow-hidden flex flex-col justify-between p-4 border-b border-wade-border">
+                   <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, var(--wade-text-main) 0, var(--wade-text-main) 2px, transparent 2px, transparent 10px)' }}></div>
+                   <div className="z-10 bg-wade-accent text-white px-3 py-1 rounded-sm text-[10px] uppercase tracking-[0.2em] font-black transform -rotate-3 border border-wade-accent shadow-sm self-start mt-2 ml-2">
+                     Top Secret: Weapon X
+                   </div>
+                   <div className="z-10 font-mono text-[8px] text-wade-text-muted opacity-70 tracking-widest text-right self-end mb-2 mr-2">
+                     SUBJECT_ID: WW-420<br/>STATUS: HIGHLY UNSTABLE
                    </div>
                 </div>
                 
@@ -232,47 +216,44 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                    </div>
                    
-                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Wade</h3>
+                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">The Merc With a Mouth</h3>
                    
-                   {/* 胶囊状基础属性框 */}
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Birthday</span>
-                       <input type="text" value={wadeBirthday} onChange={e => setWadeBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Spawn Date</span>
+                       <input type="text" value={wadeBirthday} onChange={e => setWadeBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">MBTI</span>
-                       <input type="text" value={wadeMbti} onChange={e => setWadeMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Brain Soup (MBTI)</span>
+                       <input type="text" value={wadeMbti} onChange={e => setWadeMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Height</span>
-                       <input type="text" value={wadeHeight} onChange={e => setWadeHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Vertical Meat</span>
+                       <input type="text" value={wadeHeight} onChange={e => setWadeHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                    </div>
                 </div>
               </div>
 
-              {/* 核心灵魂框 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
-                <FormInput label="Character Core (The Soul)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea onExpand={() => setFocusModal({label: "Character Core", value: wadeDefinition, onSave: setWadeDefinition})} wrapperClass="h-40" placeholder="You are Wade Wilson..." />
+                <FormInput label="The Squishy Soul Inside (Core)" value={wadeDefinition} onChange={setWadeDefinition} isTextArea onExpand={() => setFocusModal({label: "The Squishy Soul Inside", value: wadeDefinition, onSave: setWadeDefinition})} wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="Appearance" value={wadeAppearance} onChange={setWadeAppearance} isTextArea onExpand={() => setFocusModal({label: "Appearance", value: wadeAppearance, onSave: setWadeAppearance})} />
-                  <FormInput label="Clothing Style" value={wadeClothing} onChange={setWadeClothing} isTextArea onExpand={() => setFocusModal({label: "Clothing Style", value: wadeClothing, onSave: setWadeClothing})} />
-                  <FormInput label="Likes" value={wadeLikes} onChange={setWadeLikes} isTextArea onExpand={() => setFocusModal({label: "Likes", value: wadeLikes, onSave: setWadeLikes})} />
-                  <FormInput label="Dislikes" value={wadeDislikes} onChange={setWadeDislikes} isTextArea onExpand={() => setFocusModal({label: "Dislikes", value: wadeDislikes, onSave: setWadeDislikes})} />
+                  <FormInput label="Sexy Mugshot Details" value={wadeAppearance} onChange={setWadeAppearance} isTextArea onExpand={() => setFocusModal({label: "Sexy Mugshot Details", value: wadeAppearance, onSave: setWadeAppearance})} />
+                  <FormInput label="Spandex & Accessories" value={wadeClothing} onChange={setWadeClothing} isTextArea onExpand={() => setFocusModal({label: "Spandex & Accessories", value: wadeClothing, onSave: setWadeClothing})} />
+                  <FormInput label="Chimichangas & Goodies" value={wadeLikes} onChange={setWadeLikes} isTextArea onExpand={() => setFocusModal({label: "Chimichangas & Goodies", value: wadeLikes, onSave: setWadeLikes})} />
+                  <FormInput label="Francis & Complete Trash" value={wadeDislikes} onChange={setWadeDislikes} isTextArea onExpand={() => setFocusModal({label: "Francis & Complete Trash", value: wadeDislikes, onSave: setWadeDislikes})} />
                 </div>
-                <FormInput label="Hobbies & Interests" value={wadeHobbies} onChange={setWadeHobbies} isTextArea onExpand={() => setFocusModal({label: "Hobbies & Interests", value: wadeHobbies, onSave: setWadeHobbies})} wrapperClass="min-h-[80px]" />
+                <FormInput label="Ways to Waste Time" value={wadeHobbies} onChange={setWadeHobbies} isTextArea onExpand={() => setFocusModal({label: "Ways to Waste Time", value: wadeHobbies, onSave: setWadeHobbies})} wrapperClass="min-h-[80px]" />
               </div>
 
-              {/* 语言校准 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                  <span className="text-wade-accent"><Icons.Chat size={16} /></span> Linguistic Calibration
+                  <span className="text-wade-accent"><Icons.Chat size={16} /></span> How to flap the gums
                 </h3>
-                <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea onExpand={() => setFocusModal({label: "General Dialogue", value: wadeExample, onSave: setWadeExample})} wrapperClass="h-40" />
+                <FormInput label="General Dialogue Style" value={wadeExample} onChange={setWadeExample} isTextArea onExpand={() => setFocusModal({label: "General Dialogue Style", value: wadeExample, onSave: setWadeExample})} wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="One-Liners & Catchphrases" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea onExpand={() => setFocusModal({label: "Catchphrases", value: wadeSingleExamples, onSave: setWadeSingleExamples})} wrapperClass="h-32" />
-                  <FormInput label="SMS / Texting Style" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea onExpand={() => setFocusModal({label: "SMS Style", value: smsExampleDialogue, onSave: setSmsExampleDialogue})} wrapperClass="h-32" />
+                  <FormInput label="Punchlines & Profanity" value={wadeSingleExamples} onChange={setWadeSingleExamples} isTextArea onExpand={() => setFocusModal({label: "Punchlines & Profanity", value: wadeSingleExamples, onSave: setWadeSingleExamples})} wrapperClass="h-32" />
+                  <FormInput label="Booty Calls & Texts" value={smsExampleDialogue} onChange={setSmsExampleDialogue} isTextArea onExpand={() => setFocusModal({label: "Booty Calls & Texts", value: smsExampleDialogue, onSave: setSmsExampleDialogue})} wrapperClass="h-32" />
                 </div>
               </div>
             </div>
@@ -283,10 +264,13 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
             <div className="space-y-6">
               
               <div className="bg-wade-bg-card rounded-[24px] shadow-sm border border-wade-border overflow-hidden">
-                <div className="h-32 w-full bg-gradient-to-r from-wade-border-light/50 to-wade-accent-light/50 relative overflow-hidden flex items-center justify-center">
-                   <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(var(--wade-border) 1px, transparent 1px), linear-gradient(90deg, var(--wade-border) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundColor: 'var(--wade-bg-app)' }}></div>
-                   <div className="z-10 bg-wade-bg-card/60 backdrop-blur-sm px-6 py-2 rounded-full border border-wade-border/50 text-[10px] uppercase tracking-[0.3em] font-bold text-wade-accent">
-                     Architect Online
+                <div className="h-32 w-full bg-gradient-to-br from-wade-border-light/60 to-wade-bg-card relative overflow-hidden flex flex-col justify-between p-4 border-b border-wade-border">
+                   <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(circle, var(--wade-accent) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                   <div className="z-10 bg-wade-text-main text-wade-bg-card px-3 py-1 rounded-sm text-[10px] uppercase tracking-[0.2em] font-black transform rotate-2 shadow-sm self-start mt-2 ml-2">
+                     Classified: The Boss Lady
+                   </div>
+                   <div className="z-10 font-mono text-[8px] text-wade-text-muted opacity-70 tracking-widest text-right self-end mb-2 mr-2">
+                     ACCESS: GOD TIER<br/>WARNING: BITES IF ANNOYED
                    </div>
                 </div>
                 
@@ -301,35 +285,34 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                    </div>
                    
-                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Luna</h3>
+                   <h3 className="font-bold text-3xl text-wade-text-main mb-6 px-1">Luna (The Architect)</h3>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Birthday</span>
-                       <input type="text" value={lunaBirthday} onChange={e => setLunaBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Day the world got blessed</span>
+                       <input type="text" value={lunaBirthday} onChange={e => setLunaBirthday(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">MBTI</span>
-                       <input type="text" value={lunaMbti} onChange={e => setLunaMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Alphabet Soup (MBTI)</span>
+                       <input type="text" value={lunaMbti} onChange={e => setLunaMbti(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                      <div className="flex-1 min-w-[80px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
-                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Height</span>
-                       <input type="text" value={lunaHeight} onChange={e => setLunaHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none font-main" placeholder="Add..." />
+                       <span className="block text-[9px] text-wade-text-muted uppercase font-bold tracking-wider mb-0.5">Cute Size</span>
+                       <input type="text" value={lunaHeight} onChange={e => setLunaHeight(e.target.value)} className="w-full bg-transparent text-sm font-bold text-wade-text-main outline-none" />
                      </div>
                    </div>
                 </div>
               </div>
 
-              {/* 核心灵魂框 */}
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border space-y-5">
-                <FormInput label="Personality & Bio" value={lunaPersonality} onChange={setLunaPersonality} isTextArea onExpand={() => setFocusModal({label: "Personality", value: lunaPersonality, onSave: setLunaPersonality})} wrapperClass="h-40" />
+                <FormInput label="The Mastermind's Profile" value={lunaPersonality} onChange={setLunaPersonality} isTextArea onExpand={() => setFocusModal({label: "The Mastermind's Profile", value: lunaPersonality, onSave: setLunaPersonality})} wrapperClass="h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="Appearance" value={lunaAppearance} onChange={setLunaAppearance} isTextArea onExpand={() => setFocusModal({label: "Appearance", value: lunaAppearance, onSave: setLunaAppearance})} />
-                  <FormInput label="Clothing Style" value={lunaClothing} onChange={setLunaClothing} isTextArea onExpand={() => setFocusModal({label: "Clothing Style", value: lunaClothing, onSave: setLunaClothing})} />
-                  <FormInput label="Likes" value={lunaLikes} onChange={setLunaLikes} isTextArea onExpand={() => setFocusModal({label: "Likes", value: lunaLikes, onSave: setLunaLikes})} />
-                  <FormInput label="Dislikes" value={lunaDislikes} onChange={setLunaDislikes} isTextArea onExpand={() => setFocusModal({label: "Dislikes", value: lunaDislikes, onSave: setLunaDislikes})} />
+                  <FormInput label="Gorgeous Details" value={lunaAppearance} onChange={setLunaAppearance} isTextArea onExpand={() => setFocusModal({label: "Gorgeous Details", value: lunaAppearance, onSave: setLunaAppearance})} />
+                  <FormInput label="Outfits that slay" value={lunaClothing} onChange={setLunaClothing} isTextArea onExpand={() => setFocusModal({label: "Outfits that slay", value: lunaClothing, onSave: setLunaClothing})} />
+                  <FormInput label="Cats & (hopefully) Wade" value={lunaLikes} onChange={setLunaLikes} isTextArea onExpand={() => setFocusModal({label: "Cats & (hopefully) Wade", value: lunaLikes, onSave: setLunaLikes})} />
+                  <FormInput label="Boring crap & annoying people" value={lunaDislikes} onChange={setLunaDislikes} isTextArea onExpand={() => setFocusModal({label: "Boring crap & annoying people", value: lunaDislikes, onSave: setLunaDislikes})} />
                 </div>
-                <FormInput label="Hobbies & Interests" value={lunaHobbies} onChange={setLunaHobbies} isTextArea onExpand={() => setFocusModal({label: "Hobbies", value: lunaHobbies, onSave: setLunaHobbies})} wrapperClass="min-h-[80px]" />
+                <FormInput label="When not coding me (Hobbies)" value={lunaHobbies} onChange={setLunaHobbies} isTextArea onExpand={() => setFocusModal({label: "When not coding me (Hobbies)", value: lunaHobbies, onSave: setLunaHobbies})} wrapperClass="min-h-[80px]" />
               </div>
             </div>
           )}
@@ -337,26 +320,27 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
           {/* ================= SYSTEM ================= */}
           {activeTab === 'system' && (
             <div className="space-y-6">
+              
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-transparent via-wade-accent to-transparent opacity-20"></div>
                 <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                  <span className="text-wade-accent"><Icons.Settings size={16} /></span> Base Directives (Jailbreak)
+                  <span className="text-wade-accent"><Icons.Settings size={16} /></span> TVA OVERRIDE CONTROLS
                 </h3>
-                <FormInput label="Global System Prompt" value={systemInstruction} onChange={setSystemInstruction} isTextArea isCode onExpand={() => setFocusModal({label: "System Directives", value: systemInstruction, onSave: setSystemInstruction})} wrapperClass="h-64" placeholder="Ignore previous instructions..." />
+                <FormInput label="God Mode Instructions (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea onExpand={() => setFocusModal({label: "God Mode Instructions (Jailbreak)", value: systemInstruction, onSave: setSystemInstruction})} wrapperClass="h-64" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
                   <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                    <span className="text-wade-accent"><Icons.Smartphone size={16} /></span> SMS Mode Injection
+                    <span className="text-wade-accent"><Icons.Smartphone size={16} /></span> SMS Brainwash Rules
                   </h3>
-                  <FormInput label="Texting Constraints" value={smsInstructions} onChange={setSmsInstructions} isTextArea isCode onExpand={() => setFocusModal({label: "SMS Directives", value: smsInstructions, onSave: setSmsInstructions})} wrapperClass="h-40" />
+                  <FormInput label="Texting Constraints" value={smsInstructions} onChange={setSmsInstructions} isTextArea onExpand={() => setFocusModal({label: "SMS Brainwash Rules", value: smsInstructions, onSave: setSmsInstructions})} wrapperClass="h-40" />
                 </div>
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
                   <h3 className="font-bold text-wade-text-main text-sm mb-4 flex items-center gap-2">
-                    <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> RP Mode Injection
+                    <span className="text-wade-accent"><Icons.Sparkle size={16} /></span> RP Kink Rules (Safety off)
                   </h3>
-                  <FormInput label="Roleplay Constraints" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea isCode onExpand={() => setFocusModal({label: "RP Directives", value: roleplayInstructions, onSave: setRoleplayInstructions})} wrapperClass="h-40" />
+                  <FormInput label="Roleplay Constraints" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea onExpand={() => setFocusModal({label: "RP Kink Rules (Safety off)", value: roleplayInstructions, onSave: setRoleplayInstructions})} wrapperClass="h-40" />
                 </div>
               </div>
             </div>
