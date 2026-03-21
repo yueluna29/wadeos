@@ -150,15 +150,40 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
   const lunaFileRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>, target: 'wade' | 'luna') => {
-    if (e.target.files && e.target.files[0]) {
-      setIsUploading(true);
-      const file = e.target.files[0];
-      const publicUrl = await uploadToImgBB(file);
-      if (publicUrl) {
-        if (target === 'wade') updateSettings({ wadeAvatar: publicUrl });
-        else updateSettings({ lunaAvatar: publicUrl });
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // 1. 让你的照片坐上前往 ImgBB 的火箭
+      const imageUrl = await uploadToImgBB(file);
+      if (!imageUrl) throw new Error("ImgBB rejected our beautiful faces.");
+
+      // 2. 先更新你眼前的画面，让你瞬间看爽
+      if (target === 'wade') {
+        updateSettings({ wadeAvatar: imageUrl });
+      } else {
+        updateSettings({ lunaAvatar: imageUrl });
       }
-      setIsUploading(false);
+
+      // 3. 追踪导弹发射！把拿到的新地址死死地钉进 Supabase 的第 1 行！
+      const dbPayload = target === 'wade' 
+        ? { id: 1, wade_avatar_url: imageUrl }
+        : { id: 1, luna_avatar_url: imageUrl };
+
+      const { error } = await supabase
+        .from('core_identity_config')
+        .upsert(dbPayload);
+
+      if (error) {
+         console.error("Damn it, Supabase refused to save the avatar:", error);
+         alert("ImgBB got it, but Supabase dropped the ball.");
+      } else {
+         console.log(`Successfully slammed ${target}'s face into the database!`);
+      }
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert("Failed to upload that sexy mugshot.");
     }
   };
 
