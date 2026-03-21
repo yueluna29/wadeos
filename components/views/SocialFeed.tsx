@@ -1521,6 +1521,14 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
       {/* Feed */}
       <div className="max-w-xl mx-auto pb-8">
+        {localPosts.length === 0 ? (
+            <div className="text-center py-20 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 mb-4 rounded-full border-2 border-black flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </div>
+                <h2 className="text-2xl font-bold text-black mb-2">No Posts Yet</h2>
+                <p className="text-sm text-gray-500">When you post photos, they will appear here.</p>
+            </div>
         ) : localPosts.map(post => {
           const isWade = post.author === 'Wade';
           const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
@@ -1531,7 +1539,6 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
             <div 
               key={post.id} 
               onClick={() => {
-                // 点击整条推文，进入类似 X 的详情页（暂时用你原来的 Modal）
                 const idx = localPosts.findIndex(p => p.id === post.id);
                 setViewingPostDetail({ author: isWade ? 'Wade' : 'Luna', postIndex: idx });
               }}
@@ -1559,7 +1566,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                     <span className="font-bold text-wade-text-main hover:underline cursor-pointer truncate">
                       {authorName}
                     </span>
-                    {/* 蓝V认证假图标 - 尊贵的象征 */}
+                    {/* 蓝V认证假图标 */}
                     <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
                     <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
                     <span className="text-wade-text-muted">·</span>
@@ -1595,12 +1602,12 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                   </div>
                 </div>
 
-                {/* 文本内容：剥离所有边距，纯净阅读 */}
+                {/* 文本内容 */}
                 <div className="text-[15px] text-wade-text-main leading-normal mb-2 whitespace-pre-wrap">
                    <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} className="px-0 pb-0" />
                 </div>
 
-                {/* 图片区域 (如果有的话，X 的圆角比较大) */}
+                {/* 图片区域 */}
                 {post.images && post.images.length > 0 && (
                   <div className="mt-3 mb-3 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
                     <ImageCarousel images={post.images} />
@@ -1624,7 +1631,7 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
                       <span className="text-[13px] ml-1">{post.comments?.length > 0 ? post.comments.length : ''}</span>
                    </button>
                    
-                   {/* 转发 (Repost/Quote) - 先留个位置给第二阶段 */}
+                   {/* 转发 (Repost/Quote) */}
                    <button className="flex items-center gap-1 hover:text-[#00ba7c] group transition-colors">
                       <div className="p-2 -m-2 rounded-full group-hover:bg-[#00ba7c]/10 transition-colors">
                          <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg>
@@ -1683,3 +1690,5 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
             </div>
           );
         })}
+      </div>
+        
