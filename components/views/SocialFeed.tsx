@@ -358,12 +358,25 @@ export const SocialFeed: React.FC = () => {
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
           <button onClick={() => setViewingPostDetail(null)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -ml-2 transition-colors"><Icons.ChevronLeft /></button>
-          <div className="font-bold text-[20px] text-wade-text-main absolute left-1/2 -translate-x-1/2">Post</div>
+          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
+          {/* 极简细线返回键 */}
+          <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          
+          {/* 统一的手写体标题 */}
+          <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
+          
+          {/* 极简细线更多选项 */}
+          <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
+          </button>
+        </div>
           <button className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -mr-2 transition-colors"><Icons.MoreHorizontal /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-xl mx-auto w-full">
-            <div className="flex gap-3 mb-3 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
+            <div className="flex gap-2 mb-3 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
                <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
                <div className="flex flex-col justify-center leading-tight">
                   <span className="font-bold text-[16px] text-wade-text-main hover:underline">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
