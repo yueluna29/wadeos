@@ -364,7 +364,7 @@ export const SocialFeed: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-xl mx-auto w-full">
             <div className="flex gap-3 mb-3 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
-               <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity" />
+               <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
                <div className="flex flex-col justify-center leading-tight">
                   <span className="font-bold text-[16px] text-wade-text-main hover:underline">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
                   <span className="text-wade-text-muted text-[15px]">@{authorUsername}</span>
@@ -563,7 +563,8 @@ export const SocialFeed: React.FC = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
             <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Home</div>
-            <button onClick={() => setShowDiaryTypeModal(true)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full transition-colors shadow-sm">
+            {/* 🔥 统一的尺寸和悬浮变色效果 */}
+            <button onClick={() => setShowDiaryTypeModal(true)} className="w-8 h-8 rounded-full bg-wade-bg-app flex items-center justify-center text-wade-text-muted hover:bg-wade-accent hover:text-white transition-colors relative shadow-sm border border-wade-border">
               <Icons.Plus />
             </button>
           </div>
