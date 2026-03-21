@@ -567,7 +567,7 @@ export const SocialFeed: React.FC = () => {
         renderProfileView()
       ) : (
         <>
-          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex justify-between items-center sticky top-0 z-40">
+          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-[53px] flex items-center justify-between sticky top-0 z-40">
             {/* 极简细线齿轮，无边框无背景 */}
             <button onClick={() => setViewingProfile('Luna')} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -592,14 +592,14 @@ export const SocialFeed: React.FC = () => {
                 const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
 
                 return (
-                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative hover:bg-black/[0.03] transition-colors">
-                    <div className="flex-shrink-0 pt-0.5">
-                      <div className="w-10 h-10 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border/60" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
+                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-0">
+                      <div className="flex justify-between items-baseline mb-0.5">
                         <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap">
                           <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
                           <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
@@ -620,7 +620,7 @@ export const SocialFeed: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div className="text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
+                      <div className="mt-0.5 text-[15px] text-wade-text-main leading-snug whitespace-pre-wrap">
                         <PostCaption 
                            content={post.content} 
                            authorName={authorUsername} 
