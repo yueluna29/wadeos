@@ -11,7 +11,7 @@ const Icons = {
   Heart: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#f91880" : "none"} stroke={filled ? "#f91880" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>),
   MessageCircle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>),
   Bookmark: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>),
-  MoreHorizontal: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>),
+  MoreHorizontal: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>),
   Image: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>),
   ChevronLeft: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>),
   ChevronRight: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>),
@@ -53,7 +53,6 @@ export const SocialFeed: React.FC = () => {
   const [zoomedImage, setZoomedImage] = useState<{images: string[], index: number} | null>(null);
   
   const [viewingProfile, setViewingProfile] = useState<'Luna' | 'Wade' | null>(null);
-  // 🔥 改成直接存 PostID，杜绝白屏
   const [viewingPostDetail, setViewingPostDetail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -262,7 +261,6 @@ export const SocialFeed: React.FC = () => {
   };
 
   const PostCaption = ({ content, authorName, hideAuthor, postId, className }: { content: string, authorName: string, hideAuthor?: boolean, postId?: string, className?: string }) => {
-    // hideAuthor=true 说明这是在列表里。列表里才截断，详情页不截断。
     const needsShowMore = hideAuthor && (content.length > 150 || content.split('\n').length > 5);
     const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
 
@@ -272,7 +270,6 @@ export const SocialFeed: React.FC = () => {
           <div className="markdown-body">
             <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ p: ({node, ...props}) => <p className="mb-[1em] last:mb-0 inline" {...props} />, strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, a: ({node, href, children, ...props}) => { if (href?.startsWith('#')) return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; return <a href={href} className="text-[#1d9bf0] hover:underline" {...props}>{children}</a>; } }}>{processedContent}</Markdown>
           </div>
-          {/* 🔥 透明的 Show more，点击直接进详情页 */}
           {needsShowMore && postId && (
             <button onClick={(e) => { e.stopPropagation(); setViewingPostDetail(postId); }} className="text-[#1d9bf0] text-[15px] absolute bottom-0 right-0 bg-transparent pl-2 pr-1 hover:text-[#1a8cd8]">
               Show more
@@ -289,7 +286,6 @@ export const SocialFeed: React.FC = () => {
     const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
     const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     return (
-      // 🔥 图片框改回正方形 aspect-square
       <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden group border border-wade-border">
         <img src={images[currentIndex]} className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500" onClick={() => setZoomedImage({images, index: currentIndex})} />
         {images.length > 1 && (
@@ -317,7 +313,6 @@ export const SocialFeed: React.FC = () => {
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 py-3 flex items-center justify-between sticky top-0 z-40">
           <button onClick={() => setViewingPostDetail(null)} className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -ml-2 transition-colors"><Icons.ChevronLeft /></button>
-          {/* 🔥 居中的大字 Post 和右边的点点点 */}
           <div className="font-bold text-[20px] text-wade-text-main absolute left-1/2 -translate-x-1/2">Post</div>
           <button className="text-wade-text-main hover:bg-black/5 p-2 rounded-full -mr-2 transition-colors"><Icons.MoreHorizontal /></button>
         </div>
@@ -405,10 +400,8 @@ export const SocialFeed: React.FC = () => {
     const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'Luna'));
 
     return (
-      // 🔥 终极 X 风格个人主页，还原截图
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative overflow-x-hidden">
         
-        {/* 透明浮动顶部导航栏 */}
         <div className="absolute top-0 w-full z-40 px-4 py-2 flex justify-between items-center bg-black/20 backdrop-blur-sm">
           <div className="flex items-center gap-6">
             <button onClick={() => setViewingProfile(null)} className="text-white p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"><Icons.ChevronLeft /></button>
@@ -420,13 +413,11 @@ export const SocialFeed: React.FC = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {/* 背景横幅 (假装有个背景板，用头像模糊处理) */}
           <div className="h-36 w-full relative overflow-hidden bg-gray-300">
              <img src={avatar} className="w-full h-full object-cover blur-xl opacity-70" />
              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
           </div>
 
-          {/* 个人信息区 */}
           <div className="px-4 relative bg-wade-bg-base">
              <div className="flex justify-between items-start">
                 <div className="relative -mt-12 w-20 h-20">
@@ -444,9 +435,10 @@ export const SocialFeed: React.FC = () => {
              
              <p className="mt-3 text-[15px] text-wade-text-main whitespace-pre-wrap leading-snug">{bio}</p>
              
+             {/* 🔥 修改了这里那个罪魁祸首的 SVG */}
              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-[14px] text-wade-text-muted">
                 <span className="flex items-center gap-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C7.93 2 4.66 5.23 4.66 9.17c0 4.9 6.55 12.18 6.94 12.63a.5.5 0 0 0 .8 0c.39-.45 6.94-7.73 6.94-12.63C19.34 5.23 16.07 2 12 2zm0 9.83a2.53 2.53 0 1 1 0-5.06 2.53 2.53 0 0 1 0 5.06z"></path></svg> Kodaira, Tokyo, Japan</span>
-                <span className="flex items-center gap-1 text-[#1d9bf0]"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.96 14.945c-.067 0-.136-.01-.203-.027-1.13-.318-2.097-.986-2.795-1.932-.832-1.125-1.176-2.508-.968-3.893s.942-2.605 2.068-3.438l3.53-2.608c2.322-1.716 5.61-1.224 7.33 1.1.83 1.127 1.175 2.51.967 3.895s-.943 2.605-2.07 3.438l-1.48 1.094c-.333.246-.804.175-1.05-.158-.246-.334-.176-.804.158-1.05l1.48-1.095c.803-.592 1.327-1.463 1.476-2.45.148-.988-.098-1.975-.69-2.778-1.225-1.656-3.572-2.01-5.23-.784l-3.53 2.608c-.802.593-1.326 1.464-1.475 2.45-.15.99.097 1.975.69 2.778.498.675 1.187 1.15 1.992 1.377.4.114.633.528.52.928-.092.33-.394.547-.722.547z"></path><path d="M7.27 22.054c-1.61 0-3.197-.735-4.225-2.125-.832-1.127-1.176-2.51-.968-3.894s.943-2.605 2.07-3.438l1.478-1.094c.334-.245.805-.175 1.05.158s.177.804-.157 1.05l-1.48 1.095c-.803.593-1.326 1.464-1.475 2.45-.148.99.097 1.975.69 2.778 1.225 1.657 3.57 2.01 5.23.785l3.528-2.608c.803-.593 1.326-1.464 1.475-2.45.148-.99-.097-1.975-.69-2.778-.498-.674-1.188-1.15-1.992-1.376-.4-.113-.633-.527-.52-.927.112-.4.528-.63.926-.522 1.13.318 2.096.986 2.794 1.932.833 1.126 1.176 2.508.968 3.893s-.942 2.605-2.068 3.438l-3.53 2.608c-.933.693-2.023 1.026-3.105 1.026z"></path></g></svg> github.com/yueluna29</span>
+                <span className="flex items-center gap-1 text-[#1d9bf0]"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> github.com/yueluna29</span>
                 <span className="flex items-center gap-1"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"></path></svg> Joined September 2024</span>
              </div>
              
@@ -456,7 +448,6 @@ export const SocialFeed: React.FC = () => {
              </div>
           </div>
 
-          {/* 选项卡 Tab */}
           <div className="flex border-b border-wade-border mt-4 overflow-x-auto hide-scrollbar bg-wade-bg-base">
              <div className="px-5 py-3 font-bold text-wade-text-main border-b-4 border-[#1d9bf0] whitespace-nowrap">Posts</div>
              <div className="px-5 py-3 font-medium text-wade-text-muted hover:bg-black/5 cursor-pointer transition-colors whitespace-nowrap">Replies</div>
@@ -464,14 +455,12 @@ export const SocialFeed: React.FC = () => {
              <div className="px-5 py-3 font-medium text-wade-text-muted hover:bg-black/5 cursor-pointer transition-colors whitespace-nowrap">Media</div>
           </div>
 
-          {/* Pinned 提示 (纯视觉假装) */}
           {userPosts.length > 0 && (
              <div className="px-4 py-2 border-b border-wade-border bg-wade-bg-base flex gap-2 items-center text-wade-text-muted text-[13px] font-semibold">
                 <span className="ml-8"><Icons.Pin /></span> Pinned
              </div>
           )}
 
-          {/* 用户的发帖列表 */}
           <div className="bg-wade-bg-base">
             {userPosts.length === 0 ? (
               <div className="text-center py-20 text-wade-text-muted font-medium font-sans">No posts to see here yet.</div>
@@ -499,7 +488,6 @@ export const SocialFeed: React.FC = () => {
                       {post.images.length === 1 ? <img src={post.images[0]} className="w-full aspect-square object-cover cursor-zoom-in" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                     </div>
                   )}
-                  {/* Action icons row simplified for profile */}
                   <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
                      <button className="flex items-center gap-1"><div className="p-2 -m-2 rounded-full"><Icons.MessageCircle /></div><span className="text-[13px] ml-1">{post.comments?.length || ''}</span></button>
                      <button className="flex items-center gap-1"><div className="p-2 -m-2 rounded-full"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></div></button>
@@ -523,7 +511,6 @@ export const SocialFeed: React.FC = () => {
         renderProfileView()
       ) : (
         <>
-          {/* 🔥 Home 顶部栏 */}
           <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 py-3 flex justify-between items-center sticky top-0 z-40">
             <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border border-wade-border" onClick={() => setViewingProfile('Luna')}>
                <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
@@ -542,15 +529,11 @@ export const SocialFeed: React.FC = () => {
                 const isWade = post.author === 'Wade';
                 const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
                 const authorName = isWade ? 'Wade Wilson' : 'Luna';
-                
-                // 🔥 分配指定账号
                 const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
 
                 return (
-                  // 🔥 把 hover:bg-black 去掉了
                   <div key={post.id} onClick={() => setViewingPostDetail(post.id)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-2 flex gap-3 font-sans relative">
                     <div className="flex-shrink-0">
-                      {/* 🔥 头像放大到 w-12 h-12 */}
                       <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
@@ -561,13 +544,10 @@ export const SocialFeed: React.FC = () => {
                           <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
                           <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
                           <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
-                          {/* 🔥 去掉了那个原点，直接用 ml-1 的空格代替 */}
                           <span className="text-wade-text-muted hover:underline ml-1">{formatExactTime(post.timestamp)}</span>
                         </div>
                         <div className="relative" onClick={e => e.stopPropagation()}>
                           <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"><Icons.MoreHorizontal /></button>
-                          
-                          {/* 🔥 弹窗菜单：去粗体，加毛玻璃，点击空白处收回 */}
                           {openMenuPostId === post.id && (
                             <>
                               <div className="fixed inset-0 z-[45]" onClick={(e) => { e.stopPropagation(); setOpenMenuPostId(null); }} />
@@ -580,12 +560,10 @@ export const SocialFeed: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
-                        {/* 🔥 传进去 postId 以便它能直接点 Show more 进入详情 */}
                         <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} postId={post.id} className="px-0 pb-0" />
                       </div>
                       {post.images && post.images.length > 0 && (
                         <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
-                          {/* 🔥 单张图也强制切成正方形 */}
                           {post.images.length === 1 ? <img src={post.images[0]} className="w-full aspect-square object-cover cursor-zoom-in" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                         </div>
                       )}
@@ -620,7 +598,6 @@ export const SocialFeed: React.FC = () => {
         </>
       )}
 
-      {/* 发帖弹窗菜单 */}
       {showDiaryTypeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowDiaryTypeModal(false)}>
           <div className="bg-wade-bg-base w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
