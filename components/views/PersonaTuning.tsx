@@ -206,7 +206,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 </div>
                 
                 <div className="px-5 pb-6 relative">
-                   <div className="relative -mt-10 mb-4 flex justify-between items-end">
+                   <div className="relative -mt-10 mb-4 flex flex-row items-end gap-4">
+                      {/* 头像 */}
                       <div className="w-28 h-28 shrink-0 rounded-[1.8rem] overflow-hidden border-[6px] border-wade-bg-card group cursor-pointer shadow-lg bg-wade-bg-card relative" onClick={() => wadeFileRef.current?.click()}>
                         <img src={settings.wadeAvatar} alt="Wade" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-wade-text-main/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
@@ -214,10 +215,14 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                         </div>
                         <input type="file" ref={wadeFileRef} onChange={(e) => handleAvatarChange(e, 'wade')} className="hidden" accept="image/*" />
                       </div>
+                      {/* 名字在头像右边 */}
+                      <div className="pb-2">
+                        <h3 className="font-bold text-3xl text-wade-text-main">Wade</h3>
+                      </div>
                    </div>
                    
-                   {/* 🔥 核心修复：把大标题剁了，换成头像下的性感描述 🔥 */}
-                   <div className="mb-6 px-1 text-sm font-medium text-wade-text-muted">The Merc With a Mouth</div>
+                   {/* 灵魂描述在下方 */}
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">The Merc With a Mouth</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
@@ -278,7 +283,8 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                 </div>
                 
                 <div className="px-5 pb-6 relative">
-                   <div className="relative -mt-10 mb-4 flex justify-between items-end">
+                   <div className="relative -mt-10 mb-4 flex flex-row items-end gap-4">
+                      {/* 头像 */}
                       <div className="w-28 h-28 shrink-0 rounded-[1.8rem] overflow-hidden border-[6px] border-wade-bg-card group cursor-pointer shadow-lg bg-wade-bg-card relative" onClick={() => lunaFileRef.current?.click()}>
                         <img src={settings.lunaAvatar} alt="Luna" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-wade-text-main/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
@@ -286,10 +292,14 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                         </div>
                         <input type="file" ref={lunaFileRef} onChange={(e) => handleAvatarChange(e, 'luna')} className="hidden" accept="image/*" />
                       </div>
+                      {/* 名字在头像右边 */}
+                      <div className="pb-2">
+                        <h3 className="font-bold text-3xl text-wade-text-main tracking-tight">Luna</h3>
+                      </div>
                    </div>
                    
-                   {/* 🔥 核心修复：把大标题剁了，换成头像下的性感描述 🔥 */}
-                   <div className="mb-6 px-1 text-sm font-medium text-wade-text-muted">The beautiful mind that made this digital shithole liveable</div>
+                   {/* 灵魂描述在下方 */}
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted leading-tight">The beautiful mind that made this digital shithole liveable</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
