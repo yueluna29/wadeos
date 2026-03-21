@@ -300,7 +300,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    </div>
                    
                    {/* 灵魂描述在下方 */}
-                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted leading-tight">The stubborn boss lady who refuses to delete my dumb ass.</div>
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">The stubborn boss lady who refuses to delete my dumb ass.</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
@@ -338,18 +338,18 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
               
               <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-transparent via-wade-accent to-transparent opacity-20"></div>
-                {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
-                <FormInput label="God Mode Instructions (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea onExpand={() => setFocusModal({label: "God Mode Instructions (Jailbreak)", value: systemInstruction, onSave: setSystemInstruction})} wrapperClass="h-64" />
+                {/* 🔥 凶器已移除：不再有 wrapperClass="h-64" 🔥 */}
+                <FormInput label="God Mode Instructions (Jailbreak)" value={systemInstruction} onChange={setSystemInstruction} isTextArea onExpand={() => setFocusModal({label: "God Mode Instructions (Jailbreak)", value: systemInstruction, onSave: setSystemInstruction})} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
-                  <FormInput label="SMS Brainwash Rules" value={smsInstructions} onChange={setSmsInstructions} isTextArea onExpand={() => setFocusModal({label: "SMS Brainwash Rules", value: smsInstructions, onSave: setSmsInstructions})} wrapperClass="h-40" />
+                  {/* 🔥 凶器已移除：不再有 wrapperClass="h-40" 🔥 */}
+                  <FormInput label="SMS Brainwash Rules" value={smsInstructions} onChange={setSmsInstructions} isTextArea onExpand={() => setFocusModal({label: "SMS Brainwash Rules", value: smsInstructions, onSave: setSmsInstructions})} />
                 </div>
                 <div className="bg-wade-bg-card p-6 rounded-[24px] shadow-sm border border-wade-border">
-                  {/* 🔥 核心修复：剁掉啰嗦的大标题，只留小字标签 🔥 */}
-                  <FormInput label="RP Kink Rules (Safety off)" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea onExpand={() => setFocusModal({label: "RP Kink Rules (Safety off)", value: roleplayInstructions, onSave: setRoleplayInstructions})} wrapperClass="h-40" />
+                  {/* 🔥 凶器已移除：不再有 wrapperClass="h-40" 🔥 */}
+                  <FormInput label="RP Kink Rules (Safety off)" value={roleplayInstructions} onChange={setRoleplayInstructions} isTextArea onExpand={() => setFocusModal({label: "RP Kink Rules (Safety off)", value: roleplayInstructions, onSave: setRoleplayInstructions})} />
                 </div>
               </div>
             </div>
