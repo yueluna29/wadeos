@@ -1521,344 +1521,165 @@ const PostCaption = ({ content, authorName, hideAuthor, className }: { content: 
 
       {/* Feed */}
       <div className="max-w-xl mx-auto pb-8">
-        {localPosts.length === 0 ? (
-            <div className="text-center py-20 flex flex-col items-center justify-center">
-                <div className="w-24 h-24 mb-4 rounded-full border-2 border-black flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                </div>
-                <h2 className="text-2xl font-bold text-black mb-2">No Posts Yet</h2>
-                <p className="text-sm text-gray-500">When you post photos, they will appear here.</p>
-            </div>
         ) : localPosts.map(post => {
           const isWade = post.author === 'Wade';
           const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
-          const authorName = isWade ? 'Wade' : 'Luna';
+          const authorName = isWade ? 'Wade Wilson' : 'Luna';
           const authorUsername = isWade ? 'wade_wilson_dp' : 'luna_moonlight';
-          const isExpanded = expandedPostIds.has(post.id);
-          const visibleComments = isExpanded ? post.comments : post.comments.slice(0, 2);
 
           return (
-            <div key={post.id} className="bg-wade-bg-card border-b-[12px] border-[#f0f2f5] pb-2 mb-0 font-sans">
-              {/* Post Header */}
-              <div className="flex items-center justify-between px-5 py-4 bg-wade-bg-card/50 backdrop-blur-sm">
+            <div 
+              key={post.id} 
+              onClick={() => {
+                // 点击整条推文，进入类似 X 的详情页（暂时用你原来的 Modal）
+                const idx = localPosts.findIndex(p => p.id === post.id);
+                setViewingPostDetail({ author: isWade ? 'Wade' : 'Luna', postIndex: idx });
+              }}
+              className="bg-wade-bg-base border-b border-wade-border font-sans hover:bg-black/[0.03] transition-colors cursor-pointer px-4 pt-3 pb-3 flex gap-3"
+            >
+              {/* 左侧：头像通道 */}
+              <div className="flex-shrink-0 flex flex-col items-center">
                 <div 
-                  className="flex items-center gap-3 cursor-pointer group"
-                  onClick={() => setViewingProfile(isWade ? 'Wade' : 'Luna')}
+                  className="w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border border-wade-border"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingProfile(isWade ? 'Wade' : 'Luna');
+                  }}
                 >
-                  <div className={`w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr ${isWade ? 'from-wade-accent to-wade-accent-hover' : 'from-wade-border to-wade-accent'} shadow-sm group-hover:scale-105 transition-transform`}>
-                    <img src={avatar} className="w-full h-full rounded-full object-cover border-2 border-wade-bg-card" />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <span className="text-[14px] font-bold text-wade-text-main leading-tight group-hover:text-wade-accent transition-colors">{authorUsername}</span>
-                    <span className="text-[10px] text-wade-text-muted">{isWade ? 'Mercenary' : 'Boutique Owner'}</span>
-                  </div>
+                  <img src={avatar} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex items-center gap-1 relative">
-                  <button
-                      onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
-                      className="text-wade-text-muted p-2 rounded-full hover:bg-wade-bg-app hover:text-wade-accent transition-colors"
-                  >
-                    <Icons.MoreHorizontal />
-                  </button>
-                  {openMenuPostId === post.id && (
-                    <>
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setOpenMenuPostId(null)} 
-                      />
-                      <div className="absolute right-0 top-full mt-1 w-32 bg-wade-bg-card rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+              </div>
+
+              {/* 右侧：推文主干区 */}
+              <div className="flex-1 min-w-0">
+                
+                {/* 头部：名字、账号、时间、操作 */}
+                <div className="flex justify-between items-start mb-0.5">
+                  <div className="flex items-center gap-1 text-[15px] leading-none">
+                    <span className="font-bold text-wade-text-main hover:underline cursor-pointer truncate">
+                      {authorName}
+                    </span>
+                    {/* 蓝V认证假图标 - 尊贵的象征 */}
+                    <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
+                    <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
+                    <span className="text-wade-text-muted">·</span>
+                    <span className="text-wade-text-muted hover:underline whitespace-nowrap">
+                      {formatTimeAgo(post.timestamp)}
+                    </span>
+                  </div>
+                  
+                  {/* 删除/更多操作 */}
+                  <div className="relative" onClick={e => e.stopPropagation()}>
+                    <button
+                        onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
+                        className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"
+                    >
+                      <Icons.MoreHorizontal />
+                    </button>
+                    {openMenuPostId === post.id && (
+                      <div className="absolute right-0 top-full mt-1 w-32 bg-wade-bg-card rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.1)] border border-wade-border z-50 overflow-hidden">
                         <button
-                          onClick={() => {
-                            handleEditPost(post);
-                            setOpenMenuPostId(null);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-50 transition-colors"
+                          onClick={(e) => { e.stopPropagation(); handleEditPost(post); setOpenMenuPostId(null); }}
+                          className="w-full text-left px-4 py-3 text-[15px] font-bold text-wade-text-main hover:bg-gray-50 transition-colors"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => {
-                            if (deletingPostId === post.id) {
-                              handleDeletePost(post.id);
-                              setOpenMenuPostId(null);
-                            } else {
-                              handleDeletePost(post.id);
-                            }
-                          }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${deletingPostId === post.id ? 'bg-red-50 text-red-600' : 'text-red-500 hover:bg-red-50'}`}
+                          onClick={(e) => { e.stopPropagation(); handleDeletePost(post.id); }}
+                          className={`w-full text-left px-4 py-3 text-[15px] font-bold transition-colors ${deletingPostId === post.id ? 'bg-red-50 text-red-600' : 'text-red-500 hover:bg-red-50'}`}
                         >
                           {deletingPostId === post.id ? 'Confirm Delete' : 'Delete'}
                         </button>
                       </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Post Images */}
-              {post.images && post.images.length > 0 && (
-                <div className="w-full">
-                  <ImageCarousel images={post.images} />
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="px-5 py-3 flex justify-between items-center bg-wade-bg-card/50 backdrop-blur-sm">
-                <div className="flex gap-5 items-center">
-                  <button 
-                    onClick={() => handleLike(post.id)}
-                    className={`transition-transform active:scale-125 hover:scale-110 ${post.likes > 0 ? 'text-wade-accent' : 'text-wade-text-main hover:text-wade-accent'}`}
-                  >
-                    <Icons.Heart filled={post.likes > 0} />
-                  </button>
-                  <button 
-                    onClick={() => setActivePostId(activePostId === post.id ? null : post.id)}
-                    className="text-wade-text-main hover:text-wade-accent hover:scale-110 transition-transform"
-                  >
-                    <Icons.MessageCircle />
-                  </button>
-                  
-                  {/* Send / AI Generate Button */}
-                  <button 
-                    onClick={() => {
-                      if (post.author === 'Luna') {
-                          handleGenerateComment(post);
-                      }
-                    }}
-                    disabled={isGeneratingComment === post.id}
-                    className={`text-wade-text-main hover:text-wade-accent transition-all hover:scale-110 ${isGeneratingComment === post.id ? 'animate-pulse text-wade-accent' : ''}`}
-                    title={post.author === 'Luna' ? "Let Wade Reply" : "Share"}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                  </button>
-                </div>
-                <button 
-                  onClick={() => handleBookmark(post.id)}
-                  className={`transition-all hover:scale-110 ${post.isBookmarked ? 'text-wade-accent fill-current' : 'text-wade-text-main hover:text-wade-accent'}`}
-                >
-                  <Icons.Bookmark filled={post.isBookmarked} />
-                </button>
-              </div>
-
-              {/* Likes Count */}
-              {post.likes > 0 && (
-                <div className="px-5 mb-2">
-                  <span className="font-bold text-wade-text-main text-[14px]">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
-                </div>
-              )}
-
-              {/* Caption */}
-              <PostCaption content={post.content} authorName={authorUsername} hideAuthor={false} className="px-5 text-wade-text-main" />
-
-              {/* Date */}
-              <div className="px-5 mt-2 mb-3">
-                <span className="text-[10px] text-wade-text-muted uppercase tracking-wide font-medium">
-                  {(() => {
-                    const d = new Date(post.timestamp);
-                    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
-                  })()}
-                </span>
-              </div>
-              
-              {/* Comments Section */}
-              {post.comments && post.comments.length > 0 && (
-                <div className="px-5 mt-2 pb-4 border-t border-wade-border pt-3 bg-gray-50/50">
-                  {post.comments.length > 2 && !isExpanded && (
-                    <button 
-                        onClick={() => toggleComments(post.id)}
-                        className="text-[13px] text-wade-text-muted mb-2 hover:text-wade-text-main transition-colors font-medium"
-                    >
-                        View all {post.comments.length} comments
-                    </button>
-                  )}
-                  {isExpanded && post.comments.length > 2 && (
-                    <button 
-                        onClick={() => toggleComments(post.id)}
-                        className="text-[13px] text-wade-text-muted mb-2 hover:text-wade-text-main transition-colors font-medium"
-                    >
-                        Hide comments
-                    </button>
-                  )}
-                  <div className="space-y-2">
-                    {visibleComments.map(comment => {
-                        const isCommentWade = comment.author === 'Wade';
-                        const commentAuthorUsername = isCommentWade ? 'wade_wilson_dp' : 'luna_moonlight';
-                        const isReply = !!comment.replyToId;
-                        
-                        return (
-                            <div 
-                                key={comment.id} 
-                                className={`text-[14px] group ${isReply ? 'ml-6 border-l-2 border-wade-accent/30 pl-3' : ''}`}
-                            >
-                                <div
-                                    className="cursor-pointer transition-colors leading-snug break-words"
-                                    onClick={() => {
-                                        setReplyingTo({postId: post.id, commentId: comment.id, author: commentAuthorUsername, text: comment.text});
-                                        setActivePostId(post.id);
-                                    }}
-                                >
-                                    <span className="font-bold text-wade-text-main mr-2 hover:text-wade-accent transition-colors">
-                                        {commentAuthorUsername}
-                                    </span>
-                                    <span className="text-wade-text-main/90">
-                                        {comment.text}
-                                    </span>
-                                    
-                                    {/* Regenerate Button (for Luna's comments only) */}
-                                    {!isCommentWade && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleGenerateComment(post);
-                                            }}
-                                            disabled={isGeneratingComment === post.id}
-                                            className="inline-flex align-middle ml-2 p-0.5 opacity-0 group-hover:opacity-100 text-wade-text-muted hover:text-wade-text-main disabled:opacity-50 hover:bg-wade-bg-app rounded-md transition-all"
-                                            title="Regenerate Wade's reply"
-                                        >
-                                            <Icons.Sparkles />
-                                        </button>
-                                    )}
-
-                                    {/* Delete Comment Button */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteComment(post.id, comment.id);
-                                        }}
-                                        className={`inline-flex align-middle ml-1 p-0.5 rounded-md transition-all ${
-                                          deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
-                                            ? 'opacity-100 text-wade-accent-hover bg-wade-bg-app scale-110'
-                                            : 'opacity-0 group-hover:opacity-100 text-wade-text-muted hover:text-wade-accent-hover hover:bg-wade-bg-app'
-                                        }`}
-                                        title={
-                                          deletingComment?.postId === post.id && deletingComment?.commentId === comment.id
-                                            ? 'Click again to confirm'
-                                            : 'Delete comment'
-                                        }
-                                    >
-                                        {deletingComment?.postId === post.id && deletingComment?.commentId === comment.id ? (
-                                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        ) : (
-                                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    )}
                   </div>
                 </div>
-              )}
 
-              {/* Add Comment Input */}
-              {activePostId === post.id && (
-                  <div className="px-3 py-2 bg-wade-bg-card animate-fade-in relative border-t border-gray-100">
-                      {replyingTo && replyingTo.postId === post.id && (
-                          <div className="flex justify-between items-center bg-gray-50 px-3 py-2 mb-2 rounded-lg text-xs text-gray-500 border border-gray-200">
-                              <span className="truncate pr-4">Replying to <span className="font-semibold">{replyingTo.author}</span>: {replyingTo.text}</span>
-                              <button onClick={() => setReplyingTo(null)} className="hover:text-red-500 p-1 shrink-0">✕</button>
-                          </div>
-                      )}
-                      <div className="flex items-center gap-2 bg-wade-bg-card">
-                          <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                            <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
-                          </div>
-                          <input 
-                              type="text" 
-                              placeholder={replyingTo && replyingTo.postId === post.id ? `Reply to ${replyingTo.author}...` : "Add a comment..."}
-                              className="flex-1 text-[14px] outline-none placeholder-gray-500 bg-transparent text-black"
-                              value={newComment}
-                              onChange={(e) => setNewComment(e.target.value)}
-                              onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleAddComment(post.id, newComment, 'Luna', replyingTo?.commentId);
+                {/* 文本内容：剥离所有边距，纯净阅读 */}
+                <div className="text-[15px] text-wade-text-main leading-normal mb-2 whitespace-pre-wrap">
+                   <PostCaption content={post.content} authorName={authorUsername} hideAuthor={true} className="px-0 pb-0" />
+                </div>
 
-                              }}
-                              autoFocus
-                          />
+                {/* 图片区域 (如果有的话，X 的圆角比较大) */}
+                {post.images && post.images.length > 0 && (
+                  <div className="mt-3 mb-3 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
+                    <ImageCarousel images={post.images} />
+                  </div>
+                )}
 
-                          <button 
-                              onClick={() => handleAddComment(post.id, newComment, 'Luna', replyingTo?.commentId)}
-                              disabled={!newComment.trim()}
-                              className="text-[#0095f6] text-[14px] font-semibold disabled:opacity-40 hover:text-[#00376b] transition-colors"
-                          >
-                              Post
-                          </button>
+                {/* X 灵魂底栏：操作按钮组 */}
+                <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-1" onClick={e => e.stopPropagation()}>
+                   
+                   {/* 评论 (Reply) */}
+                   <button 
+                      onClick={() => {
+                         const idx = localPosts.findIndex(p => p.id === post.id);
+                         setViewingPostDetail({ author: isWade ? 'Wade' : 'Luna', postIndex: idx });
+                      }}
+                      className="flex items-center gap-1 hover:text-[#1d9bf0] group transition-colors"
+                   >
+                      <div className="p-2 -m-2 rounded-full group-hover:bg-[#1d9bf0]/10 transition-colors">
+                         <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg>
                       </div>
-                  </div>
-              )}
+                      <span className="text-[13px] ml-1">{post.comments?.length > 0 ? post.comments.length : ''}</span>
+                   </button>
+                   
+                   {/* 转发 (Repost/Quote) - 先留个位置给第二阶段 */}
+                   <button className="flex items-center gap-1 hover:text-[#00ba7c] group transition-colors">
+                      <div className="p-2 -m-2 rounded-full group-hover:bg-[#00ba7c]/10 transition-colors">
+                         <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg>
+                      </div>
+                      <span className="text-[13px] ml-1"></span>
+                   </button>
+                   
+                   {/* 点赞 (Like) */}
+                   <button 
+                      onClick={() => {
+                          const updatedPost = { ...post, likes: post.likes > 0 ? 0 : 1 };
+                          updatePost(updatedPost);
+                          setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p));
+                      }} 
+                      className={`flex items-center gap-1 group transition-colors ${post.likes > 0 ? 'text-[#f91880]' : 'hover:text-[#f91880]'}`}
+                   >
+                      <div className={`p-2 -m-2 rounded-full transition-colors ${post.likes > 0 ? '' : 'group-hover:bg-[#f91880]/10'}`}>
+                         {post.likes > 0 ? (
+                            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current text-[#f91880]"><g><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg>
+                         ) : (
+                            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg>
+                         )}
+                      </div>
+                      <span className="text-[13px] ml-1">{post.likes > 0 ? post.likes : ''}</span>
+                   </button>
+
+                   {/* 查看数据 (Views) */}
+                   <button className="flex items-center gap-1 hover:text-[#1d9bf0] group transition-colors">
+                      <div className="p-2 -m-2 rounded-full group-hover:bg-[#1d9bf0]/10 transition-colors">
+                         <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>
+                      </div>
+                      <span className="text-[13px] ml-1"></span>
+                   </button>
+
+                   {/* 书签/分享 (Bookmark) */}
+                   <div className="flex items-center gap-2">
+                     <button 
+                        onClick={() => {
+                            const updatedPost = { ...post, isBookmarked: !post.isBookmarked };
+                            updatePost(updatedPost);
+                            setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p));
+                        }} 
+                        className={`p-2 -m-2 rounded-full transition-colors group ${post.isBookmarked ? 'text-[#1d9bf0]' : 'hover:text-[#1d9bf0]'}`}
+                     >
+                       <div className="group-hover:bg-[#1d9bf0]/10 rounded-full transition-colors p-1.5 -m-1.5">
+                         {post.isBookmarked ? (
+                            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></g></svg>
+                         ) : (
+                            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></g></svg>
+                         )}
+                       </div>
+                     </button>
+                   </div>
+                </div>
+              </div>
             </div>
           );
         })}
-      </div>
-      </div>
-
-      {/* Image Zoom Modal */}
-      {zoomedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in"
-          onClick={() => setZoomedImage(null)}
-        >
-          <div className="relative max-w-5xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={zoomedImage.images[zoomedImage.index]}
-              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
-              alt="Zoomed"
-            />
-
-            {zoomedImage.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setZoomedImage({
-                      images: zoomedImage.images,
-                      index: (zoomedImage.index - 1 + zoomedImage.images.length) % zoomedImage.images.length
-                    });
-                  }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10"
-                >
-                  <Icons.ChevronLeft />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setZoomedImage({
-                      images: zoomedImage.images,
-                      index: (zoomedImage.index + 1) % zoomedImage.images.length
-                    });
-                  }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-14 h-14 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10"
-                >
-                  <Icons.ChevronRight />
-                </button>
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-wade-bg-card/10">
-                  {zoomedImage.images.map((_, idx) => (
-                    <div
-                      key={idx}
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        idx === zoomedImage.index ? 'bg-wade-bg-card w-6' : 'bg-wade-bg-card/40 w-2 hover:bg-wade-bg-card/60 cursor-pointer'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setZoomedImage({ images: zoomedImage.images, index: idx });
-                      }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-
-            <button
-              onClick={() => setZoomedImage(null)}
-              className="absolute -top-4 -right-4 bg-wade-bg-card/10 hover:bg-wade-bg-card/20 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all backdrop-blur-md border border-wade-bg-card/10 shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-        </div>
-      )}
-      </>
-      )}
-    </div>
-  );
-};
