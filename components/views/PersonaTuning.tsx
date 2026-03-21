@@ -401,7 +401,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                       {/* 名字在头像右边 */}
                       <div className="pb-2">
-                        <h3 className="font-hand text-3xl text-wade-text-main tracking-tight dark:text-sky-400/75">Wade Wilson</h3>
+                        <h3 className="font-hand text-3xl text-wade-accent tracking-tight dark:text-sky-400/60">Wade Wilson</h3>
                       </div>
                    </div>
                    
@@ -482,7 +482,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                       </div>
                       {/* 名字在头像右边 */}
                       <div className="pb-2">
-                        <h3 className="font-hand text-3xl text-wade-text-main tracking-tight dark:text-sky-400/75">Luna</h3>
+                        <h3 className="font-hand text-3xl text-wade-accent tracking-tight dark:text-sky-400/60">Luna</h3>
                       </div>
                    </div>
                    
