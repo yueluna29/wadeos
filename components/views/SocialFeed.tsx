@@ -308,7 +308,7 @@ export const SocialFeed: React.FC = () => {
 
     return (
       <div className={`text-[15px] text-wade-text-main leading-snug ${className || ''}`}>
-        <div className="markdown-body inline">
+        <div className="markdown-content inline">
           <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
             p: ({node, ...props}) => <p className="mb-0 inline" {...props} />, 
             strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
