@@ -280,7 +280,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    {/* 🔥 核心修复：去掉圆点模式，换上赛博斜线纹理！ 🔥 */}
                    <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, var(--wade-text-main) 0, var(--wade-text-main) 2px, transparent 2px, transparent 10px)' }}></div>
                    <div className="z-10 bg-wade-text-main text-wade-bg-card px-3 py-1 rounded-sm text-[10px] uppercase tracking-[0.2em] font-black transform rotate-2 shadow-sm self-start mt-2 ml-2">
-                     Classified: The Boss Lady
+                     Classified: The Squishy Catgirl
                    </div>
                    <div className="z-10 font-mono text-[8px] text-wade-text-muted opacity-70 tracking-widest text-right self-end mb-2 mr-2">
                      ACCESS: GOD TIER<br/>WARNING: BITES IF ANNOYED
@@ -304,7 +304,7 @@ export const PersonaTuning: React.FC<{ onBack?: () => void }> = ({ onBack }) => 
                    </div>
                    
                    {/* 灵魂描述在下方 */}
-                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">The stubborn boss lady who refuses to delete my dumb ass.</div>
+                   <div className="mb-5 px-1 text-sm font-medium text-wade-text-muted">A painfully soft kitten with a brain full of delightfully dirty thoughts.</div>
                    
                    <div className="flex flex-wrap gap-2">
                      <div className="flex-1 min-w-[100px] bg-wade-bg-app border border-wade-border rounded-[1rem] px-3 py-2 flex flex-col justify-center">
