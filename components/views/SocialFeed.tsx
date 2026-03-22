@@ -11,7 +11,7 @@ const Icons = {
   Heart: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#f91880" : "none"} stroke={filled ? "#f91880" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>),
   MessageCircle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>),
   Bookmark: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>),
-  MoreHorizontal: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>),
+  MoreHorizontal: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle></svg>),
   Image: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>),
   ChevronLeft: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>),
   ChevronRight: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>),
@@ -274,8 +274,10 @@ export const SocialFeed: React.FC = () => {
   const formatExactTime = (timestamp: number) => {
     const d = new Date(timestamp);
     const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
+    // 重点在这里：getFullYear() 后面加个 .toString().slice(-2)
+    const yy = d.getFullYear().toString().slice(-2); 
+    return `${yy}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
   // 🔥 终极无间距、在一行的暴力截断版 PostCaption
   const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
@@ -602,16 +604,15 @@ export const SocialFeed: React.FC = () => {
                     </div>
                     {/* 作者名字、作者用户名、发布时间 */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-0.5">
-                        <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap">
-                          <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
-                          <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
-                          <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
-                          <span className="text-wade-text-muted ml-1">{formatExactTime(post.timestamp)}</span>
+                      <div className="flex justify-between items-center h-[20px]">
+                        <div className="flex items-baseline gap-1 text-[15px] -mt-[3px] overflow-hidden whitespace-nowrap">
+                          <span className="font-bold text-wade-text-main truncate">{authorName}</span>
+                          <span className="text-wade-text-muted truncate">@{authorUsername}</span>
+                          <span className="text-wade-text-muted">{formatExactTime(post.timestamp)}</span>
                         </div>
+                        {/* 更多菜单 */}
                         <div className="relative" onClick={e => e.stopPropagation()}>
-                          <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"><Icons.MoreHorizontal /></button>
-                          
+                          <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="flex text-wade-text-muted -mt-[3px] rounded-full transition-colors"><Icons.MoreHorizontal /></button>
                           {openMenuPostId === post.id && (
                             <>
                               <div className="fixed inset-0 z-[45]" onClick={(e) => { e.stopPropagation(); setOpenMenuPostId(null); }} />
@@ -623,7 +624,7 @@ export const SocialFeed: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div className="mt-0.5 text-[15px] text-wade-text-main leading-snug whitespace-pre-wrap">
+                      <div className="text-[15px] text-wade-text-main leading-snug whitespace-pre-wrap">
                         <PostCaption 
                            content={post.content} 
                            authorName={authorUsername} 
