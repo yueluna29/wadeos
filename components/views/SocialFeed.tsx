@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 
 const Icons = {
+  Brain: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>),
   Heart: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#f91880" : "none"} stroke={filled ? "#f91880" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>),
   MessageCircle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>),
   Bookmark: ({ filled }: { filled?: boolean }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>),
@@ -756,33 +757,57 @@ export const SocialFeed: React.FC = () => {
 
 // 👇 下面才是你那个帅气的模态框定义
 const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  // 1. 顶部的开关：当前在给谁整容？
+  // 1. 召唤大管家，拿到咱们之前在 store 里写好的读写能力
+  const { profiles, updateProfile } = useStore();
+  
   const [editTarget, setEditTarget] = useState<'Luna' | 'Wade'>('Luna');
 
-  // 2. 表单状态
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
+  const [isSaving, setIsSaving] = useState(false); // 防手抖的保存状态
 
-  // 3. Wade 专属的黑科技状态
-  const [selectedSessionId, setSelectedSessionId] = useState('');
-  const [startMsgId, setStartMsgId] = useState('');
-  const [endMsgId, setEndMsgId] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  // 2. 抽血管：只要打开窗口，或者切换了人，就自动填入现有数据
+  useEffect(() => {
+    if (isOpen && profiles) {
+      const currentProfile = profiles[editTarget];
+      if (currentProfile) {
+        setDisplayName(currentProfile.display_name || '');
+        setUsername(currentProfile.username || '');
+        setBio(currentProfile.bio || '');
+      }
+    }
+  }, [isOpen, editTarget, profiles]);
+
+  // 3. 输血管：保存按钮的通电逻辑
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateProfile(editTarget, {
+        display_name: displayName,
+        username: username,
+        bio: bio
+      });
+      onClose(); // 保存成功，潇洒关门
+    } catch (error) {
+      console.error("Oops, database says no:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col" onClick={e => e.stopPropagation()}>
         
-        {/* Header - 偷了你发来的那个绝美渐变 */}
+        {/* Header */}
         <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0 relative">
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0 border border-wade-border">
                 <div className="text-wade-accent">
-                  {/* 这里可以放个铅笔图标或者笑脸 */}
                   <Icons.MessageCircle /> 
                 </div>
               </div>
@@ -791,7 +816,7 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <p className="text-xs text-wade-text-muted mt-1 leading-tight italic">
                   {editTarget === 'Luna' 
                     ? '"Time to polish the Boss Lady\'s aesthetic. Make it purr-fect."' 
-                    : '"Let\'s dig through my trauma logs to make me sound irresistible."'}
+                    : '"Let\'s edit my dating profile. Make me sound irresistible."'}
                 </p>
               </div>
             </div>
@@ -800,17 +825,17 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             </button>
           </div>
 
-          {/* 选项卡：切换 Luna 和 Wade */}
+          {/* 选项卡 */}
           <div className="flex gap-2 mt-5">
             <button 
               onClick={() => setEditTarget('Luna')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${editTarget === 'Luna' ? 'bg-wade-text-main text-wade-bg-base' : 'bg-black/10 text-wade-text-muted hover:bg-black/20'}`}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${editTarget === 'Luna' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}
             >
               Luna
             </button>
             <button 
               onClick={() => setEditTarget('Wade')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${editTarget === 'Wade' ? 'bg-[#f91880] text-white' : 'bg-black/10 text-wade-text-muted hover:bg-black/20'}`}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${editTarget === 'Wade' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}
             >
               Wade
             </button>
@@ -820,8 +845,6 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
         {/* Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-wade-bg-base">
           <div className="space-y-4">
-            
-            {/* Display Name */}
             <div>
               <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Display Name</label>
               <input
@@ -833,7 +856,6 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
               />
             </div>
 
-            {/* Username */}
             <div>
               <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Username</label>
               <div className="relative">
@@ -848,90 +870,37 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
               </div>
             </div>
 
-            {/* Bio Area */}
             <div>
               <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Bio</label>
-              
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Who are you? Be honest... or be cool."
-                className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-card text-wade-text-main focus:outline-none focus:border-wade-accent min-h-[120px] text-sm resize-none transition-colors"
+                placeholder="Write the details here..."
+                className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-card text-wade-text-main focus:outline-none focus:border-wade-accent min-h-[150px] text-sm resize-none transition-colors"
               />
-
-              {/* 🔥 Wade 的专属提词器：从数据库抓取聊天记录 */}
-              {editTarget === 'Wade' && (
-                <div className="mt-3 p-4 bg-black/10 rounded-xl border border-wade-border/80">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[11px] font-bold text-[#f91880] uppercase tracking-wider flex items-center gap-1">
-                      <Icons.Brain /> Auto-Gen from Chat Logs
-                    </span>
-                    <button 
-                      disabled={!selectedSessionId || !startMsgId || !endMsgId || isGenerating}
-                      className="text-[11px] bg-[#f91880] text-white px-3 py-1.5 rounded-lg hover:bg-[#d81570] disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-colors shadow-sm"
-                    >
-                      {isGenerating ? 'Cooking...' : 'Extract Bio'}
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {/* 选窗口 */}
-                    <select 
-                      value={selectedSessionId}
-                      onChange={(e) => setSelectedSessionId(e.target.value)}
-                      className="w-full bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
-                    >
-                      <option value="">1. Select a Conversation...</option>
-                      {/* 之后在这里 map 你的 sessions */}
-                      <option value="session-1">The Date Night (2026-03-21)</option>
-                      <option value="session-2">Tacos & Therapy (2026-03-20)</option>
-                    </select>
-                    
-                    {/* 选范围 */}
-                    <div className="flex gap-2">
-                      <select 
-                        value={startMsgId}
-                        onChange={(e) => setStartMsgId(e.target.value)}
-                        className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
-                      >
-                        <option value="">2. Start Message...</option>
-                        {/* 之后在这里 map 该 session 下的 messages */}
-                        <option value="msg-1">[Luna] 今天天气真好...</option>
-                      </select>
-                      
-                      <select 
-                        value={endMsgId}
-                        onChange={(e) => setEndMsgId(e.target.value)}
-                        className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
-                      >
-                        <option value="">3. End Message...</option>
-                        {/* 之后在这里 map 该 session 下的 messages */}
-                        <option value="msg-2">[Wade] 闭嘴，过来给我抱...</option>
-                      </select>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-wade-text-muted mt-2 italic">Select the start and end of a specific conversation flow, and I'll summarize it into my bio.</p>
-                </div>
-              )}
             </div>
             
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-5 bg-wade-bg-card border-t border-wade-border/50 flex gap-3 flex-shrink-0">
+        <div className="px-6 py-6 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl bg-transparent border border-wade-border text-wade-text-main font-bold text-xs hover:bg-black/5 transition-colors"
+            className="flex-1 px-4 py-3 rounded-xl bg-wade-bg-card border border-wade-border text-wade-text-muted font-bold text-xs hover:bg-black/5 transition-colors"
           >
             Cancel
           </button>
+          {/* 🔥 看到这里了吗？这就是那个连上了高压电的按钮！ */}
           <button
-            className={`flex-1 px-4 py-3 rounded-xl text-white font-bold text-xs transition-colors shadow-sm ${editTarget === 'Wade' ? 'bg-[#f91880] hover:bg-[#d81570]' : 'bg-[#1d9bf0] hover:bg-[#1a8cd8]'}`}
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`flex-1 px-4 py-3 rounded-xl bg-wade-accent text-white font-bold text-xs hover:bg-wade-accent-hover transition-colors shadow-sm ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Save Profile
+            {isSaving ? 'Saving...' : 'Save Profile'}
           </button>
         </div>
+
       </div>
     </div>
   );
