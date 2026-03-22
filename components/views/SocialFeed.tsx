@@ -624,7 +624,7 @@ export const SocialFeed: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div className="text-[15px] text-wade-text-main leading-snug whitespace-pre-wrap">
+                      <div className="text-[15px] text-wade-text-main">
                         <PostCaption 
                            content={post.content} 
                            authorName={authorUsername} 
