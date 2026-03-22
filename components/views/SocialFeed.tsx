@@ -269,11 +269,12 @@ export const SocialFeed: React.FC = () => {
     setWadeDiarySelectedMessages(newSet);
   };
 
-  const formatExactTime = (timestamp: number) => {
-    const d = new Date(timestamp);
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
+  const formatShortTime = (timestamp: number) => {
+  const d = new Date(timestamp);
+  const yy = String(d.getFullYear()).slice(-2);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${yy}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}; 
 
   // 🔥 全新 PostCaption（展开前后间距完全一致 + 超级像X）
   const PostCaption = ({ content, isDetail = false, isExpanded = false, className = '' }: {
@@ -389,7 +390,7 @@ export const SocialFeed: React.FC = () => {
             <div className="pt-3 space-y-4">
               {currentPost.comments && currentPost.comments.map(comment => (
                 <div key={comment.id} className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
                     <img src={comment.author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
@@ -404,7 +405,7 @@ export const SocialFeed: React.FC = () => {
             </div>
 
             <div className="mt-6 flex gap-3 items-start border-t border-wade-border pt-4">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-wade-border">
+              <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-wade-border">
                 <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 flex flex-col items-end">
@@ -503,7 +504,7 @@ export const SocialFeed: React.FC = () => {
             ) : userPosts.map(post => (
               <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative hover:bg-black/[0.03]">
                 <div className="flex-shrink-0 pt-0.5">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                     <img src={avatar} className="w-full h-full object-cover" />
                   </div>
                 </div>
@@ -568,7 +569,7 @@ export const SocialFeed: React.FC = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-wade-bg-base">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               {localPosts.length === 0 ? (
                 <div className="text-center py-20 text-wade-text-muted font-medium font-sans">Welcome to X. No posts yet.</div>
               ) : localPosts.map(post => {
@@ -581,12 +582,12 @@ export const SocialFeed: React.FC = () => {
                   <div 
                     key={post.id} 
                     onClick={() => handlePostClick(post)} 
-                    className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative hover:bg-black/[0.03] transition-colors"
+                    className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative"
                   >
                     {/* 头像（和详情页完全对齐） */}
-                    <div className="flex-shrink-0 pt-0.5">
+                    <div className="flex-shrink-0">
                       <div 
-                        className="w-10 h-10 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border"
+                        className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border"
                         onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}
                       >
                         <img src={avatar} className="w-full h-full object-cover" />
@@ -597,10 +598,10 @@ export const SocialFeed: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       {/* 名字 + 用户名 + 时间（间距和X完全一致） */}
                       <div className="flex justify-between items-baseline">
-                        <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap flex-1">
-                          <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
+                        <div className="flex items-center gap-1.5 text-[15px] flex-wrap flex-1">
+                          <span className="font-bold text-wade-text-main hover:underline truncate max-w-[140px]">{authorName}</span>
                           <span className="text-wade-text-muted truncate">@{authorUsername}</span>
-                          <span className="text-wade-text-muted ml-1 whitespace-nowrap">· {formatExactTime(post.timestamp)}</span>
+                          <span className="text-wade-text-muted whitespace-nowrap">· {formatShortTime(post.timestamp)}</span>
                         </div>
                         <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
                           <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="p-1.5 rounded-full hover:bg-[#1d9bf0]/10 text-wade-text-muted hover:text-[#1d9bf0]">
@@ -694,7 +695,7 @@ export const SocialFeed: React.FC = () => {
               <button onClick={handleSavePost} disabled={(!newPostContent && selectedFiles.length === 0) || isUploading} className="bg-[#1d9bf0] text-white px-4 py-1.5 rounded-full font-bold text-[14px] disabled:opacity-50 hover:bg-[#1a8cd8] transition-colors">Post</button>
             </div>
             <div className="flex p-4 gap-3 bg-wade-bg-base">
-              <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
+              <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full object-cover border border-wade-border shrink-0" />
               <div className="flex-1">
                 <textarea 
                   value={newPostContent} 
