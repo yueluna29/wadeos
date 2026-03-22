@@ -26,6 +26,7 @@ export const SocialFeed: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
   
+  // 🔥 新增：记住哪些帖子被展开了
   const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
 
   const [showDiaryTypeModal, setShowDiaryTypeModal] = useState(false);
@@ -62,6 +63,7 @@ export const SocialFeed: React.FC = () => {
     localPostsRef.current = socialPosts;
   }, [socialPosts]);
 
+  // 🔥 拦截器：判断帖子是该展开，还是直接进详情页
   const handlePostClick = (post: SocialPost) => {
     const needsShowMore = (post.content.length > 150 || post.content.split('\n').length > 5);
     if (needsShowMore && !expandedPostIds.has(post.id)) {
@@ -269,44 +271,55 @@ export const SocialFeed: React.FC = () => {
     setWadeDiarySelectedMessages(newSet);
   };
 
-  const formatShortTime = (timestamp: number) => {
-  const d = new Date(timestamp);
-  const yy = String(d.getFullYear()).slice(-2);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${yy}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}; 
+  const formatExactTime = (timestamp: number) => {
+    const d = new Date(timestamp);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
-  // 🔥 全新 PostCaption（展开前后间距完全一致 + 超级像X）
-  const PostCaption = ({ content, isDetail = false, isExpanded = false, className = '' }: {
-    content: string;
-    isDetail?: boolean;
-    isExpanded?: boolean;
-    className?: string;
-  }) => {
-    const needsClamp = !isDetail && !isExpanded && (content.length > 150 || content.split('\n').length > 5);
-    let displayContent = needsClamp ? content.substring(0, 140).trim() + '...' : content;
-    const processedContent = displayContent.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
+  // 🔥 终极无间距、在一行的暴力截断版 PostCaption
+  const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
+    const needsShowMore = (content.length > 150 || content.split('\n').length > 5);
+    const shouldClamp = !isDetail && !isExpanded && needsShowMore;
+
+    if (shouldClamp) {
+      const previewText = content.substring(0, 140).trim() + '...';
+      const processedContent = hideAuthor ? previewText : `**${authorName}** ` + previewText;
+
+      return (
+        <div className={`text-[15px] text-wade-text-main leading-snug ${className || ''}`}>
+          <span className="inline">
+            <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
+              p: ({node, ...props}) => <span className="inline" {...props} />,
+              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
+              a: ({node, href, children, ...props}) => <span className="text-[#1d9bf0]">{children}</span> 
+            }}>
+              {processedContent}
+            </Markdown>
+          </span>
+          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
+            Show more
+          </span>
+        </div>
+      );
+    }
+
+    const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
 
     return (
-      <div className={`text-[15px] text-wade-text-main leading-[1.35] ${className}`}>
-        <Markdown 
-          remarkPlugins={[remarkGfm, remarkBreaks]} 
-          components={{ 
-            p: ({node, ...props}) => <span className="inline" {...props} />,
-            strong: ({node, ...props}) => <span className="font-bold" {...props} />, 
+      <div className={`text-[15px] text-wade-text-main leading-snug ${className || ''}`}>
+        <div className="markdown-content inline">
+          <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
+            p: ({node, ...props}) => <p className="mb-0 inline" {...props} />, 
+            strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
             a: ({node, href, children, ...props}) => { 
               if (href?.startsWith('#')) return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; 
               return <a href={href} className="text-[#1d9bf0] hover:underline" {...props}>{children}</a>; 
             } 
-          }}
-        >
-          {processedContent}
-        </Markdown>
-        {needsClamp && (
-          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
-            Show more
-          </span>
-        )}
+          }}>
+            {processedContent}
+          </Markdown>
+        </div>
       </div>
     );
   };
@@ -318,7 +331,8 @@ export const SocialFeed: React.FC = () => {
     const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     return (
       <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden group border border-wade-border">
-        <img src={images[currentIndex]} style={{ WebkitTouchCallout: 'none' }} className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 select-none" onClick={() => setZoomedImage({images, index: currentIndex})} />
+        {/* 🔥 封杀缩放禁令 */}
+        <img src={images[currentIndex]} style={{ WebkitTouchCallout: 'none' }} className="max-w-[560px] w-full h-auto object-cover rounded-2xl mx-auto" alt="Post image" onClick={() => setZoomedImage({images, index: currentIndex})} />
         {images.length > 1 && (
           <>
             <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"><Icons.ChevronLeft /></button>
@@ -343,19 +357,22 @@ export const SocialFeed: React.FC = () => {
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
+          {/* 极简细线返回键 */}
           <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           
+          {/* 统一的手写体标题 */}
           <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
           
+          {/* 极简细线更多选项 */}
           <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
           </button>
         </div>
           
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-2xl mx-auto w-full">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-full mx-auto w-full">
             <div className="flex gap-1 mb-1 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
                <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
                <div className="flex flex-col justify-center leading-tight">
@@ -365,11 +382,12 @@ export const SocialFeed: React.FC = () => {
             </div>
             
             <div className="text-[17px] text-wade-text-main leading-normal mb-3 whitespace-pre-wrap">
-               <PostCaption content={currentPost.content} isDetail={true} className="px-0 pb-0" />
+               <PostCaption content={currentPost.content} authorName={authorUsername} hideAuthor={true} isDetail={true} className="px-0 pb-0" />
             </div>
 
             {currentPost.images && currentPost.images.length > 0 && (
               <div className="mb-3 rounded-2xl overflow-hidden border border-wade-border">
+                {/* 🔥 封杀详情页的大图缩放禁令 */}
                 {currentPost.images.length === 1 ? <img src={currentPost.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: currentPost.images, index: 0})} /> : <ImageCarousel images={currentPost.images} />}
               </div>
             )}
@@ -390,7 +408,7 @@ export const SocialFeed: React.FC = () => {
             <div className="pt-3 space-y-4">
               {currentPost.comments && currentPost.comments.map(comment => (
                 <div key={comment.id} className="flex gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
                     <img src={comment.author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
@@ -405,7 +423,7 @@ export const SocialFeed: React.FC = () => {
             </div>
 
             <div className="mt-6 flex gap-3 items-start border-t border-wade-border pt-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-wade-border">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-wade-border">
                 <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 flex flex-col items-end">
@@ -502,26 +520,28 @@ export const SocialFeed: React.FC = () => {
             {userPosts.length === 0 ? (
               <div className="text-center py-20 text-wade-text-muted font-medium font-sans">No posts to see here yet.</div>
             ) : userPosts.map(post => (
-              <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative hover:bg-black/[0.03]">
-                <div className="flex-shrink-0 pt-0.5">
+              <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2.5 font-sans relative">
+                <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                     <img src={avatar} className="w-full h-full object-cover" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap flex-1">
+                  <div className="flex justify-between items-start mb-0">
+                    <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap">
                       <span className="font-bold text-wade-text-main hover:underline truncate">{name}</span>
-                      <span className="text-wade-text-muted truncate">@{username}</span>
-                      <span className="text-wade-text-muted ml-1 whitespace-nowrap">{formatExactTime(post.timestamp)}</span>
+                      <svg viewBox="0 0 24 24" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
+                      <span className="text-wade-text-muted truncate hidden sm:inline">@{username}</span>
+                      <span className="text-wade-text-muted ml-1">{formatExactTime(post.timestamp)}</span>
                     </div>
                   </div>
-                  <div className="mt-0.5 text-[15px] text-wade-text-main leading-snug mb-2 whitespace-pre-wrap">
-                    <PostCaption content={post.content} isExpanded={expandedPostIds.has(post.id)} />
+                  <div className="text-wade-text-main">
+                    <PostCaption content={post.content} authorName={username} hideAuthor={true} isExpanded={expandedPostIds.has(post.id)} className="px-0 pb-0" />
                   </div>
                   {post.images && post.images.length > 0 && (
                     <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
-                      {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full aspect-square object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
+                      {/* 🔥 封杀个人主页的大图缩放禁令 */}
+                      {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="max-w-[560px] w-full aspect-square object-cover cursor-zoom-in select-none mx-auto" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                     </div>
                   )}
                   <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
@@ -547,29 +567,22 @@ export const SocialFeed: React.FC = () => {
         renderProfileView()
       ) : (
         <>
-          {/* 🔥 全新顶部栏（左右按钮同一水平、同一风格，像X一样） */}
-          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border h-[53px] flex items-center justify-between px-4 sticky top-0 z-40">
-            <button 
-              onClick={() => setViewingProfile('Luna')} 
-              className="p-2 -ml-2 rounded-full hover:bg-black/5 transition-colors"
-            >
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-wade-border/40">
-                <img src={settings.lunaAvatar} className="w-full h-full object-cover" />
-              </div>
+          <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-[53px] flex items-center justify-between sticky top-0 z-40">
+            {/* 极简细线齿轮，无边框无背景 */}
+            <button onClick={() => setViewingProfile('Luna')} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
-
-            <div className="font-bold text-[17px] text-wade-text-main tracking-tight">Home</div>
-
-            <button 
-              onClick={() => setShowDiaryTypeModal(true)} 
-              className="p-2 -mr-2 rounded-full hover:bg-black/5 transition-colors"
-            >
-              <Icons.Plus />
+            
+            <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Home</div>
+            
+            {/* 极简细线加号，无边框无背景 */}
+            <button onClick={() => setShowDiaryTypeModal(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto pb-24 custom-scrollbar bg-wade-bg-base">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-full mx-auto">
               {localPosts.length === 0 ? (
                 <div className="text-center py-20 text-wade-text-muted font-medium font-sans">Welcome to X. No posts yet.</div>
               ) : localPosts.map(post => {
@@ -579,34 +592,23 @@ export const SocialFeed: React.FC = () => {
                 const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
 
                 return (
-                  <div 
-                    key={post.id} 
-                    onClick={() => handlePostClick(post)} 
-                    className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative"
-                  >
-                    {/* 头像（和详情页完全对齐） */}
+                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative">
                     <div className="flex-shrink-0">
-                      <div 
-                        className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border"
-                        onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}
-                      >
+                      <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
                     </div>
-
-                    {/* 内容区 */}
                     <div className="flex-1 min-w-0">
-                      {/* 名字 + 用户名 + 时间（间距和X完全一致） */}
-                      <div className="flex justify-between items-baseline">
-                        <div className="flex items-center gap-1.5 text-[15px] flex-wrap flex-1">
-                          <span className="font-bold text-wade-text-main hover:underline truncate max-w-[140px]">{authorName}</span>
-                          <span className="text-wade-text-muted truncate">@{authorUsername}</span>
-                          <span className="text-wade-text-muted whitespace-nowrap">· {formatShortTime(post.timestamp)}</span>
+                      <div className="flex justify-between items-baseline mb-0.5">
+                        <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap">
+                          <span className="font-bold text-wade-text-main hover:underline truncate">{authorName}</span>
+                          <svg viewBox="0 0 24 24" aria-label="Verified" className="w-[16px] h-[16px] text-[#1d9bf0] fill-current flex-shrink-0"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 4 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.52.828 2.85 2.043 3.52-.05.32-.075.64-.075.96 0 2.21 1.71 4 3.918 4 .506 0 1.006-.1 1.474-.29.566 1.46 2.01 2.51 3.726 2.51s3.16-1.05 3.726-2.51c.468.19 1.968.29 1.474.29 2.21 0 3.918-1.79 3.918-4 0-.32-.025-.64-.075-.96 1.215-.67 2.043-2 2.043-3.52zm-10.42 4.19L7 11.63l1.9-1.85 3.1 3.03 6.1-6.28 1.9 1.84-8 8.13z"></path></g></svg>
+                          <span className="text-wade-text-muted truncate hidden sm:inline">@{authorUsername}</span>
+                          <span className="text-wade-text-muted ml-1">{formatExactTime(post.timestamp)}</span>
                         </div>
-                        <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
-                          <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="p-1.5 rounded-full hover:bg-[#1d9bf0]/10 text-wade-text-muted hover:text-[#1d9bf0]">
-                            <Icons.MoreHorizontal />
-                          </button>
+                        <div className="relative" onClick={e => e.stopPropagation()}>
+                          <button onClick={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)} className="text-wade-text-muted p-1.5 -mt-1.5 rounded-full hover:bg-[#1d9bf0]/10 hover:text-[#1d9bf0] transition-colors"><Icons.MoreHorizontal /></button>
+                          
                           {openMenuPostId === post.id && (
                             <>
                               <div className="fixed inset-0 z-[45]" onClick={(e) => { e.stopPropagation(); setOpenMenuPostId(null); }} />
@@ -618,26 +620,21 @@ export const SocialFeed: React.FC = () => {
                           )}
                         </div>
                       </div>
-
-                      {/* 正文（名字和正文间距完美，展开后也不跳动） */}
-                      <div className="mt-0.5">
+                      <div className="mt-0.5 text-[15px] text-wade-text-main leading-snug whitespace-pre-wrap">
                         <PostCaption 
-                          content={post.content} 
-                          isExpanded={expandedPostIds.has(post.id)} 
+                           content={post.content} 
+                           authorName={authorUsername} 
+                           hideAuthor={true} 
+                           isExpanded={expandedPostIds?.has(post.id)} 
+                           className="px-0 pb-0" 
                         />
                       </div>
-
-                      {/* 图片 */}
                       {post.images && post.images.length > 0 && (
                         <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
-                          {post.images.length === 1 ? 
-                            <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full aspect-square object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: post.images, index: 0})} /> 
-                            : <ImageCarousel images={post.images} />
-                          }
+                          {/* 🔥 封杀首页列表大图缩放禁令 */}
+                          {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full aspect-square object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                         </div>
                       )}
-
-                      {/* 互动栏 */}
                       <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setViewingPostDetail(post.id)} className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors">
                           <div className="p-2 -m-2 rounded-full hover:bg-[#1d9bf0]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg></div>
@@ -695,7 +692,7 @@ export const SocialFeed: React.FC = () => {
               <button onClick={handleSavePost} disabled={(!newPostContent && selectedFiles.length === 0) || isUploading} className="bg-[#1d9bf0] text-white px-4 py-1.5 rounded-full font-bold text-[14px] disabled:opacity-50 hover:bg-[#1a8cd8] transition-colors">Post</button>
             </div>
             <div className="flex p-4 gap-3 bg-wade-bg-base">
-              <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full object-cover border border-wade-border shrink-0" />
+              <img src={diaryType === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
               <div className="flex-1">
                 <textarea 
                   value={newPostContent} 
