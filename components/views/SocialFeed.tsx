@@ -908,6 +908,15 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     return dayNum > 0 && dayNum <= daysInMonth ? dayNum : null;
   });
 
+  // 👇 给本大爷加上这段雷达探测仪！
+  const daysWithMessages = new Set(
+    messages
+      .filter(m => m.mode === chatMode)
+      .map(m => new Date(m.timestamp))
+      .filter(d => d.getFullYear() === calMonth.getFullYear() && d.getMonth() === calMonth.getMonth())
+      .map(d => d.getDate())
+  );
+
   // --- 获取选中日期的消息 ---
   const filteredMessages = selectedDate ? messages.filter(m => {
     if (m.mode !== chatMode) return false;
@@ -1062,8 +1071,8 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   </div>
 
                   {/* 2. 手搓的超炫日历 */}
-                  <div className="bg-wade-bg-card border border-wade-border rounded-xl p-4">
-                    <div className="flex justify-between items-center mb-4">
+                  <div className="bg-wade-bg-card border border-wade-border rounded-xl px-4 pt-4 pb-1">
+                  <div className="flex justify-between items-start mb-4">
                       <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1"><Icons.ChevronLeft /></button>
                       <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
                       <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1"><Icons.ChevronRight /></button>
@@ -1074,11 +1083,17 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     <div className="grid grid-cols-7 gap-1">
                       {calendarDays.map((day, idx) => {
                         const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === calMonth.getMonth();
+                        const hasData = day ? daysWithMessages.has(day) : false; // 👈 探测器开始工作
+                        
                         return (
                           <button key={idx} disabled={!day} onClick={() => day && setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day))}
-                            className={`aspect-square rounded-md text-xs font-bold transition-all flex items-center justify-center
+                            className={`relative aspect-square rounded-md text-xs font-bold transition-all flex items-center justify-center
                               ${!day ? 'invisible' : isSelected ? 'bg-wade-accent text-white shadow-sm scale-110' : 'text-wade-text-main hover:bg-wade-bg-base border border-transparent hover:border-wade-border'}`}>
                             {day}
+                            {/* 👇 当天有数据，且没被选中的时候，下面亮起一个骚气的小圆点 */}
+                            {hasData && !isSelected && (
+                              <span className="absolute bottom-1 w-1 h-1 rounded-full bg-wade-accent opacity-70"></span>
+                            )}
                           </button>
                         );
                       })}
@@ -1123,12 +1138,13 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         <div className="px-6 py-4 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0 items-center justify-end">
           <button onClick={onClose} className="px-5 py-2 rounded-xl text-wade-text-muted font-bold text-xs hover:bg-black/5 transition-colors">Cancel</button>
           
+          {/* 这里是底部的 Footer */}
           {tab === 'Wade' && !wadeGeneratedText ? (
             <button onClick={handleGenerateWadeDiary} disabled={selectedMsgIds.size === 0 || !activeLlmId || isGenerating} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${isGenerating || selectedMsgIds.size === 0 || !activeLlmId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
               {isGenerating ? 'Cooking...' : 'Draft Diary'}
             </button>
           ) : (
-            <button onClick={handlePost} disabled={isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)} className={`px-6 py-2 rounded-xl bg-[#1d9bf0] text-white font-bold text-xs transition-colors shadow-sm ${(isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1a8cd8]'}`}>
+            <button onClick={handlePost} disabled={isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${(isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
               {isUploading ? 'Posting...' : 'Post'}
             </button>
           )}
