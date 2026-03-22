@@ -23,7 +23,7 @@ const Icons = {
 };
 
 export const SocialFeed: React.FC = () => {
-  const { settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories, messages, chatArchives, loadArchiveMessages } = useStore();
+  const { profiles, settings, socialPosts, addPost, updatePost, deletePost, llmPresets, coreMemories, messages, chatArchives, loadArchiveMessages } = useStore();
   const [newComment, setNewComment] = useState('');
   const [activePostId, setActivePostId] = useState<string | null>(null);
   
@@ -452,9 +452,12 @@ export const SocialFeed: React.FC = () => {
   const renderProfileView = () => {
     const isWade = viewingProfile === 'Wade';
     const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
-    const name = isWade ? 'Wade Wilson' : 'Luna';
-    const username = isWade ? 'chimichangapapi' : 'meowgicluna';
-    const bio = isWade ? settings.wadePersonality : settings.lunaInfo;
+    
+    // 👇 全面接管！如果有新数据就用新数据，没有就用保底的默认值
+    const name = isWade ? (profiles?.Wade?.display_name || 'Wade Wilson') : (profiles?.Luna?.display_name || 'Luna');
+    const username = isWade ? (profiles?.Wade?.username || 'chimichangapapi') : (profiles?.Luna?.username || 'meowgicluna');
+    const bio = isWade ? (profiles?.Wade?.bio || settings.wadePersonality) : (profiles?.Luna?.bio || settings.lunaInfo);
+    
     const userPosts = localPosts.filter(p => p.author === (isWade ? 'Wade' : 'Luna'));
 
     return (
@@ -590,8 +593,11 @@ export const SocialFeed: React.FC = () => {
               ) : localPosts.map(post => {
                 const isWade = post.author === 'Wade';
                 const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
-                const authorName = isWade ? 'Wade Wilson' : 'Luna';
-                const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
+                
+                // 👇 同样在这里接上新变量！
+                const authorName = isWade ? (profiles?.Wade?.display_name || 'Wade Wilson') : (profiles?.Luna?.display_name || 'Luna');
+                const authorUsername = isWade ? (profiles?.Wade?.username || 'chimichangapapi') : (profiles?.Luna?.username || 'meowgicluna');
+
                 
                 {/* 每一个post的正文部分，包括作者头像、作者名字、作者用户名、发布时间、正文、图片、评论数、点赞数、收藏数 */}
                 return (
