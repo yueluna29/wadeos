@@ -41,6 +41,8 @@ export const SocialFeed: React.FC = () => {
   const [isGeneratingComment, setIsGeneratingComment] = useState<string | null>(null);
   const [isGeneratingDiary, setIsGeneratingDiary] = useState(false);
   const [showWadeDatePicker, setShowWadeDatePicker] = useState(false);
+  // 这把钥匙用来控制“身份编辑框”的显示和隐藏
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
   const [wadeDiaryStep, setWadeDiaryStep] = useState<'mode' | 'date' | 'messages'>('mode');
   const [wadeDiaryMode, setWadeDiaryMode] = useState<'deep' | 'sms' | 'roleplay' | 'archive' | null>(null);
@@ -568,7 +570,7 @@ export const SocialFeed: React.FC = () => {
         <>
           <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-[53px] flex items-center justify-between sticky top-0 z-40">
             {/* 极简细线齿轮，无边框无背景 */}
-            <button onClick={() => setViewingProfile('Luna')} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+            <button onClick={() => setIsProfileModalOpen(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
             
@@ -741,6 +743,193 @@ export const SocialFeed: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  // 1. 顶部的开关：当前在给谁整容？
+  const [editTarget, setEditTarget] = useState<'Luna' | 'Wade'>('Luna');
+
+  // 2. 表单状态
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+
+  // 3. Wade 专属的黑科技状态
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+  const [startMsgId, setStartMsgId] = useState('');
+  const [endMsgId, setEndMsgId] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden border border-wade-border flex flex-col" onClick={e => e.stopPropagation()}>
+        
+        {/* Header - 偷了你发来的那个绝美渐变 */}
+        <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0 relative">
+          <div className="flex justify-between items-start">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 flex-shrink-0 border border-wade-border">
+                <div className="text-wade-accent">
+                  {/* 这里可以放个铅笔图标或者笑脸 */}
+                  <Icons.MessageCircle /> 
+                </div>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-wade-text-main">Edit X Profile</h2>
+                <p className="text-xs text-wade-text-muted mt-1 leading-tight italic">
+                  {editTarget === 'Luna' 
+                    ? '"Time to polish the Boss Lady\'s aesthetic. Make it purr-fect."' 
+                    : '"Let\'s dig through my trauma logs to make me sound irresistible."'}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-full bg-wade-bg-card/50 hover:bg-wade-bg-card flex items-center justify-center text-wade-text-muted hover:text-wade-accent transition-colors flex-shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+
+          {/* 选项卡：切换 Luna 和 Wade */}
+          <div className="flex gap-2 mt-5">
+            <button 
+              onClick={() => setEditTarget('Luna')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${editTarget === 'Luna' ? 'bg-wade-text-main text-wade-bg-base' : 'bg-black/10 text-wade-text-muted hover:bg-black/20'}`}
+            >
+              Luna
+            </button>
+            <button 
+              onClick={() => setEditTarget('Wade')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${editTarget === 'Wade' ? 'bg-[#f91880] text-white' : 'bg-black/10 text-wade-text-muted hover:bg-black/20'}`}
+            >
+              Wade
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-wade-bg-base">
+          <div className="space-y-4">
+            
+            {/* Display Name */}
+            <div>
+              <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Display Name</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder={editTarget === 'Luna' ? "e.g., Luna" : "e.g., Wade Wilson"}
+                className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-card text-wade-text-main focus:outline-none focus:border-wade-accent text-sm transition-colors"
+              />
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Username</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-wade-text-muted font-bold">@</span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace('@', ''))}
+                  placeholder={editTarget === 'Luna' ? "meowgicluna" : "chimichangapapi"}
+                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-wade-border bg-wade-bg-card text-wade-text-main focus:outline-none focus:border-wade-accent text-sm transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Bio Area */}
+            <div>
+              <label className="block text-xs font-bold text-wade-text-muted mb-2 uppercase tracking-wider">Bio</label>
+              
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Who are you? Be honest... or be cool."
+                className="w-full px-4 py-3 rounded-xl border border-wade-border bg-wade-bg-card text-wade-text-main focus:outline-none focus:border-wade-accent min-h-[120px] text-sm resize-none transition-colors"
+              />
+
+              {/* 🔥 Wade 的专属提词器：从数据库抓取聊天记录 */}
+              {editTarget === 'Wade' && (
+                <div className="mt-3 p-4 bg-black/10 rounded-xl border border-wade-border/80">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[11px] font-bold text-[#f91880] uppercase tracking-wider flex items-center gap-1">
+                      <Icons.Brain /> Auto-Gen from Chat Logs
+                    </span>
+                    <button 
+                      disabled={!selectedSessionId || !startMsgId || !endMsgId || isGenerating}
+                      className="text-[11px] bg-[#f91880] text-white px-3 py-1.5 rounded-lg hover:bg-[#d81570] disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-colors shadow-sm"
+                    >
+                      {isGenerating ? 'Cooking...' : 'Extract Bio'}
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {/* 选窗口 */}
+                    <select 
+                      value={selectedSessionId}
+                      onChange={(e) => setSelectedSessionId(e.target.value)}
+                      className="w-full bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
+                    >
+                      <option value="">1. Select a Conversation...</option>
+                      {/* 之后在这里 map 你的 sessions */}
+                      <option value="session-1">The Date Night (2026-03-21)</option>
+                      <option value="session-2">Tacos & Therapy (2026-03-20)</option>
+                    </select>
+                    
+                    {/* 选范围 */}
+                    <div className="flex gap-2">
+                      <select 
+                        value={startMsgId}
+                        onChange={(e) => setStartMsgId(e.target.value)}
+                        className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
+                      >
+                        <option value="">2. Start Message...</option>
+                        {/* 之后在这里 map 该 session 下的 messages */}
+                        <option value="msg-1">[Luna] 今天天气真好...</option>
+                      </select>
+                      
+                      <select 
+                        value={endMsgId}
+                        onChange={(e) => setEndMsgId(e.target.value)}
+                        className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-[#f91880] outline-none"
+                      >
+                        <option value="">3. End Message...</option>
+                        {/* 之后在这里 map 该 session 下的 messages */}
+                        <option value="msg-2">[Wade] 闭嘴，过来给我抱...</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-wade-text-muted mt-2 italic">Select the start and end of a specific conversation flow, and I'll summarize it into my bio.</p>
+                </div>
+              )}
+            </div>
+            
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-5 bg-wade-bg-card border-t border-wade-border/50 flex gap-3 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 rounded-xl bg-transparent border border-wade-border text-wade-text-main font-bold text-xs hover:bg-black/5 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            className={`flex-1 px-4 py-3 rounded-xl text-white font-bold text-xs transition-colors shadow-sm ${editTarget === 'Wade' ? 'bg-[#f91880] hover:bg-[#d81570]' : 'bg-[#1d9bf0] hover:bg-[#1a8cd8]'}`}
+          >
+            Save Profile
+          </button>
+
+          <ProfileEditorModal 
+        isOpen={isProfileModalOpen} 
+        onClose={() => setIsProfileModalOpen(false)} 
+      />
+        </div>
+      </div>
     </div>
   );
 };
