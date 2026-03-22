@@ -851,7 +851,7 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 };
 
 const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { settings, profiles, addPost, llmPresets, messages, coreMemories } = useStore();
+  const { settings, profiles, addPost, llmPresets, messages, coreMemories, sessions } = useStore();
   
   const [tab, setTab] = useState<'Luna' | 'Wade'>('Luna');
   
@@ -867,15 +867,19 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [chatMode, setChatMode] = useState<'deep' | 'sms'>('deep');
   const [calMonth, setCalMonth] = useState(new Date()); // 控制日历翻页
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
   const [wadeGeneratedText, setWadeGeneratedText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  
 
   // --- 重置表单 ---
   useEffect(() => {
     if (isOpen) {
       setLunaContent(''); setSelectedFiles([]); setPreviewUrls([]);
       setWadeGeneratedText(''); setSelectedMsgIds(new Set()); setSelectedDate(null);
+      setSelectedSessionId(null); // 👈 关门重置！
     }
   }, [isOpen]);
 
@@ -925,6 +929,9 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
            msgDate.getMonth() === selectedDate.getMonth() && 
            msgDate.getDate() === selectedDate.getDate();
   }) : [];
+
+  const activeSessionIdsOnDate = Array.from(new Set(filteredMessages.map(m => m.sessionId).filter(Boolean)));
+  const sessionsOnDate = sessions.filter(s => activeSessionIdsOnDate.includes(s.id));
 
   const toggleMessage = (id: string) => {
     const newSet = new Set(selectedMsgIds);
@@ -1086,7 +1093,12 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                         const hasData = day ? daysWithMessages.has(day) : false; // 👈 探测器开始工作
                         
                         return (
-                          <button key={idx} disabled={!day} onClick={() => day && setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day))}
+                          <button key={idx} disabled={!day} onClick={() => {
+                            if (day) {
+                              setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
+                              setSelectedSessionId(null); // 👈 换日子的时候，退回到会话列表！
+                            }
+                          }}
                             className={`relative aspect-square rounded-md text-xs font-bold transition-all flex items-center justify-center
                               ${!day ? 'invisible' : isSelected ? 'bg-wade-accent text-white shadow-sm scale-110' : 'text-wade-text-main hover:bg-wade-bg-base border border-transparent hover:border-wade-border'}`}>
                             {day}
@@ -1100,23 +1112,55 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     </div>
                   </div>
 
-                  {/* 3. 消息拾取器 */}
-                  {selectedDate && (
-                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col max-h-[200px]">
-                      <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border flex justify-between">
-                        <span>{filteredMessages.length} Messages Found</span>
-                        <span className="text-wade-accent">{selectedMsgIds.size} Selected</span>
-                      </div>
-                      <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                        {filteredMessages.length === 0 ? (
-                          <p className="text-xs text-wade-text-muted text-center py-4">It was a quiet day.</p>
-                        ) : filteredMessages.map(msg => (
-                          <div key={msg.id} onClick={() => toggleMessage(msg.id)} className={`p-2 rounded-lg cursor-pointer border text-xs transition-colors ${selectedMsgIds.has(msg.id) ? 'bg-wade-accent-light border-wade-accent text-wade-text-main' : 'border-transparent hover:bg-wade-bg-base text-wade-text-muted'}`}>
-                            <span className="opacity-50 text-[10px] mr-1">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-[#1d9bf0]'}`}>[{msg.role}]</span>: <span className="line-clamp-2 mt-0.5">{msg.text}</span>
+                    {/* 3. 终极套娃版：会话/消息拾取器 */}
+                    {selectedDate && (
+                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col max-h-[220px]">
+                      
+                      {!selectedSessionId ? (
+                        // 🟢 第一层：显示当天的会话列表
+                        <>
+                          <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border">
+                            Sessions on {selectedDate.toLocaleDateString()}
                           </div>
-                        ))}
-                      </div>
+                          <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                            {sessionsOnDate.length === 0 ? (
+                              <p className="text-xs text-wade-text-muted text-center py-4">It was a quiet day. We must have been busy... fighting.</p>
+                            ) : sessionsOnDate.map(session => (
+                              <div key={session.id} onClick={() => setSelectedSessionId(session.id)} className="p-3 rounded-lg cursor-pointer border border-transparent hover:bg-wade-bg-base hover:border-wade-border transition-colors flex justify-between items-center group">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-wade-text-main group-hover:text-wade-accent transition-colors">
+                                    {session.title || 'Untitled Chaos'}
+                                  </span>
+                                  <span className="text-[10px] text-wade-text-muted mt-0.5">
+                                    {filteredMessages.filter(m => m.sessionId === session.id).length} messages
+                                  </span>
+                                </div>
+                                <div className="text-wade-text-muted group-hover:text-wade-accent transition-colors">
+                                  <Icons.ChevronRight />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        // 🔴 第二层：点进会话后，显示具体消息
+                        <>
+                          <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border flex justify-between items-center">
+                            <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors -ml-1">
+                              <div className="w-4 h-4"><Icons.ChevronLeft /></div> Back
+                            </button>
+                            <span className="text-wade-accent">{selectedMsgIds.size} Selected</span>
+                          </div>
+                          <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                            {filteredMessages.filter(m => m.sessionId === selectedSessionId).map(msg => (
+                              <div key={msg.id} onClick={() => toggleMessage(msg.id)} className={`p-2 rounded-lg cursor-pointer border text-xs transition-colors ${selectedMsgIds.has(msg.id) ? 'bg-wade-accent-light border-wade-accent text-wade-text-main' : 'border-transparent hover:bg-wade-bg-base text-wade-text-muted'}`}>
+                                <span className="opacity-50 text-[10px] mr-1">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-[#1d9bf0]'}`}>[{msg.role}]</span>: <span className="line-clamp-2 mt-0.5">{msg.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </>
