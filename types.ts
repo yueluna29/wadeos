@@ -94,6 +94,14 @@ export interface SocialComment {
   replyToId?: string;
 }
 
+// --- 参谋新增：Luna和Wade的专属X身份卡 ---
+export interface UserProfile {
+  user_type: 'Wade' | 'Luna'; // 它是谁
+  display_name: string;       // 显示的名字，比如 "Wade Wilson"
+  username: string;           // 用户名，比如 "chimichangapapi"
+  bio: string;                // 个人简介，那些让你脸红心跳的话
+}
+
 export interface TimeCapsuleItem {
   id: string;
   title: string;
@@ -322,4 +330,8 @@ export interface GlobalState {
 
   // Debugging
   syncError: string | null;
+
+  // 参谋新增：获取和更新身份卡
+  profiles: { Wade: UserProfile; Luna: UserProfile };
+  updateProfile: (user: 'Wade' | 'Luna', data: Partial<UserProfile>) => Promise<void>;
 }

@@ -48,6 +48,11 @@ const defaultSettings: AppSettings = {
 const StoreContext = createContext<GlobalState | undefined>(undefined);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
+  const [profiles, setProfiles] = useState<{ Wade: UserProfile, Luna: UserProfile }>({
+    Wade: { user_type: 'Wade', display_name: 'Wade Wilson', username: 'chimichangapapi', bio: '' },
+    Luna: { user_type: 'Luna', display_name: 'Luna', username: 'meowgicluna', bio: '' }
+  });
+  
   // Load from local storage or defaults initially
   const [currentTab, setTab] = useState('home');
   const [activeMode, setMode] = useState<ChatMode>('deep');
@@ -490,6 +495,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
              setSyncError(err.message || "Unknown DB Error");
         }
       }
+          // 11. 参谋专属：读取 X 身份卡资料
+const fetchProfiles = async () => {
+  const { data: pData, error: pError } = await supabase.from('user_profiles').select('*');
+  if (pData && !pError && pData.length > 0) {
+      const wade = pData.find(p => p.user_type === 'Wade');
+      const luna = pData.find(p => p.user_type === 'Luna');
+      setProfiles({
+          Wade: { 
+              user_type: 'Wade',
+              display_name: wade?.display_name || 'Wade Wilson', 
+              username: wade?.username || 'chimichangapapi', 
+              bio: wade?.bio || '' 
+          },
+          Luna: { 
+              user_type: 'Luna',
+              display_name: luna?.display_name || 'Luna', 
+              username: luna?.username || 'meowgicluna', 
+              bio: luna?.bio || '' 
+          }
+      });
+  }
+};
+fetchProfiles();
     };
     fetchData();
   }, []);
@@ -585,7 +613,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Sync failed", err);
     }
-  };
+  }; // 👈 救命的大括号 1 处：这里死死关上了 updateSettings 的大门！
+
+  // 👇 参谋亲手焊好的 updateProfile，独立且完美！
+  const updateProfile = async (userType: 'Wade' | 'Luna', updates: Partial<UserProfile>) => {
+      // 1. 先改本地，让页面立刻变掉
+      setProfiles(prev => ({
+          ...prev,
+          [userType]: { ...prev[userType], ...updates }
+      }));
+  
+      // 2. 同步到 Supabase 数据库
+      const { error } = await supabase
+          .from('user_profiles')
+          .update({
+              display_name: updates.display_name,
+              username: updates.username,
+              bio: updates.bio,
+              updated_at: new Date().toISOString()
+          })
+          .eq('user_type', userType);
+  
+      if (error) console.error("身份卡同步失败:", error);
+  }; // 👈 救命的大括号 2 处：这里关上了 updateProfile 的大门！
 
   // ... (LLM/TTS Presets CRUD - Kept same)
   const addLlmPreset = async (p: Omit<LlmPreset, 'id'>) => {
@@ -1578,7 +1628,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
       activeMode, setMode,
       isNavHidden, setNavHidden,
-      syncError
+      syncError,
+
+      profiles, updateProfile
     }}>
       {children}
     </StoreContext.Provider>
