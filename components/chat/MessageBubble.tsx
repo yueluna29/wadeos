@@ -75,6 +75,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const idx = msg.selectedIndex || 0;
   const thinkingContent = msg.variantsThinking?.[idx] || msg.thinking;
+  const variantModel = (msg.variants as any)?.[idx]?.model;
+  const shownModel = variantModel || msg.model;
 
   const isBase64Image = msg.text.startsWith('data:image/');
 
@@ -267,9 +269,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   )}
                 </div>
               </div>
-              {msg.model && (
+              {shownModel && (
                 <span className="text-[9px] text-wade-text-muted/40 font-mono border border-wade-border rounded px-1.5 py-0.5 bg-wade-bg-app">
-                  {msg.model}
+                  {shownModel}
                 </span>
               )}
             </div>

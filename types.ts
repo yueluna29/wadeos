@@ -61,6 +61,7 @@ export interface Message {
   image?: string; // For image uploads
   attachments?: { type: 'image' | 'file', content: string, mimeType: string, name: string }[]; // Generic attachments
   audioCache?: string; // 参谋加的：装录音带的抽屉
+  thinking?: string | null;
   
   // New Version Control Fields
   variants?: string[]; // Array of all generated versions
