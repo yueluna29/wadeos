@@ -279,52 +279,47 @@ export const SocialFeed: React.FC = () => {
     return `${yy}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-  // 🔥 终极无间距、在一行的暴力截断版 PostCaption
+  // PostCaption
   const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
     const needsShowMore = (content.length > 150 || content.split('\n').length > 5);
     const shouldClamp = !isDetail && !isExpanded && needsShowMore;
 
-    if (shouldClamp) {
-      const previewText = content.substring(0, 140).trim() + '...';
-      const processedContent = hideAuthor ? previewText : `**${authorName}** ` + previewText;
+    let displayContent = shouldClamp ? content.substring(0, 140).trim() + '...' : content;
+    
+    // 处理话题标签
+    displayContent = displayContent.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
 
-      return (
-        <div className={`text-[15px] text-wade-text-main leading-snug ${className || ''}`}>
-          <span className="inline">
-            <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
-              p: ({node, ...props}) => <span className="inline" {...props} />,
-              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
-              a: ({node, href, children, ...props}) => <span className="text-[#1d9bf0]">{children}</span> 
-            }}>
-              {processedContent}
-            </Markdown>
-          </span>
-          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
-            Show more
-          </span>
-        </div>
-      );
-    }
-
-    const processedContent = hideAuthor ? content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)') : `**${authorName}** ` + content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
+    const processedContent = hideAuthor ? displayContent : `**${authorName}** ` + displayContent;
 
     return (
-      <div className={`text-[15px] text-wade-text-main leading-snug ${className || ''}`}>
-        <div className="markdown-content inline">
-          <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} components={{ 
-            p: ({node, ...props}) => <p className="mb-0 inline" {...props} />, 
-            strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
-            a: ({node, href, children, ...props}) => { 
-              if (href?.startsWith('#')) return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; 
-              return <a href={href} className="text-[#1d9bf0] hover:underline" {...props}>{children}</a>; 
-            } 
-          }}>
+      // 1. 关键变化：删掉 whitespace-pre-wrap，改用 whitespace-normal
+      // 因为我们要靠 Markdown 里的 remarkBreaks 来处理换行，不需要外层再渲染一遍换行符
+      <div className={`text-[15px] text-wade-text-main leading-6 whitespace-normal ${className || ''}`}>
+        <div className="inline">
+          <Markdown 
+            // 2. 确保 remarkBreaks 开启，它负责把单次换行变成 <br />
+            remarkPlugins={[remarkGfm, remarkBreaks]} 
+            components={{ 
+              // 3. 彻底把 p 标签变透明，完全不占垂直空间
+              p: ({node, ...props}) => <span className="inline" {...props} />,
+              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
+              a: ({node, href, children, ...props}) => { 
+                return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; 
+              } 
+            }}
+          >
             {processedContent}
           </Markdown>
         </div>
+        
+        {shouldClamp && (
+          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
+            Show more
+          </span>
+        )}
       </div>
     );
-  };
+};
 
   const ImageCarousel = ({ images }: { images: string[] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -369,17 +364,19 @@ export const SocialFeed: React.FC = () => {
           
           {/* 极简细线更多选项 */}
           <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
+            <Icons.MoreHorizontal />
           </button>
         </div>
           
-
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-full mx-auto w-full">
-            <div className="flex gap-1 mb-1 cursor-pointer" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
-               <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover shrink-0" />
+        {/* post详情页 */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-3 pb-3 max-w-full mx-auto w-full">
+            <div className="flex flex-row gap-1.5 mb-2.5 cursor-pointer items-start relative" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
+              <div className="flex-shrink-0">
+               <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover" />
+              </div>
                <div className="flex flex-col justify-center leading-tight">
-                  <span className="font-bold text-[16px] text-wade-text-main hover:underline">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
-                  <span className="text-wade-text-muted text-[15px]">@{authorUsername}</span>
+                  <span className="font-bold text-wade-text-main">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
+                  <span className="text-wade-text-muted truncate">@{authorUsername}</span>
                </div>
             </div>
             
