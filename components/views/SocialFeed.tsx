@@ -332,7 +332,7 @@ export const SocialFeed: React.FC = () => {
     return (
       <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden group border border-wade-border">
         {/* 🔥 封杀缩放禁令 */}
-        <img src={images[currentIndex]} style={{ WebkitTouchCallout: 'none' }} className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 select-none" onClick={() => setZoomedImage({images, index: currentIndex})} />
+        <img src={images[currentIndex]} style={{ WebkitTouchCallout: 'none' }} className="max-w-[560px] w-full h-auto object-cover rounded-2xl mx-auto" alt="Post image" onClick={() => setZoomedImage({images, index: currentIndex})} />
         {images.length > 1 && (
           <>
             <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"><Icons.ChevronLeft /></button>
@@ -541,7 +541,7 @@ export const SocialFeed: React.FC = () => {
                   {post.images && post.images.length > 0 && (
                     <div className="mt-2 mb-2 rounded-2xl overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
                       {/* 🔥 封杀个人主页的大图缩放禁令 */}
-                      {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full aspect-square object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
+                      {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="max-w-[560px] w-full aspect-square object-cover cursor-zoom-in select-none mx-auto" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                     </div>
                   )}
                   <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
