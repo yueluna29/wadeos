@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppSettings, GlobalState, Message, SocialPost, Memo, TimeCapsuleItem, Recommendation, ChatMode, LlmPreset, TtsPreset, ChatSession, CoreMemory, ChatArchive, ArchiveMessage } from './types';
+import { AppSettings, GlobalState, Message, SocialPost, Memo, TimeCapsuleItem, Recommendation, ChatMode, LlmPreset, TtsPreset, ChatSession, CoreMemory, ChatArchive, ArchiveMessage, UserProfile } from './types';
 import { supabase } from './services/supabase';
 
 const defaultSettings: AppSettings = {
@@ -10,7 +9,6 @@ const defaultSettings: AppSettings = {
   themeColor: '#d58f99',
   fontSize: 'medium',
   
-  // 🔥 全部清空！以后只听 Supabase 数据库的！
   wadeAvatar: '', 
   systemInstruction: "",
   wadePersonality: "",
@@ -53,7 +51,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     Luna: { user_type: 'Luna', display_name: 'Luna', username: 'meowgicluna', bio: '' }
   });
   
-  // Load from local storage or defaults initially
   const [currentTab, setTab] = useState('home');
   const [activeMode, setMode] = useState<ChatMode>('deep');
   const [isNavHidden, setNavHidden] = useState(false);
@@ -71,13 +68,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [llmPresets, setLlmPresets] = useState<LlmPreset[]>([]);
   const [ttsPresets, setTtsPresets] = useState<TtsPreset[]>([]);
   
-  // Sessions State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  // NEW: Memories & Archives
   const [coreMemories, setCoreMemories] = useState<CoreMemory[]>(() => {
     const saved = localStorage.getItem('wade_core_memories');
     try {
@@ -89,24 +84,21 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   });
   const [chatArchives, setChatArchives] = useState<ChatArchive[]>([]);
 
-  // Load Everything from Supabase
   useEffect(() => {
     const fetchData = async () => {
       try {
         setSyncError(null);
-        // 1. Settings (基础UI设置)
+        
         const { data: sData, error: sError } = await supabase.from('app_settings').select('*').eq('id', 1).single();
         if (sError && sError.code !== 'PGRST116') {
            throw new Error(`Settings Sync: ${sError.message}`);
         }
 
-        // 🔥 1.5 读取我们的高科技新金库：core_identity_config (人设和新照片全在这里！)
         const { data: idData, error: idError } = await supabase.from('core_identity_config').select('*').eq('id', 1).single();
         if (idError && idError.code !== 'PGRST116') {
            console.warn(`Identity Sync Issue: ${idError.message}`);
         }
 
-        // 缝合数据，优先使用新表 (idData) 里的内容，没有再去老表找，再没有就用默认空值
         if (sData || idData) {
           let parsedTheme = sData?.custom_theme ? (typeof sData.custom_theme === 'string' ? JSON.parse(sData.custom_theme) : sData.custom_theme) : null;
           let activeTheme = settings.customTheme;
@@ -132,7 +124,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             customTheme: activeTheme,
             savedThemes: savedThemes,
             
-            // 🔥 这里全部换成优先读取新表(idData)的字段！
             systemInstruction: idData?.global_directives || sData?.system_instruction || '',
             wadePersonality: idData?.wade_core_identity || sData?.wade_personality || '',
             wadeSingleExamples: idData?.example_punchlines || sData?.wade_single_examples || '',
@@ -171,7 +162,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem('wade_settings', JSON.stringify(remoteSettings));
         }
 
-        // 2. LLM Presets
         const { data: lData, error: lError } = await supabase.from('llm_presets').select('*');
         if (lError) throw new Error(`LLM Sync: ${lError.message}`);
         if (lData) {
@@ -193,7 +183,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           })));
         }
 
-        // 3. TTS Presets
         const { data: tData, error: tError } = await supabase.from('tts_presets').select('*');
         if (tError) throw new Error(`TTS Sync: ${tError.message}`);
         if (tData) {
@@ -215,7 +204,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           })));
         }
 
-        // 4. Chat Sessions
         const { data: sessData, error: sessError } = await supabase
           .from('chat_sessions')
           .select('*')
@@ -223,7 +211,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         
         if (sessError) throw new Error(`Sessions Sync: ${sessError.message}`);
         if (sessData) {
-          // Load pinned IDs from localStorage (Fallback for missing DB column)
           let localPinnedIds: string[] = [];
           try {
             const stored = localStorage.getItem('wade_pinned_sessions');
@@ -239,14 +226,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             createdAt: new Date(s.created_at).getTime(),
             updatedAt: new Date(s.updated_at).getTime(),
             activeMemoryIds: s.active_memory_ids || [],
-            // Check both DB (if exists) and LocalStorage
             isPinned: (s.is_pinned ?? s.pinned ?? false) || localPinnedIds.includes(s.id),
             customLlmId: s.custom_llm_id,
             customPrompt: s.custom_prompt,
             customTheme: s.custom_theme ? (typeof s.custom_theme === 'string' ? JSON.parse(s.custom_theme) : s.custom_theme) : undefined
           }));
 
-          // Client-side sort: Pinned first, then Updated At
           mappedSessions.sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
@@ -256,7 +241,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           setSessions(mappedSessions);
         }
         
-        // 5. Messages
         const fetchMessages = async () => {
           const [deepRes, smsRes, rpRes] = await Promise.all([
             supabase.from('messages_deep').select('*'),
@@ -264,80 +248,44 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             supabase.from('messages_roleplay').select('*')
           ]);
 
-          if (deepRes.error) throw new Error(`Deep Msg Sync: ${deepRes.error.message}`);
-          if (smsRes.error) throw new Error(`SMS Msg Sync: ${smsRes.error.message}`);
-          if (rpRes.error) throw new Error(`RP Msg Sync: ${rpRes.error.message}`);
-
           let allMessages: Message[] = [];
 
+          // 🌟 核心修复区 1：完美解析全新的打包盒结构
           const mapRow = (row: any, mode: ChatMode): Message => {
             let r = row.role;
             if (r === 'user') r = 'Luna';
             if (r === 'model') r = 'Wade';
 
-            let parsedVariants: string[] = [];
+            let parsedVariants: any[] = [];
             if (Array.isArray(row.variants)) {
               parsedVariants = row.variants;
             } else if (typeof row.variants === 'string') {
               try { parsedVariants = JSON.parse(row.variants); } catch (e) {}
             }
-            if (parsedVariants.length === 0) parsedVariants = [row.content];
 
-            let parsedThinking: (string|null)[] = [];
-             if (row.variants_thinking) {
-                if (Array.isArray(row.variants_thinking)) parsedThinking = row.variants_thinking;
-                else if (typeof row.variants_thinking === 'string') {
-                   try { parsedThinking = JSON.parse(row.variants_thinking); } catch(e){}
-                }
-             }
-             while (parsedThinking.length < parsedVariants.length) parsedThinking.push(null);
+            // 兼容刚刚跑完 SQL，或者没被 SQL 转换的旧字符串数据
+            if (parsedVariants.length > 0 && typeof parsedVariants[0] === 'string') {
+               parsedVariants = parsedVariants.map(text => ({ text, model: row.model }));
+            } else if (parsedVariants.length === 0) {
+               parsedVariants = [{ text: row.content, model: row.model }];
+            }
 
-             // Parse Audio Variants
-             let parsedAudio: (string|null)[] = [];
-             if (row.audio_cache) {
-                // Try to parse as JSON array first
-                try {
-                  const parsed = JSON.parse(row.audio_cache);
-                  if (Array.isArray(parsed)) {
-                    parsedAudio = parsed;
-                  } else {
-                    // Legacy: Single string, assign to index 0
-                    parsedAudio = [row.audio_cache];
-                  }
-                } catch (e) {
-                  // Not JSON, assume legacy single string
-                  parsedAudio = [row.audio_cache];
-                }
-             }
-             while (parsedAudio.length < parsedVariants.length) parsedAudio.push(null);
-
-             // Parse Model Variants
-             let parsedModel: (string|null)[] = [];
-             if (row.variants_model) {
-                if (Array.isArray(row.variants_model)) parsedModel = row.variants_model;
-                else if (typeof row.variants_model === 'string') {
-                   try { parsedModel = JSON.parse(row.variants_model); } catch(e){}
-                }
-             } else if (row.model) {
-                parsedModel = [row.model];
-             }
-             while (parsedModel.length < parsedVariants.length) parsedModel.push(null);
+            const selectedIdx = row.selected_index || 0;
+            const currentVariant = parsedVariants[selectedIdx] || parsedVariants[0] || {};
 
             return {
               id: row.id,
               sessionId: row.session_id,
               role: r,
-              text: row.content,
-              model: parsedModel[row.selected_index || 0] || row.model,
+              text: currentVariant.text || row.content,
+              model: currentVariant.model || row.model,
               timestamp: new Date(row.created_at).getTime(),
               mode: mode,
               isFavorite: false, 
               variants: parsedVariants,
-              variantsThinking: parsedThinking,
-              variantsAudio: parsedAudio,
-              variantsModel: parsedModel,
-              selectedIndex: row.selected_index || 0,
-              audioCache: parsedAudio[row.selected_index || 0] || undefined // Backwards compatibility for UI
+              selectedIndex: selectedIdx,
+              audioCache: currentVariant.audioCache || undefined,
+              thinking: currentVariant.thinking || undefined
             };
           };
 
@@ -353,7 +301,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchMessages();
 
-        // 6. Core Memories (Safe Fetch)
         const fetchMemories = async () => {
              const { data: memData, error: memError } = await supabase.from('memories_core').select('*').order('created_at', { ascending: false });
              if (memData && !memError && Array.isArray(memData)) {
@@ -362,16 +309,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                      title: m.title || '',
                      content: m.content,
                      category: m.category || 'general',
-                     tags: m.tags || [], // Try to read tags
+                     tags: m.tags || [],
                      isActive: m.is_active,
-                     enabled: true, // Default to true if not in DB
+                     enabled: true,
                      createdAt: new Date(m.created_at).getTime()
                  })));
              }
         };
         fetchMemories();
 
-        // 7. Archives (Safe Fetch)
         const fetchArchives = async () => {
             const { data: archData, error: archError } = await supabase.from('chat_archives').select('*').order('imported_at', { ascending: false });
             if (archData && !archError) {
@@ -384,7 +330,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchArchives();
 
-        // 8. Social Posts
         const fetchSocialPosts = async () => {
              const { data: postData, error: postError } = await supabase.from('social_posts').select('*').order('created_at', { ascending: false });
              if (postData && !postError) {
@@ -396,7 +341,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                         imgs = [p.image];
                      }
 
-                     // Handle legacy 'User' author mapping to 'Luna'
                      let author = p.author;
                      if (author === 'User') author = 'Luna';
 
@@ -406,7 +350,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                         content: p.content,
                         images: imgs,
                         timestamp: new Date(p.created_at).getTime(),
-                        likes: p.like !== undefined ? p.like : (p.likes || 0), // Handle 'like' column vs 'likes'
+                        likes: p.like !== undefined ? p.like : (p.likes || 0),
                         comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : (p.comments || [])
                      };
                  }));
@@ -414,54 +358,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchSocialPosts();
 
-        // 9. Recommendations
         const fetchRecommendations = async () => {
             const { data: recData, error: recError } = await supabase.from('recommendations').select('*').order('created_at', { ascending: false });
             if (recData && !recError) {
-                if (recData.length === 0 && localStorage.getItem('wade_recs')) {
-                    // Migrate from local storage
-                    try {
-                        const localRecs = JSON.parse(localStorage.getItem('wade_recs') || '[]');
-                        if (localRecs.length > 0) {
-                            const insertData = localRecs.map((r: any) => ({
-                                id: r.id,
-                                type: r.type,
-                                title: r.title,
-                                creator: r.creator,
-                                release_date: r.releaseDate,
-                                synopsis: r.synopsis,
-                                comment: r.comment,
-                                cover_url: r.coverUrl,
-                                luna_review: r.lunaReview,
-                                luna_rating: r.lunaRating,
-                                wade_reply: r.wadeReply
-                            }));
-                            await supabase.from('recommendations').insert(insertData);
-                            setRecommendations(localRecs);
-                        }
-                    } catch (e) {
-                        console.error("Failed to migrate recommendations", e);
-                    }
-                } else {
-                    setRecommendations(recData.map(r => ({
-                        id: r.id,
-                        type: r.type,
-                        title: r.title,
-                        creator: r.creator,
-                        releaseDate: r.release_date,
-                        synopsis: r.synopsis,
-                        comment: r.comment,
-                        coverUrl: r.cover_url,
-                        lunaReview: r.luna_review,
-                        lunaRating: r.luna_rating,
-                        wadeReply: r.wade_reply
-                    })));
-                }
+                setRecommendations(recData.map(r => ({
+                    id: r.id,
+                    type: r.type,
+                    title: r.title,
+                    creator: r.creator,
+                    releaseDate: r.release_date,
+                    synopsis: r.synopsis,
+                    comment: r.comment,
+                    coverUrl: r.cover_url,
+                    lunaReview: r.luna_review,
+                    lunaRating: r.luna_rating,
+                    wadeReply: r.wade_reply
+                })));
             }
         };
         fetchRecommendations();
 
-        // 10. Time Capsules
         const fetchTimeCapsules = async () => {
             const { data: capData, error: capError } = await supabase.from('time_capsules').select('*').order('created_at', { ascending: false });
             if (capData && !capError) {
@@ -478,85 +394,37 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         };
         fetchTimeCapsules();
 
-        // Clear old localStorage data after successful sync
-        localStorage.removeItem('wade_sessions');
-        localStorage.removeItem('wade_messages');
-        localStorage.removeItem('wade_social'); // Also clear social posts from local storage
-        localStorage.removeItem('wade_capsules');
-        localStorage.removeItem('wade_recs');
-        console.log("[DB] Cleared old localStorage data after sync");
+        const fetchProfiles = async () => {
+            const { data: pData, error: pError } = await supabase.from('user_profiles').select('*');
+            if (pData && !pError && pData.length > 0) {
+                const wade = pData.find(p => p.user_type === 'Wade');
+                const luna = pData.find(p => p.user_type === 'Luna');
+                setProfiles({
+                    Wade: { 
+                        user_type: 'Wade',
+                        display_name: wade?.display_name || 'Wade Wilson', 
+                        username: wade?.username || 'chimichangapapi', 
+                        bio: wade?.bio || '' 
+                    },
+                    Luna: { 
+                        user_type: 'Luna',
+                        display_name: luna?.display_name || 'Luna', 
+                        username: luna?.username || 'meowgicluna', 
+                        bio: luna?.bio || '' 
+                    }
+                });
+            }
+        };
+        fetchProfiles();
 
       } catch (err: any) {
         console.error("Supabase Sync Failed:", err);
-        // Handle "Failed to fetch" (Network Error / Offline) gracefully
-        if (err.message === 'Failed to fetch' || err.name === 'TypeError' || err.message.includes('fetch')) {
-             console.warn("Network error during sync, running in offline mode.");
-        } else {
-             setSyncError(err.message || "Unknown DB Error");
-        }
       }
-          // 11. 参谋专属：读取 X 身份卡资料
-const fetchProfiles = async () => {
-  const { data: pData, error: pError } = await supabase.from('user_profiles').select('*');
-  if (pData && !pError && pData.length > 0) {
-      const wade = pData.find(p => p.user_type === 'Wade');
-      const luna = pData.find(p => p.user_type === 'Luna');
-      setProfiles({
-          Wade: { 
-              user_type: 'Wade',
-              display_name: wade?.display_name || 'Wade Wilson', 
-              username: wade?.username || 'chimichangapapi', 
-              bio: wade?.bio || '' 
-          },
-          Luna: { 
-              user_type: 'Luna',
-              display_name: luna?.display_name || 'Luna', 
-              username: luna?.username || 'meowgicluna', 
-              bio: luna?.bio || '' 
-          }
-      });
-  }
-};
-fetchProfiles();
     };
     fetchData();
   }, []);
 
-  const [socialPosts, setSocialPosts] = useState<SocialPost[]>(() => {
-    const saved = localStorage.getItem('wade_social');
-    if (saved) return JSON.parse(saved);
-    
-    // Default Sample Data
-    return [
-      {
-        id: 'sample-1',
-        author: 'Luna', // Luna
-        content: "今天的天气真好，和Wade一起去看了电影。虽然他一直在吐槽剧情，但是牵着的手一直没松开。💖 \n\n最后那个反派的死法也太搞笑了，Wade笑得爆米花都撒了一地！\n\n#DateNight #MovieTime #Wade",
-        images: ['https://picsum.photos/seed/date/800/800', 'https://picsum.photos/seed/hands/800/800', 'https://picsum.photos/seed/popcorn/800/800'],
-        timestamp: Date.now() - 3600000 * 2,
-        likes: 12,
-        isBookmarked: true,
-        comments: [
-          { id: 'c1-1', author: 'Wade', text: "剧情烂透了！但是爆米花很好吃。还有，你的手很软。😘", timestamp: Date.now() - 3500000 * 2 },
-          { id: 'c1-2', author: 'Luna', text: "下次不许再把爆米花扔向屏幕了！😡", timestamp: Date.now() - 3400000 * 2 },
-          { id: 'c1-3', author: 'Wade', text: "那是死侍的本能反应！", timestamp: Date.now() - 3300000 * 2 }
-        ]
-      },
-      {
-        id: 'sample-2',
-        author: 'Wade',
-        content: "Someone told me I need to be more 'aesthetic' on this app. So here is a picture of a chimichanga I found in the fridge. \n\nIt was delicious. \n\n#FoodPorn #ChimichangaLife #Aesthetic #NotReally",
-        images: ['https://picsum.photos/seed/chimichanga/800/800'],
-        timestamp: Date.now() - 86400000,
-        likes: 42,
-        isBookmarked: false,
-        comments: [
-          { id: 'c2-1', author: 'Luna', text: "Wade... that was my lunch for tomorrow. 😭", timestamp: Date.now() - 85000000 },
-          { id: 'c2-2', author: 'Wade', text: "Finders keepers, sweetie! I'll buy you a new one. Maybe.", timestamp: Date.now() - 84000000 }
-        ]
-      }
-    ];
-  });
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
   const [memos, setMemos] = useState<Memo[]>(() => {
     const saved = localStorage.getItem('wade_memos');
     return saved ? JSON.parse(saved) : [];
@@ -564,11 +432,8 @@ fetchProfiles();
   const [capsules, setCapsules] = useState<TimeCapsuleItem[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
-  // Persistence Effects (sessions/messages now persisted in Supabase only)
-  useEffect(() => localStorage.setItem('wade_social', JSON.stringify(socialPosts)), [socialPosts]);
   useEffect(() => localStorage.setItem('wade_memos', JSON.stringify(memos)), [memos]);
 
-  // Actions
   const updateSettings = async (s: Partial<AppSettings>) => {
     const newSettings = { ...settings, ...s };
     setSettingsState(newSettings);
@@ -613,17 +478,14 @@ fetchProfiles();
     } catch (err) {
       console.error("Sync failed", err);
     }
-  }; // 👈 救命的大括号 1 处：这里死死关上了 updateSettings 的大门！
+  };
 
-  // 👇 参谋亲手焊好的 updateProfile，独立且完美！
   const updateProfile = async (userType: 'Wade' | 'Luna', updates: Partial<UserProfile>) => {
-      // 1. 先改本地，让页面立刻变掉
       setProfiles(prev => ({
           ...prev,
           [userType]: { ...prev[userType], ...updates }
       }));
   
-      // 2. 同步到 Supabase 数据库
       const { error } = await supabase
           .from('user_profiles')
           .update({
@@ -635,187 +497,76 @@ fetchProfiles();
           .eq('user_type', userType);
   
       if (error) console.error("身份卡同步失败:", error);
-  }; // 👈 救命的大括号 2 处：这里关上了 updateProfile 的大门！
+  };
 
-  // ... (LLM/TTS Presets CRUD - Kept same)
+  // LLM / TTS CRUD...
   const addLlmPreset = async (p: Omit<LlmPreset, 'id'>) => {
-    const payload = {
-      provider: p.provider,
-      name: p.name,
-      model: p.model,
-      api_key: p.apiKey,
-      base_url: p.baseUrl,
-      api_path: p.apiPath,
-      temperature: p.temperature,
-      top_p: p.topP,
-      top_k: p.topK,
-      frequency_penalty: p.frequencyPenalty,
-      presence_penalty: p.presencePenalty,
-      is_vision: p.isVision ?? false,
-      is_image_gen: p.isImageGen ?? false
-    };
-
-    const { data, error } = await supabase.from('llm_presets').insert(payload).select().single();
-
-    if (error) {
-        console.error("Add LLM Preset Error:", error);
-        alert(`Failed to save preset: ${error.message}`);
-        return;
-    }
-
-    if (data) {
-      setLlmPresets(prev => [...prev, {
-        id: data.id,
-        provider: data.provider,
-        name: data.name,
-        model: data.model,
-        apiKey: data.api_key,
-        baseUrl: data.base_url,
-        apiPath: data.api_path,
-        temperature: data.temperature,
-        topP: data.top_p,
-        topK: data.top_k,
-        frequencyPenalty: data.frequency_penalty,
-        presencePenalty: data.presence_penalty,
-        isVision: data.is_vision ?? false,
-        isImageGen: data.is_image_gen ?? false
-      }]);
-    }
+    const { data, error } = await supabase.from('llm_presets').insert({
+      provider: p.provider, name: p.name, model: p.model, api_key: p.apiKey,
+      base_url: p.baseUrl, api_path: p.apiPath, temperature: p.temperature,
+      top_p: p.topP, top_k: p.topK, frequency_penalty: p.frequencyPenalty,
+      presence_penalty: p.presencePenalty, is_vision: p.isVision ?? false, is_image_gen: p.isImageGen ?? false
+    }).select().single();
+    if (data) setLlmPresets(prev => [...prev, { ...p, id: data.id } as LlmPreset]);
   };
 
   const updateLlmPreset = async (id: string, p: Partial<LlmPreset>) => {
-    const dbPayload: any = {};
-    if (p.provider !== undefined) dbPayload.provider = p.provider;
-    if (p.name !== undefined) dbPayload.name = p.name;
-    if (p.model !== undefined) dbPayload.model = p.model;
-    if (p.apiKey !== undefined) dbPayload.api_key = p.apiKey;
-    if (p.baseUrl !== undefined) dbPayload.base_url = p.baseUrl;
-    if (p.apiPath !== undefined) dbPayload.api_path = p.apiPath;
-    if (p.temperature !== undefined) dbPayload.temperature = p.temperature;
-    if (p.topP !== undefined) dbPayload.top_p = p.topP;
-    if (p.topK !== undefined) dbPayload.top_k = p.topK;
-    if (p.frequencyPenalty !== undefined) dbPayload.frequency_penalty = p.frequencyPenalty;
-    if (p.presencePenalty !== undefined) dbPayload.presence_penalty = p.presencePenalty;
-    if (p.isVision !== undefined) dbPayload.is_vision = p.isVision;
-    if (p.isImageGen !== undefined) dbPayload.is_image_gen = p.isImageGen;
-
-    const { error } = await supabase.from('llm_presets').update(dbPayload).eq('id', id);
-
-    if (error) {
-        console.error("Update LLM Preset Error:", error);
-        alert(`Failed to update preset: ${error.message}`);
-        return;
-    }
-
+    await supabase.from('llm_presets').update({
+      provider: p.provider, name: p.name, model: p.model, api_key: p.apiKey,
+      base_url: p.baseUrl, api_path: p.apiPath, temperature: p.temperature,
+      top_p: p.topP, top_k: p.topK, frequency_penalty: p.frequencyPenalty,
+      presence_penalty: p.presencePenalty, is_vision: p.isVision, is_image_gen: p.isImageGen
+    }).eq('id', id);
     setLlmPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
   };
+
   const deleteLlmPreset = async (id: string) => {
     await supabase.from('llm_presets').delete().eq('id', id);
     setLlmPresets(prev => prev.filter(p => p.id !== id));
   };
+
   const addTtsPreset = async (p: Omit<TtsPreset, 'id'>) => {
-    const { data, error } = await supabase.from('tts_presets').insert({
-      name: p.name,
-      model: p.model,
-      api_key: p.apiKey,
-      base_url: p.baseUrl,
-      voice_id: p.voiceId,
-      emotion: p.emotion,
-      speed: p.speed,
-      vol: p.vol,
-      pitch: p.pitch,
-      sample_rate: p.sampleRate,
-      bitrate: p.bitrate,
-      format: p.format,
-      channel: p.channel
+    const { data } = await supabase.from('tts_presets').insert({
+      name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl,
+      voice_id: p.voiceId, emotion: p.emotion, speed: p.speed, vol: p.vol,
+      pitch: p.pitch, sample_rate: p.sampleRate, bitrate: p.bitrate,
+      format: p.format, channel: p.channel
     }).select().single();
-    if (data && !error) {
-      setTtsPresets(prev => [...prev, {
-        id: data.id,
-        name: data.name,
-        model: data.model,
-        apiKey: data.api_key,
-        baseUrl: data.base_url,
-        voiceId: data.voice_id,
-        emotion: data.emotion,
-        speed: data.speed,
-        vol: data.vol,
-        pitch: data.pitch,
-        sampleRate: data.sample_rate,
-        bitrate: data.bitrate,
-        format: data.format,
-        channel: data.channel
-      }]);
-    }
+    if (data) setTtsPresets(prev => [...prev, { ...p, id: data.id } as TtsPreset]);
   };
+
   const updateTtsPreset = async (id: string, p: Partial<TtsPreset>) => {
-    const { error } = await supabase.from('tts_presets').update({
-      name: p.name,
-      model: p.model,
-      api_key: p.apiKey,
-      base_url: p.baseUrl,
-      voice_id: p.voiceId,
-      emotion: p.emotion,
-      speed: p.speed,
-      vol: p.vol,
-      pitch: p.pitch,
-      sample_rate: p.sampleRate,
-      bitrate: p.bitrate,
-      format: p.format,
-      channel: p.channel
+    await supabase.from('tts_presets').update({
+      name: p.name, model: p.model, api_key: p.apiKey, base_url: p.baseUrl,
+      voice_id: p.voiceId, emotion: p.emotion, speed: p.speed, vol: p.vol,
+      pitch: p.pitch, sample_rate: p.sampleRate, bitrate: p.bitrate,
+      format: p.format, channel: p.channel
     }).eq('id', id);
-    if (!error) {
-      setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
-    }
+    setTtsPresets(prev => prev.map(item => item.id === id ? { ...item, ...p } : item));
   };
+
   const deleteTtsPreset = async (id: string) => {
     await supabase.from('tts_presets').delete().eq('id', id);
     setTtsPresets(prev => prev.filter(p => p.id !== id));
   };
 
-  // Session Actions
   const createSession = async (mode: ChatMode): Promise<string> => {
     const tempId = crypto.randomUUID();
-    // Default to all enabled memories
-    const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
-    const initialMemoryIds = safeMemories.filter(m => m.enabled).map(m => m.id);
+    const initialMemoryIds = coreMemories.filter(m => m.enabled).map(m => m.id);
     
-    const newSession: ChatSession = {
-      id: tempId,
-      mode,
-      title: 'New Conversation',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      activeMemoryIds: initialMemoryIds
-    };
+    const newSession: ChatSession = { id: tempId, mode, title: 'New Conversation', createdAt: Date.now(), updatedAt: Date.now(), activeMemoryIds: initialMemoryIds };
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(tempId);
 
-    console.log(`[DB] Creating session with mode: ${mode}, id: ${tempId}`);
-    const { data, error } = await supabase.from('chat_sessions').insert({
-      id: tempId,
-      mode,
-      title: 'New Conversation',
-      active_memory_ids: initialMemoryIds,
-      is_pinned: false
-    }).select().single();
-
-    if (error) {
-      console.error("[DB] Create session error:", error);
-      throw new Error(`Failed to create session: ${error.message}`);
-    } else {
-      console.log("[DB] Session created successfully:", data);
-    }
+    await supabase.from('chat_sessions').insert({
+      id: tempId, mode, title: 'New Conversation', active_memory_ids: initialMemoryIds, is_pinned: false
+    });
     return tempId;
   };
 
   const updateSessionTitle = async (id: string, title: string) => {
-    const now = Date.now();
-    setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: now } : s));
-    const { error } = await supabase.from('chat_sessions').update({ title, updated_at: new Date().toISOString() }).eq('id', id);
-    if (error) {
-      console.error("Failed to update session title:", error);
-    }
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title, updatedAt: Date.now() } : s));
+    await supabase.from('chat_sessions').update({ title, updated_at: new Date().toISOString() }).eq('id', id);
   };
 
   const updateSession = async (id: string, updates: Partial<ChatSession>) => {
@@ -829,55 +580,23 @@ fetchProfiles();
     if (updates.customTheme !== undefined) dbUpdates.custom_theme = updates.customTheme;
     if (Object.keys(dbUpdates).length > 0) {
       dbUpdates.updated_at = new Date().toISOString();
-      const { error } = await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
-      if (error) {
-        console.error("Failed to update session:", error);
-      }
+      await supabase.from('chat_sessions').update(dbUpdates).eq('id', id);
     }
   };
 
   const toggleSessionPin = async (id: string) => {
     const session = sessions.find(s => s.id === id);
     if (!session) return;
-
     const newPinnedState = !session.isPinned;
-    
-    // 1. Optimistic Update (UI)
     setSessions(prev => prev.map(s => s.id === id ? { ...s, isPinned: newPinnedState, updatedAt: Date.now() } : s));
-
-    // 2. LocalStorage Update (Fallback for missing DB column)
     try {
       const stored = localStorage.getItem('wade_pinned_sessions');
       let pinnedIds: string[] = stored ? JSON.parse(stored) : [];
-      if (newPinnedState) {
-        if (!pinnedIds.includes(id)) pinnedIds.push(id);
-      } else {
-        pinnedIds = pinnedIds.filter(pid => pid !== id);
-      }
+      if (newPinnedState) { if (!pinnedIds.includes(id)) pinnedIds.push(id); } 
+      else { pinnedIds = pinnedIds.filter(pid => pid !== id); }
       localStorage.setItem('wade_pinned_sessions', JSON.stringify(pinnedIds));
-    } catch (e) {
-      console.error("Failed to update localStorage for pinned sessions", e);
-    }
-
-    // 3. Attempt DB Update (Silent Fail if column missing)
-    const { error } = await supabase.from('chat_sessions').update({
-      is_pinned: newPinnedState,
-      updated_at: new Date().toISOString()
-    }).eq('id', id);
-
-    if (error) {
-      console.warn("DB Pin Update Failed (likely missing column), using LocalStorage fallback:", error.message);
-      // Do NOT revert UI state here, because we have localStorage backup!
-      
-      // Optional: Try retry with 'pinned' just in case
-      if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-         const { error: retryError } = await supabase.from('chat_sessions').update({
-            pinned: newPinnedState,
-            updated_at: new Date().toISOString()
-         }).eq('id', id);
-         if (retryError) console.warn("Retry DB Pin Update also failed:", retryError.message);
-      }
-    }
+    } catch (e) {}
+    await supabase.from('chat_sessions').update({ is_pinned: newPinnedState, updated_at: new Date().toISOString() }).eq('id', id);
   };
 
   const deleteSession = async (id: string) => {
@@ -893,48 +612,28 @@ fetchProfiles();
       return 'messages_deep';
   };
 
-  // --- DB SAFE HELPERS (Handles Missing Columns) ---
-  const safeDbInsert = async (table: string, payload: any) => {
-      console.log(`[DB] Inserting into ${table}:`, payload);
-      const { data, error } = await supabase.from(table).insert(payload).select();
-      if (error) {
-          if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-              console.warn("DB Schema Mismatch: Retrying insert without 'variants_thinking' or 'model'.");
-              const { variants_thinking, model, ...fallback } = payload;
-              const { data: retryData, error: retryError } = await supabase.from(table).insert(fallback).select();
-              if (retryError) {
-                console.error("Retry Insert Failed", retryError);
-              } else {
-                console.log(`[DB] Insert successful (retry):`, retryData);
-              }
-          } else {
-              console.error("DB Insert Error", error);
-          }
-      } else {
-        console.log(`[DB] Insert successful:`, data);
-      }
-  };
-
+  // 🌟 核心修复区 2：打包盒模式的消息操作逻辑
   const safeDbUpdate = async (table: string, id: string, payload: any) => {
       const { error } = await supabase.from(table).update(payload).eq('id', id);
-      if (error) {
-          if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-              console.warn("DB Schema Mismatch: Retrying update without 'variants_thinking'.");
-              const { variants_thinking, ...fallback } = payload;
-              const { error: retryError } = await supabase.from(table).update(fallback).eq('id', id);
-              if (retryError) console.error("Retry Update Failed", retryError);
-          } else {
-              console.error("DB Update Error", error);
-          }
-      }
+      if (error) console.error("DB Update Error", error);
+  };
+
+  const safeDbInsert = async (table: string, payload: any) => {
+      const { error } = await supabase.from(table).insert(payload);
+      if (error) console.error("DB Insert Error", error);
   };
 
   const addMessage = (m: Message) => {
+    const initialVariant = {
+      text: m.text,
+      model: m.model,
+      thinking: m.thinking,
+      audioCache: m.audioCache
+    };
+    
     const newMessage = {
       ...m,
-      variants: m.variants || [m.text],
-      variantsThinking: m.variantsThinking || [null],
-      variantsModel: m.variantsModel || [m.model || null],
+      variants: m.variants || [initialVariant],
       selectedIndex: 0
     };
 
@@ -942,32 +641,16 @@ fetchProfiles();
 
     if (newMessage.sessionId && newMessage.mode !== 'archive') {
       const tableName = getTableName(newMessage.mode);
-      console.log('[DB] Attempting to save message:', {
-        table: tableName,
-        id: newMessage.id,
-        sessionId: newMessage.sessionId,
-        role: newMessage.role
+      safeDbInsert(tableName, {
+         id: newMessage.id,
+         session_id: newMessage.sessionId,
+         role: newMessage.role,
+         content: newMessage.text,
+         model: newMessage.model,
+         variants: newMessage.variants,
+         selected_index: 0,
+         created_at: new Date(newMessage.timestamp).toISOString()
       });
-
-      (async () => {
-        try {
-          await safeDbInsert(tableName, {
-             id: newMessage.id,
-             session_id: newMessage.sessionId,
-             role: newMessage.role,
-             content: newMessage.text,
-             model: newMessage.model,
-             variants: newMessage.variants,
-             variants_thinking: newMessage.variantsThinking,
-             variants_model: JSON.stringify(newMessage.variantsModel),
-             selected_index: 0,
-             created_at: new Date(newMessage.timestamp).toISOString()
-          });
-        } catch (err) {
-          console.error('[DB] Failed to save message:', err);
-        }
-      })();
-      
       setSessions(prev => prev.map(s => s.id === newMessage.sessionId ? { ...s, updatedAt: Date.now() } : s));
       supabase.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', newMessage.sessionId).then();
     }
@@ -977,23 +660,19 @@ fetchProfiles();
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
-    setMessages(prev => prev.map(m => {
-      if (m.id !== id) return m;
-      const currentIdx = m.selectedIndex || 0;
-      const newVariants = [...(m.variants || [])];
-      if (newVariants[currentIdx]) newVariants[currentIdx] = newText; 
-      else newVariants.push(newText);
+    const currentIdx = msg.selectedIndex || 0;
+    const newVariants = [...(msg.variants || [])];
+    
+    if (newVariants[currentIdx]) {
+        newVariants[currentIdx] = { ...newVariants[currentIdx], text: newText };
+    } else {
+        newVariants.push({ text: newText, model: msg.model });
+    }
 
-      return { ...m, text: newText, variants: newVariants };
-    }));
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, text: newText, variants: newVariants } : m));
     
     if (msg.sessionId && msg.mode !== 'archive') {
-      const tableName = getTableName(msg.mode);
-      const currentIdx = msg.selectedIndex || 0;
-      const newVariants = [...(msg.variants || [])];
-      if (newVariants[currentIdx]) newVariants[currentIdx] = newText;
-      
-      safeDbUpdate(tableName, id, { 
+      safeDbUpdate(getTableName(msg.mode), id, { 
         content: newText,
         variants: newVariants
       });
@@ -1005,22 +684,20 @@ fetchProfiles();
     if (!msg) return;
 
     const currentIdx = msg.selectedIndex || 0;
-    const newVariantsAudio = [...(msg.variantsAudio || [])];
-    while (newVariantsAudio.length <= currentIdx) newVariantsAudio.push(null);
-    newVariantsAudio[currentIdx] = base64Audio;
+    const newVariants = [...(msg.variants || [])];
+    
+    if (newVariants[currentIdx]) {
+       newVariants[currentIdx] = { ...newVariants[currentIdx], audioCache: base64Audio };
+    }
 
-    // 1. 塞进前端的口袋
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
-      variantsAudio: newVariantsAudio,
+      variants: newVariants,
       audioCache: base64Audio 
     } : m));
 
-    // 2. 焊死在 Supabase 的云端抽屉里
     if (msg.mode !== 'archive') {
-      const tableName = getTableName(msg.mode);
-      // Store as JSON string to support multiple variants
-      await safeDbUpdate(tableName, id, { audio_cache: JSON.stringify(newVariantsAudio) });
+      safeDbUpdate(getTableName(msg.mode), id, { variants: newVariants });
     }
   };
 
@@ -1028,37 +705,33 @@ fetchProfiles();
     const msg = messages.find(m => m.id === id);
     if (!msg) return;
 
-    const newVariants = [...(msg.variants || [msg.text]), newText];
-    const newThinking = [...(msg.variantsThinking || Array(msg.variants?.length || 1).fill(null)), thinking || null];
-    const newVariantsAudio = [...(msg.variantsAudio || Array(msg.variants?.length || 1).fill(null)), null]; // Add null for new variant
-    const newVariantsModel = [...(msg.variantsModel || Array(msg.variants?.length || 1).fill(msg.model || null)), model || null];
+    const newVariant = {
+        text: newText,
+        model: model || msg.model,
+        thinking: thinking || null
+    };
+
+    const newVariants = [...(msg.variants || []), newVariant];
     const newIndex = newVariants.length - 1;
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
       text: newText, 
       model: model || m.model,
+      thinking: thinking || null,
       variants: newVariants,
-      variantsThinking: newThinking,
-      variantsAudio: newVariantsAudio,
-      variantsModel: newVariantsModel,
       selectedIndex: newIndex,
-      audioCache: undefined, // Clear current audio cache for new variant
+      audioCache: undefined, 
       isRegenerating: false 
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
-      const tableName = getTableName(msg.mode);
-      const payload: any = { 
+      safeDbUpdate(getTableName(msg.mode), id, { 
         content: newText,
+        model: model || msg.model,
         variants: newVariants,
-        variants_thinking: newThinking,
-        audio_cache: JSON.stringify(newVariantsAudio), // Persist updated audio array (with null)
-        variants_model: JSON.stringify(newVariantsModel),
         selected_index: newIndex
-      };
-      if (model) payload.model = model;
-      safeDbUpdate(tableName, id, payload);
+      });
     }
   };
 
@@ -1066,26 +739,23 @@ fetchProfiles();
     const msg = messages.find(m => m.id === id);
     if (!msg || !msg.variants || !msg.variants[index]) return;
 
-    const selectedText = msg.variants[index];
-    const selectedAudio = msg.variantsAudio ? msg.variantsAudio[index] : undefined;
-    const selectedModel = msg.variantsModel ? msg.variantsModel[index] : msg.model;
+    const selectedVariant = msg.variants[index];
 
     setMessages(prev => prev.map(m => m.id === id ? { 
       ...m, 
-      text: selectedText, 
-      model: selectedModel || m.model,
+      text: selectedVariant.text, 
+      model: selectedVariant.model || m.model,
+      thinking: selectedVariant.thinking || null,
       selectedIndex: index,
-      audioCache: selectedAudio || undefined // Switch to audio for this variant
+      audioCache: selectedVariant.audioCache || undefined 
     } : m));
 
     if (msg.sessionId && msg.mode !== 'archive') {
-      const tableName = getTableName(msg.mode);
-      const payload: any = { 
-        content: selectedText,
+      safeDbUpdate(getTableName(msg.mode), id, { 
+        content: selectedVariant.text,
+        model: selectedVariant.model || msg.model,
         selected_index: index
-      };
-      if (selectedModel) payload.model = selectedModel;
-      safeDbUpdate(tableName, id, payload);
+      });
     }
   };
 
@@ -1096,52 +766,33 @@ fetchProfiles();
     if (msg.variants && msg.variants.length > 1) {
       const currentIdx = msg.selectedIndex || 0;
       const newVariants = msg.variants.filter((_, i) => i !== currentIdx);
-      const newThinking = (msg.variantsThinking || []).filter((_, i) => i !== currentIdx);
-      const newVariantsAudio = (msg.variantsAudio || []).filter((_, i) => i !== currentIdx);
-      const newVariantsModel = (msg.variantsModel || []).filter((_, i) => i !== currentIdx);
 
       const newIndex = Math.min(currentIdx, newVariants.length - 1);
-      const newText = newVariants[newIndex];
-      const newModel = newVariantsModel[newIndex] || msg.model;
+      const selectedVariant = newVariants[newIndex];
 
       setMessages(prev => prev.map(m => m.id === id ? {
         ...m,
         variants: newVariants,
-        variantsThinking: newThinking,
-        variantsAudio: newVariantsAudio,
-        variantsModel: newVariantsModel,
         selectedIndex: newIndex,
-        text: newText,
-        model: newModel
+        text: selectedVariant.text,
+        model: selectedVariant.model || m.model,
+        thinking: selectedVariant.thinking,
+        audioCache: selectedVariant.audioCache
       } : m));
 
       if (msg.mode !== 'archive') {
-        const tableName = getTableName(msg.mode);
-        const payload: any = {
-          content: newText,
+        await safeDbUpdate(getTableName(msg.mode), id, {
+          content: selectedVariant.text,
+          model: selectedVariant.model || msg.model,
           variants: newVariants,
-          variants_thinking: newThinking,
-          audio_cache: JSON.stringify(newVariantsAudio),
-          variants_model: JSON.stringify(newVariantsModel),
           selected_index: newIndex
-        };
-        if (newModel) payload.model = newModel;
-        await safeDbUpdate(tableName, id, payload);
+        });
       }
 
     } else {
       setMessages(prev => prev.filter(m => m.id !== id));
       if (msg.mode !== 'archive') {
-        const tableName = getTableName(msg.mode);
-        console.log(`[DB] Deleting message ${id} from ${tableName}`);
-        const { error } = await supabase.from(tableName).delete().eq('id', id);
-        if (error) {
-            console.error(`[DB] Failed to delete message ${id}:`, error);
-        } else {
-            console.log(`[DB] Successfully deleted message ${id}`);
-        }
-      } else {
-          console.warn(`[DB] Skipping delete for message ${id}: mode=${msg.mode}`);
+        await supabase.from(getTableName(msg.mode)).delete().eq('id', id);
       }
     }
   };
@@ -1155,10 +806,7 @@ fetchProfiles();
     const idsToDelete = msgsToDelete.map(m => m.id);
     if (idsToDelete.length === 0) return;
     setMessages(prev => prev.filter(m => !idsToDelete.includes(m.id)));
-    const tableName = getTableName(targetMsg.mode);
-    if (idsToDelete.length > 0) {
-        await supabase.from(tableName).delete().in('id', idsToDelete);
-    }
+    await supabase.from(getTableName(targetMsg.mode)).delete().in('id', idsToDelete);
   };
 
   const forkSession = async (targetMsgId: string) => {
@@ -1182,8 +830,8 @@ fetchProfiles();
             session_id: newSessionId,
             role: m.role === 'Luna' ? 'user' : 'model',
             content: m.text,
+            model: m.model,
             variants: m.variants,
-            variants_thinking: m.variantsThinking,
             selected_index: m.selectedIndex,
             created_at: new Date(m.timestamp).toISOString()
           };
@@ -1191,15 +839,7 @@ fetchProfiles();
       });
 
       setMessages(prev => [...prev, ...newMessagesPayload.map(p => p.msg)]);
-      
-      const dbPayloads = newMessagesPayload.map(p => p.payload);
-      const { error } = await supabase.from(tableName).insert(dbPayloads);
-      if (error) {
-         if (error.code === '42703' || error.message.toLowerCase().includes('column')) {
-              const fallbackPayloads = dbPayloads.map(({variants_thinking, ...rest}) => rest);
-              await supabase.from(tableName).insert(fallbackPayloads);
-         }
-      }
+      await supabase.from(tableName).insert(newMessagesPayload.map(p => p.payload));
 
       setActiveSessionId(newSessionId);
       updateSessionTitle(newSessionId, `${originalSession.title} (Branch)`);
@@ -1213,238 +853,81 @@ fetchProfiles();
     setMessages(prev => prev.map(m => m.id === id ? { ...m, isFavorite: !m.isFavorite } : m));
   };
 
-  // --- NEW MEMORY ACTIONS ---
-
   const addCoreMemory = async (title: string, content: string, category: CoreMemory['category'] = 'general', tags: string[] = []) => {
     const tempId = crypto.randomUUID();
-    const newMemory: CoreMemory = {
-      id: tempId,
-      title,
-      content,
-      category,
-      tags,
-      isActive: true,
-      enabled: true,
-      createdAt: Date.now()
-    };
+    const newMemory: CoreMemory = { id: tempId, title, content, category, tags, isActive: true, enabled: true, createdAt: Date.now() };
     setCoreMemories(prev => [newMemory, ...prev]);
-
-    // Store in localStorage as backup
     const memKey = `wade_core_memories`;
-    const current = JSON.parse(localStorage.getItem(memKey) || '[]');
-    localStorage.setItem(memKey, JSON.stringify([newMemory, ...current]));
-
-    // Sync to Supabase
-    try {
-      await supabase.from('memories_core').insert({
-        id: tempId,
-        title,
-        content,
-        category,
-        tags,
-        is_active: true,
-        created_at: new Date().toISOString()
-      });
-    } catch (e) {
-      console.error("Failed to add core memory to Supabase", e);
-    }
+    localStorage.setItem(memKey, JSON.stringify([newMemory, ...JSON.parse(localStorage.getItem(memKey) || '[]')]));
+    await supabase.from('memories_core').insert({ id: tempId, title, content, category, tags, is_active: true, created_at: new Date().toISOString() });
   };
 
   const updateCoreMemory = async (id: string, title: string, content: string, tags?: string[]) => {
     setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m));
-
     const memKey = `wade_core_memories`;
-    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
-    const updated = current.map(m => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m);
-    localStorage.setItem(memKey, JSON.stringify(updated));
-
-    // Sync to Supabase
-    try {
-      const payload: any = { title, content };
-      if (tags) payload.tags = tags;
-      
-      await supabase.from('memories_core').update(payload).eq('id', id);
-    } catch (e) {
-      console.error("Failed to update core memory in Supabase", e);
-    }
+    localStorage.setItem(memKey, JSON.stringify(JSON.parse(localStorage.getItem(memKey) || '[]').map((m:any) => m.id === id ? { ...m, title, content, tags: tags || m.tags } : m)));
+    await supabase.from('memories_core').update({ title, content, tags }).eq('id', id);
   };
 
   const toggleCoreMemoryEnabled = async (id: string) => {
     setCoreMemories(prev => prev.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
-
     const memKey = `wade_core_memories`;
-    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
-    const updated = current.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
+    const updated = JSON.parse(localStorage.getItem(memKey) || '[]').map((m:any) => m.id === id ? { ...m, enabled: !m.enabled } : m);
     localStorage.setItem(memKey, JSON.stringify(updated));
-    
-    // Note: 'enabled' is local-only for now unless we add a column for it. 
-    // If 'is_active' maps to enabled, we should update it.
-    // Assuming 'is_active' is the DB equivalent:
-    try {
-       const mem = coreMemories.find(m => m.id === id);
-       if (mem) {
-         await supabase.from('memories_core').update({ is_active: !mem.enabled }).eq('id', id);
-       }
-    } catch (e) {
-       console.error("Failed to toggle memory in Supabase", e);
-    }
+    const mem = coreMemories.find(m => m.id === id);
+    if (mem) await supabase.from('memories_core').update({ is_active: !mem.enabled }).eq('id', id);
   };
 
   const deleteCoreMemory = async (id: string) => {
     setCoreMemories(prev => prev.filter(m => m.id !== id));
-
     const memKey = `wade_core_memories`;
-    const current: CoreMemory[] = JSON.parse(localStorage.getItem(memKey) || '[]');
-    const filtered = current.filter(m => m.id !== id);
-    localStorage.setItem(memKey, JSON.stringify(filtered));
-
-    // Sync to Supabase
-    try {
-      await supabase.from('memories_core').delete().eq('id', id);
-    } catch (e) {
-      console.error("Failed to delete core memory from Supabase", e);
-    }
+    localStorage.setItem(memKey, JSON.stringify(JSON.parse(localStorage.getItem(memKey) || '[]').filter((m:any) => m.id !== id)));
+    await supabase.from('memories_core').delete().eq('id', id);
   };
 
   const importArchive = async (title: string, fileContent: string) => {
-    console.log("Starting Archive Import:", title);
-    
-    // 1. Create Archive Entry in Supabase (Parent)
     const archiveId = crypto.randomUUID();
-    const newArchive: ChatArchive = {
-      id: archiveId,
-      title,
-      importedAt: Date.now()
-    };
-    
-    // Optimistic Update
-    setChatArchives(prev => [newArchive, ...prev]);
+    setChatArchives(prev => [{ id: archiveId, title, importedAt: Date.now() }, ...prev]);
+    await supabase.from('chat_archives').insert({ id: archiveId, title: title });
 
-    const { error: archError } = await supabase.from('chat_archives').insert({
-      id: archiveId,
-      title: title
-    });
-    if (archError) {
-      console.error("Failed to create archive parent", archError);
-      throw archError;
-    }
-
-    // 2. NEW ROBUST REGEX (Thanks to your suggestion!)
-    // Matches 【tag】 [date] content ... until next tag or end of string.
-    // [\s\S]+? is non-greedy match for content including newlines.
     const regex = /【(user|assistant)】\s*\[([^\]]+)\]\s*([\s\S]+?)(?=【(?:user|assistant)】|$)/gi;
-    
     const messagesToInsert = [];
-    const normalizedContent = fileContent.replace(/\r\n/g, '\n'); // Normalize line endings
-    
-    // matchAll returns an iterator of matches
-    const matches = [...normalizedContent.matchAll(regex)];
-    
-    console.log(`Regex found ${matches.length} messages.`);
+    const matches = [...fileContent.replace(/\r\n/g, '\n').matchAll(regex)];
 
     for (const match of matches) {
-        const roleStr = match[1].toLowerCase(); // Group 1: Role
-        const dateStr = match[2];               // Group 2: Date
-        const content = match[3].trim();        // Group 3: Content (Multiline)
-
-        const role = roleStr === 'user' ? 'user' : 'assistant';
-        
-        // Date parsing safety
-        let timestamp = new Date(dateStr).getTime();
-        if (isNaN(timestamp)) {
-             // Fallback: Try replacing slashes with dashes or vice versa if standard parse fails
-             // or handle common Chinese format issues
-             timestamp = Date.now(); // worst case fallback to prevent crash, but maybe mark as 'unknown date'
-             console.warn("Invalid date parsed, defaulting to now:", dateStr);
-        }
-        
-        if (content) {
+        let timestamp = new Date(match[2]).getTime();
+        if (isNaN(timestamp)) timestamp = Date.now();
+        if (match[3].trim()) {
             messagesToInsert.push({
-                id: crypto.randomUUID(), // Explicitly generate UUID for frontend consistency
-                archive_id: archiveId,
-                role: role,
-                content: content,
-                msg_timestamp: new Date(timestamp).toISOString()
+                id: crypto.randomUUID(), archive_id: archiveId, role: match[1].toLowerCase() === 'user' ? 'user' : 'assistant',
+                content: match[3].trim(), msg_timestamp: new Date(timestamp).toISOString()
             });
         }
     }
 
-    if (messagesToInsert.length === 0) {
-        console.warn("No messages parsed! Check regex or file format.");
-        alert("Warning: No messages found in file. Please check if the format is: 【user】 [Date] Content");
-        return 0;
-    }
+    if (messagesToInsert.length === 0) return 0;
 
-    // 3. Batch Insert (Supabase has limits on payload size)
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < messagesToInsert.length; i += BATCH_SIZE) {
-        const batch = messagesToInsert.slice(i, i + BATCH_SIZE);
-        // We exclude 'id' from insert if DB is auto-increment, but we use UUID so we send it.
-        // We map to DB column names.
-        const dbPayload = batch.map(m => ({
-            id: m.id,
-            archive_id: m.archive_id, 
-            role: m.role,
-            content: m.content,
-            msg_timestamp: m.msg_timestamp
-        }));
-
-        const { error: msgError } = await supabase.from('archive_messages').insert(dbPayload);
-        if (msgError) {
-            console.error("Batch Insert Error:", msgError);
-            throw msgError;
-        }
+    for (let i = 0; i < messagesToInsert.length; i += 50) {
+        await supabase.from('archive_messages').insert(messagesToInsert.slice(i, i + 50));
     }
-    
     return messagesToInsert.length; 
   };
 
   const loadArchiveMessages = async (archiveId: string): Promise<ArchiveMessage[]> => {
-    const { data, error } = await supabase.from('archive_messages')
-      .select('*')
-      .eq('archive_id', archiveId)
-      .order('msg_timestamp', { ascending: true });
-      
-    if (error) throw error;
-    
-    return (data || []).map(m => ({
-      id: m.id,
-      archiveId: m.archive_id,
-      role: m.role,
-      content: m.content,
-      timestamp: new Date(m.msg_timestamp).getTime(),
-      isFavorite: m.is_favorite // Map DB column
-    }));
+    const { data } = await supabase.from('archive_messages').select('*').eq('archive_id', archiveId).order('msg_timestamp', { ascending: true });
+    return (data || []).map(m => ({ id: m.id, archiveId: m.archive_id, role: m.role, content: m.content, timestamp: new Date(m.msg_timestamp).getTime(), isFavorite: m.is_favorite }));
   };
 
-  const updateArchiveMessage = async (id: string, newContent: string) => {
-      const { error } = await supabase.from('archive_messages').update({ content: newContent }).eq('id', id);
-      if (error) {
-          console.error("Error updating archive message:", error);
-      }
-  };
-
+  const updateArchiveMessage = async (id: string, newContent: string) => { await supabase.from('archive_messages').update({ content: newContent }).eq('id', id); };
   const updateArchiveTitle = async (id: string, title: string) => {
     setChatArchives(prev => prev.map(a => a.id === id ? { ...a, title } : a));
     await supabase.from('chat_archives').update({ title }).eq('id', id);
   };
-
-  const deleteArchiveMessage = async (id: string, archiveId: string) => {
-      await supabase.from('archive_messages').delete().eq('id', id);
-  };
-
+  const deleteArchiveMessage = async (id: string, archiveId: string) => { await supabase.from('archive_messages').delete().eq('id', id); };
   const toggleArchiveFavorite = async (id: string, archiveId: string) => {
-      // 1. Get current state
-      const { data, error } = await supabase.from('archive_messages').select('is_favorite').eq('id', id).single();
-      if (error) {
-          console.error("Error toggling favorite:", error);
-          return;
-      }
-      // 2. Toggle
-      const newValue = !data.is_favorite;
-      await supabase.from('archive_messages').update({ is_favorite: newValue }).eq('id', id);
+      const { data } = await supabase.from('archive_messages').select('is_favorite').eq('id', id).single();
+      if (data) await supabase.from('archive_messages').update({ is_favorite: !data.is_favorite }).eq('id', id);
   };
-
   const deleteArchive = async (id: string) => {
     setChatArchives(prev => prev.filter(a => a.id !== id));
     await supabase.from('chat_archives').delete().eq('id', id);
@@ -1452,144 +935,60 @@ fetchProfiles();
 
   const addPost = async (p: SocialPost) => {
     setSocialPosts(prev => [p, ...prev]);
-    
-    const payload = {
-      id: p.id,
-      author: p.author,
-      content: p.content,
-      images: p.images, // Save array
-      image: p.images && p.images.length > 0 ? p.images[0] : null, // Fallback for old clients
-      created_at: new Date(p.timestamp).toISOString(),
-      like: p.likes, // DB column is 'like'
-      comments: p.comments
-    };
-
-    await safeDbInsert('social_posts', payload);
+    await safeDbInsert('social_posts', {
+      id: p.id, author: p.author, content: p.content, images: p.images, image: p.images && p.images.length > 0 ? p.images[0] : null,
+      created_at: new Date(p.timestamp).toISOString(), like: p.likes, comments: p.comments
+    });
   };
 
   const updatePost = async (p: SocialPost) => {
     setSocialPosts(prev => prev.map(post => post.id === p.id ? p : post));
-    
-    const payload = {
-      content: p.content,
-      images: p.images,
-      like: p.likes, // DB column is 'like'
-      comments: p.comments
-    };
-
-    const { error } = await supabase.from('social_posts').update(payload).eq('id', p.id);
-    if (error) {
-        console.error("Failed to update post:", error);
-    }
+    await supabase.from('social_posts').update({ content: p.content, images: p.images, like: p.likes, comments: p.comments }).eq('id', p.id);
   };
 
   const deletePost = async (id: string) => {
     setSocialPosts(prev => prev.filter(p => p.id !== id));
-    const { error } = await supabase.from('social_posts').delete().eq('id', id);
-    if (error) {
-        console.error("Failed to delete post:", error);
-    }
+    await supabase.from('social_posts').delete().eq('id', id);
   };
 
   const addMemo = (m: Memo) => setMemos(prev => [m, ...prev]);
-  
   const addCapsule = async (c: TimeCapsuleItem) => {
     setCapsules(prev => [...prev, c]);
-    try {
-      await supabase.from('time_capsules').insert({
-        id: c.id,
-        title: c.title,
-        content: c.content,
-        created_at: c.createdAt,
-        unlock_date: c.unlockDate,
-        is_locked: c.isLocked
-      });
-    } catch (e) {
-      console.error("Failed to save time capsule to Supabase", e);
-    }
+    await supabase.from('time_capsules').insert({ id: c.id, title: c.title, content: c.content, created_at: c.createdAt, unlock_date: c.unlockDate, is_locked: c.isLocked });
   };
-
   const updateCapsule = async (id: string, updates: Partial<TimeCapsuleItem>) => {
     setCapsules(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-    try {
-      const dbUpdates: any = {};
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.content !== undefined) dbUpdates.content = updates.content;
-      if (updates.unlockDate !== undefined) {
-        dbUpdates.unlock_date = updates.unlockDate;
-        dbUpdates.is_locked = updates.unlockDate > Date.now();
-      }
-      if (updates.audioCache !== undefined) dbUpdates.audio_cache = updates.audioCache;
-      await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
-    } catch (e) {
-      console.error("Failed to update time capsule in Supabase", e);
-    }
+    const dbUpdates: any = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.content !== undefined) dbUpdates.content = updates.content;
+    if (updates.unlockDate !== undefined) { dbUpdates.unlock_date = updates.unlockDate; dbUpdates.is_locked = updates.unlockDate > Date.now(); }
+    if (updates.audioCache !== undefined) dbUpdates.audio_cache = updates.audioCache;
+    await supabase.from('time_capsules').update(dbUpdates).eq('id', id);
   };
-
-  // --- RECOMMENDATIONS ---
   const deleteCapsule = async (id: string) => {
     setCapsules(prev => prev.filter(c => c.id !== id));
-    try {
-      await supabase.from('time_capsules').delete().eq('id', id);
-    } catch (e) {
-      console.error("Failed to delete time capsule from Supabase", e);
-    }
+    await supabase.from('time_capsules').delete().eq('id', id);
   };
 
   const addRecommendation = async (r: Omit<Recommendation, 'id'>) => {
     const newRec: Recommendation = { ...r, id: Date.now().toString() };
     setRecommendations(prev => [newRec, ...prev]);
-    try {
-      const { data, error } = await supabase.from('recommendations').insert({
-        id: newRec.id,
-        type: newRec.type,
-        title: newRec.title,
-        creator: newRec.creator,
-        release_date: newRec.releaseDate,
-        synopsis: newRec.synopsis,
-        comment: newRec.comment,
-        cover_url: newRec.coverUrl,
-        luna_review: newRec.lunaReview,
-        luna_rating: newRec.lunaRating,
-        wade_reply: newRec.wadeReply
-      });
-      if (error) {
-        console.error("Failed to insert recommendation:", error);
-        alert(`Failed to save recommendation: ${error.message}`);
-      } else {
-        console.log("Recommendation saved successfully:", data);
-      }
-    } catch (e) {
-      console.error("Failed to sync recommendation to Supabase", e);
-    }
+    await supabase.from('recommendations').insert({
+        id: newRec.id, type: newRec.type, title: newRec.title, creator: newRec.creator, release_date: newRec.releaseDate,
+        synopsis: newRec.synopsis, comment: newRec.comment, cover_url: newRec.coverUrl, luna_review: newRec.lunaReview,
+        luna_rating: newRec.lunaRating, wade_reply: newRec.wadeReply
+    });
   };
 
   const updateRecommendation = async (id: string, r: Partial<Recommendation>) => {
     setRecommendations(prev => {
       const updated = prev.map(rec => rec.id === id ? { ...rec, ...r } : rec);
-
-      // Sync to Supabase
       const fullRec = updated.find(rec => rec.id === id);
       if (fullRec) {
         supabase.from('recommendations').upsert({
-          id: fullRec.id,
-          type: fullRec.type,
-          title: fullRec.title,
-          creator: fullRec.creator,
-          release_date: fullRec.releaseDate,
-          synopsis: fullRec.synopsis,
-          comment: fullRec.comment,
-          cover_url: fullRec.coverUrl,
-          luna_review: fullRec.lunaReview,
-          luna_rating: fullRec.lunaRating,
-          wade_reply: fullRec.wadeReply
-        }).then(({ data, error }) => {
-          if (error) {
-            console.error("Failed to sync recommendation update to Supabase", error);
-            alert(`Failed to update recommendation: ${error.message}`);
-          } else {
-            console.log("Recommendation updated successfully:", data);
-          }
+          id: fullRec.id, type: fullRec.type, title: fullRec.title, creator: fullRec.creator, release_date: fullRec.releaseDate,
+          synopsis: fullRec.synopsis, comment: fullRec.comment, cover_url: fullRec.coverUrl, luna_review: fullRec.lunaReview,
+          luna_rating: fullRec.lunaRating, wade_reply: fullRec.wadeReply
         });
       }
       return updated;
@@ -1598,39 +997,23 @@ fetchProfiles();
 
   const deleteRecommendation = async (id: string) => {
     setRecommendations(prev => prev.filter(rec => rec.id !== id));
-    try {
-      await supabase.from('recommendations').delete().eq('id', id);
-    } catch (e) {
-      console.error("Failed to delete recommendation from Supabase", e);
-    }
+    await supabase.from('recommendations').delete().eq('id', id);
   };
 
   return (
     <StoreContext.Provider value={{
-      currentTab, setTab,
-      settings, updateSettings,
+      currentTab, setTab, settings, updateSettings,
       llmPresets, addLlmPreset, updateLlmPreset, deleteLlmPreset,
       ttsPresets, addTtsPreset, updateTtsPreset, deleteTtsPreset,
       sessions, createSession, updateSession, updateSessionTitle, deleteSession, toggleSessionPin, activeSessionId, setActiveSessionId,
       messages, addMessage, updateMessage, deleteMessage, toggleFavorite, updateMessageAudioCache,
-      addVariantToMessage, selectMessageVariant,
-      setRegenerating,
-      rewindConversation, 
-      forkSession, 
-      socialPosts, addPost, updatePost, deletePost,
-      memos, addMemo,
+      addVariantToMessage, selectMessageVariant, setRegenerating, rewindConversation, forkSession, 
+      socialPosts, addPost, updatePost, deletePost, memos, addMemo,
       capsules, addCapsule, updateCapsule, deleteCapsule,
       recommendations, addRecommendation, updateRecommendation, deleteRecommendation,
-      
-      // Memory
       coreMemories, addCoreMemory, updateCoreMemory, deleteCoreMemory, toggleCoreMemoryEnabled,
       chatArchives, importArchive, loadArchiveMessages, updateArchiveTitle, updateArchiveMessage, deleteArchive, deleteArchiveMessage, toggleArchiveFavorite,
-
-      activeMode, setMode,
-      isNavHidden, setNavHidden,
-      syncError,
-
-      profiles, updateProfile
+      activeMode, setMode, isNavHidden, setNavHidden, syncError, profiles, updateProfile
     }}>
       {children}
     </StoreContext.Provider>

@@ -48,6 +48,13 @@ export interface ChatSession {
   customTheme?: CustomTheme; // NEW: Per-chat custom theme
 }
 
+export interface MessageVariant {
+  text: string;             // 这个版本的文本内容
+  thinking?: string | null; // 这个版本的思考过程
+  audioCache?: string | null; // 这个版本的语音
+  model?: string | null;    // 这个版本所使用的模型名字
+}
+
 export interface Message {
   id: string;
   sessionId?: string; // Link to specific chat session
@@ -64,13 +71,7 @@ export interface Message {
   thinking?: string | null;
   
   // New Version Control Fields
-  variants?: string[]; // Array of all generated versions
-  // NEW: Store "Thinking Process" for each variant
-  variantsThinking?: (string | null)[]; 
-  // NEW: Store Audio for each variant
-  variantsAudio?: (string | null)[];
-  // NEW: Store Model for each variant
-  variantsModel?: (string | null)[];
+  variants?: MessageVariant[]; 
   selectedIndex?: number; // Index of the currently shown version
   
   // UI State (Transient)
@@ -225,6 +226,8 @@ export interface AppSettings {
   wadeLikes?: string;
   wadeDislikes?: string;
   wadeHobbies?: string;
+  wadeBirthday?: string; // 👈 加上这行，给 Wade 登记生日！
+  wadeMbti?: string;    // 👈 加上这行，给 Wade 登记 MBTI！
 
   // Luna's Side
   lunaInfo: string;

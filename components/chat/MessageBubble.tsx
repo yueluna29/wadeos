@@ -74,9 +74,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const longPressHandlers = useLongPress(() => onSelect(msg.id));
 
   const idx = msg.selectedIndex || 0;
-  const thinkingContent = msg.variantsThinking?.[idx] || msg.thinking;
-  const variantModel = (msg.variants as any)?.[idx]?.model;
-  const shownModel = variantModel || msg.model;
+  // 1. 拿出当前选中的那个“打包盒”
+  const currentVariant = msg.variants?.[idx]; 
+  
+  // 2. 如果盒子里有当前版本的思考，就用当前的；否则用外层的
+  const thinkingContent = currentVariant?.thinking || msg.thinking; 
+  
+  // 3. 如果盒子里有当前版本的模型名，就用当前的；否则用外层的
+  const shownModel = currentVariant?.model || msg.model;
 
   const isBase64Image = msg.text.startsWith('data:image/');
 
@@ -235,12 +240,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             src={settings.wadeAvatar}
             className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-sm"
           />
-          <div className="flex flex-col mt-0.5 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
-            </div>
-            <div className="flex items-center justify-between w-full mt-0.5 pr-1">
-              <div className="flex items-center gap-2 text-[10px] text-wade-text-muted">
+          {/* 修改点：缩小间距 (gap-[2px])，让名字和时间贴得更紧 */}
+          <div className="flex flex-col justify-start gap-[2px] flex-1 pt-0.5">
+            <span className="font-bold text-wade-text-main text-sm leading-none">Wade</span>
+            
+            <div className="flex items-center justify-between w-full pr-1">
+              {/* 修改点：固定高度 h-5，并且让文字完全居中，不受按钮影响 */}
+              <div className="flex items-center gap-2 text-[10px] text-wade-text-muted leading-none h-5">
                 <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
                 <span className="opacity-70">{formatTime(msg.timestamp)}</span>
                 <div className="flex items-center gap-1">

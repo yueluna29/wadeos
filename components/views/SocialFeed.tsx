@@ -234,7 +234,7 @@ export const SocialFeed: React.FC = () => {
       const memoriesText = coreMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
       const preset = llmPresets.find(p => p.id === settings.activeLlmId) || llmPresets[0];
       
-      const context = `You are Wade Wilson (Deadpool), writing a personal diary entry about your day with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a diary entry in Deadpool's voice about these specific conversations. Keep it under 200 words.`;
+      const context = `You are Wade Wilson (Deadpool movie ver. ), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool(Ryan Reynolds ver.)'s voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media.`;
 
       let generatedText = "";
       if (!preset.baseUrl || preset.baseUrl.includes('google')) {
@@ -915,7 +915,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   // 👇 给本大爷加上这段雷达探测仪！
   const daysWithMessages = new Set(
     messages
-      .filter(m => m.mode === chatMode)
+      .filter(m => m.mode === chatMode && (m.role === 'Luna' || m.role === 'Wade') && m.text?.trim())
       .map(m => new Date(m.timestamp))
       .filter(d => d.getFullYear() === calMonth.getFullYear() && d.getMonth() === calMonth.getMonth())
       .map(d => d.getDate())
@@ -950,7 +950,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       const memoriesText = safeMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
       const preset = llmPresets.find(p => p.id === activeLlmId);
       
-      const context = `You are Wade Wilson (Deadpool), writing a personal diary entry about your day with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a diary entry in Deadpool's voice about these specific conversations. Keep it under 200 words.`;
+      const context = `You are Wade Wilson (Deadpool movie ver. ), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool(Ryan Reynolds ver.)'s voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media.`;
 
       let generatedText = "";
       if (!preset?.baseUrl || preset.baseUrl.includes('google')) {
@@ -1079,11 +1079,11 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
                   {/* 2. 手搓的超炫日历 */}
                   <div className="bg-wade-bg-card border border-wade-border rounded-xl px-4 pt-4 pb-1">
-                  <div className="flex justify-between items-start mb-4">
-                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1"><Icons.ChevronLeft /></button>
-                      <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1"><Icons.ChevronRight /></button>
-                    </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronLeft /></button>
+                    <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronRight /></button>
+                  </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-wade-text-muted mb-2">
                       {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d}>{d}</div>)}
                     </div>
@@ -1143,11 +1143,12 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                           </div>
                         </>
                       ) : (
-                        // 🔴 第二层：点进会话后，显示具体消息
-                        <>
+                          // 🔴 第二层：点进会话后，显示具体消息
+                          <>
                           <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border flex justify-between items-center">
-                            <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors -ml-1">
-                              <div className="w-4 h-4"><Icons.ChevronLeft /></div> Back
+                            {/* <- 砍掉 < 图标，改成纯文字的 Back，清爽！ */}
+                            <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors font-bold tracking-wider">
+                              BACK
                             </button>
                             <span className="text-wade-accent">{selectedMsgIds.size} Selected</span>
                           </div>
@@ -1155,7 +1156,8 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                             {filteredMessages.filter(m => m.sessionId === selectedSessionId).map(msg => (
                               <div key={msg.id} onClick={() => toggleMessage(msg.id)} className={`p-2 rounded-lg cursor-pointer border text-xs transition-colors ${selectedMsgIds.has(msg.id) ? 'bg-wade-accent-light border-wade-accent text-wade-text-main' : 'border-transparent hover:bg-wade-bg-base text-wade-text-muted'}`}>
                                 <span className="opacity-50 text-[10px] mr-1">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-[#1d9bf0]'}`}>[{msg.role}]</span>: <span className="line-clamp-2 mt-0.5">{msg.text}</span>
+                                {/* <- 拔掉中二的 [] 括号，统一把 Luna 染成你的 wade-text-main */}
+                                <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-wade-text-main'}`}>{msg.role}</span><span className="opacity-80">:</span> <span className="line-clamp-2 mt-0.5">{msg.text}</span>
                               </div>
                             ))}
                           </div>
@@ -1185,7 +1187,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           {/* 这里是底部的 Footer */}
           {tab === 'Wade' && !wadeGeneratedText ? (
             <button onClick={handleGenerateWadeDiary} disabled={selectedMsgIds.size === 0 || !activeLlmId || isGenerating} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${isGenerating || selectedMsgIds.size === 0 || !activeLlmId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
-              {isGenerating ? 'Cooking...' : 'Draft Diary'}
+              {isGenerating ? 'Cooking...' : 'Draft Tweet'}
             </button>
           ) : (
             <button onClick={handlePost} disabled={isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${(isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
