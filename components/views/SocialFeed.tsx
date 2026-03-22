@@ -736,17 +736,25 @@ export const SocialFeed: React.FC = () => {
         </div>
       )}
 
-      {zoomedImage && (
+{zoomedImage && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" onClick={() => setZoomedImage(null)}>
           <div className="relative max-w-5xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <img src={zoomedImage.images[zoomedImage.index]} className="max-w-full max-h-[90vh] object-contain rounded-2xl" />
           </div>
         </div>
       )}
+
+      {/* 👇 参谋帮你插在这里！这才是唤醒手术台的正确位置！ */}
+      <ProfileEditorModal 
+        isOpen={isProfileModalOpen} 
+        onClose={() => setIsProfileModalOpen(false)} 
+      />
+
     </div>
   );
-};
+}; // 👈 这是 SocialFeed 组件关大门的地方！
 
+// 👇 下面才是你那个帅气的模态框定义
 const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   // 1. 顶部的开关：当前在给谁整容？
   const [editTarget, setEditTarget] = useState<'Luna' | 'Wade'>('Luna');
@@ -923,11 +931,6 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
           >
             Save Profile
           </button>
-
-          <ProfileEditorModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
-      />
         </div>
       </div>
     </div>
