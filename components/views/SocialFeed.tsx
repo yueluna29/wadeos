@@ -294,7 +294,7 @@ export const SocialFeed: React.FC = () => {
     return (
       // 1. 关键变化：删掉 whitespace-pre-wrap，改用 whitespace-normal
       // 因为我们要靠 Markdown 里的 remarkBreaks 来处理换行，不需要外层再渲染一遍换行符
-      <div className={`text-[15px] text-wade-text-main leading-6 whitespace-normal ${className || ''}`}>
+      <div className={`text-[15px] text-wade-text-main leading-5 whitespace-normal ${className || ''}`}>
         <div className="inline">
           <Markdown 
             // 2. 确保 remarkBreaks 开启，它负责把单次换行变成 <br />
