@@ -351,34 +351,30 @@ export const SocialFeed: React.FC = () => {
     const currentPost = localPosts.find(p => p.id === viewingPostDetail);
     if (!currentPost) return null;
 
-    const author = currentPost.author;
-    const authorUsername = author === 'Wade' ? 'chimichangapapi' : 'meowgicluna';
+    // 👇 第一刀：主贴顶部的死代码已经清除，全面接管新变量！
+    const isWadePost = currentPost.author === 'Wade';
+    const authorName = isWadePost ? (profiles?.Wade?.display_name || 'Wade Wilson') : (profiles?.Luna?.display_name || 'Luna');
+    const authorUsername = isWadePost ? (profiles?.Wade?.username || 'chimichangapapi') : (profiles?.Luna?.username || 'meowgicluna');
 
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
-          {/* 极简细线返回键 */}
           <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
-          
-          {/* 统一的手写体标题 */}
           <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
-          
-          {/* 极简细线更多选项 */}
           <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <Icons.MoreHorizontal />
           </button>
         </div>
           
-        {/* post详情页 */}
         <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-3 pb-3 max-w-full mx-auto w-full max-h-[calc(100vh-56px)]">
-            <div className="flex flex-row gap-1.5 mb-2.5 cursor-pointer items-start relative" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
+            <div className="flex flex-row gap-1.5 mb-2.5 cursor-pointer items-start relative" onClick={() => setViewingProfile(currentPost.author === 'Wade' ? 'Wade' : 'Luna')}>
               <div className="flex-shrink-0">
-               <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover" />
+               <img src={currentPost.author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover" />
               </div>
                <div className="flex flex-col justify-center leading-tight">
-                  <span className="font-bold text-wade-text-main">{author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
+                  <span className="font-bold text-wade-text-main">{authorName}</span>
                   <span className="text-wade-text-muted truncate">@{authorUsername}</span>
                </div>
             </div>
@@ -389,7 +385,6 @@ export const SocialFeed: React.FC = () => {
 
             {currentPost.images && currentPost.images.length > 0 && (
               <div className="mb-3 rounded-2xl overflow-hidden border border-wade-border">
-                {/* 🔥 封杀详情页的大图缩放禁令 */}
                 {currentPost.images.length === 1 ? <img src={currentPost.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: currentPost.images, index: 0})} /> : <ImageCarousel images={currentPost.images} />}
               </div>
             )}
@@ -404,24 +399,30 @@ export const SocialFeed: React.FC = () => {
               <button className="text-wade-text-muted hover:text-[#1d9bf0] p-2 rounded-full hover:bg-[#1d9bf0]/10 transition-colors flex items-center gap-2"><svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg> {currentPost.comments?.length || ''}</button>
               <button className="text-wade-text-muted hover:text-[#00ba7c] p-2 rounded-full hover:bg-[#00ba7c]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></g></svg></button>
               <button onClick={() => { const updatedPost = { ...currentPost, likes: currentPost.likes > 0 ? 0 : 1 }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p)); }} className={`p-2 rounded-full transition-colors flex items-center gap-2 ${currentPost.likes > 0 ? 'text-[#f91880]' : 'text-wade-text-muted hover:text-[#f91880] hover:bg-[#f91880]/10'}`}>{currentPost.likes > 0 ? <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg>} {currentPost.likes > 0 ? currentPost.likes : ''}</button>
-              <button onClick={() => { const updatedPost = { ...currentPost, isBookmarked: !currentPost.isBookmarked }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p)); }} className={`p-2 rounded-full transition-colors ${currentPost.isBookmarked ? 'text-[#1d9bf0]' : 'text-wade-text-muted hover:text-[#1d9bf0] hover:bg-[#1d9bf0]/10'}`}>{currentPost.isBookmarked ? <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></g></svg>}</button>
+              <button onClick={() => { const updatedPost = { ...currentPost, isBookmarked: !currentPost.isBookmarked }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === currentPost.id ? updatedPost : p)); }} className={`p-2 rounded-full transition-colors ${currentPost.isBookmarked ? 'text-[#1d9bf0]' : 'text-wade-text-muted hover:text-[#1d9bf0] hover:bg-[#1d9bf0]/10'}`}>{currentPost.isBookmarked ? <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[20px] h-[20px] fill-current"><g><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5h-11z"></path></g></svg>}</button>
             </div>
 
             <div className="pt-3 space-y-4">
-              {currentPost.comments && currentPost.comments.map(comment => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
-                    <img src={comment.author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-bold text-[15px] text-wade-text-main hover:underline cursor-pointer">{comment.author === 'Wade' ? 'Wade Wilson' : 'Luna'}</span>
-                      <span className="text-[15px] text-wade-text-muted">@{comment.author === 'Wade' ? 'chimichangapapi' : 'meowgicluna'}</span>
+              {currentPost.comments && currentPost.comments.map(comment => {
+                // 👇 第二刀：连评论区都清理干净了
+                const commentName = comment.author === 'Wade' ? (profiles?.Wade?.display_name || 'Wade Wilson') : (profiles?.Luna?.display_name || 'Luna');
+                const commentUsername = comment.author === 'Wade' ? (profiles?.Wade?.username || 'chimichangapapi') : (profiles?.Luna?.username || 'meowgicluna');
+
+                return (
+                  <div key={comment.id} className="flex gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-wade-border shrink-0 cursor-pointer" onClick={() => setViewingProfile(comment.author === 'Wade' ? 'Wade' : 'Luna')}>
+                      <img src={comment.author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-full h-full object-cover" />
                     </div>
-                    <div className="text-[15px] text-wade-text-main mt-0.5">{comment.text}</div>
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-bold text-[15px] text-wade-text-main hover:underline cursor-pointer">{commentName}</span>
+                        <span className="text-[15px] text-wade-text-muted">@{commentUsername}</span>
+                      </div>
+                      <div className="text-[15px] text-wade-text-main mt-0.5">{comment.text}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-6 flex gap-3 items-start border-t border-wade-border pt-4">
