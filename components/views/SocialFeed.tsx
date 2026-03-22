@@ -590,14 +590,17 @@ export const SocialFeed: React.FC = () => {
                 const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
                 const authorName = isWade ? 'Wade Wilson' : 'Luna';
                 const authorUsername = isWade ? 'chimichangapapi' : 'meowgicluna';
-
+                
+                {/* 每一个post的正文部分，包括作者头像、作者名字、作者用户名、发布时间、正文、图片、评论数、点赞数、收藏数 */}
                 return (
-                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-4 pt-3 pb-3 flex gap-3 font-sans relative">
+                  <div key={post.id} onClick={() => handlePostClick(post)} className="bg-wade-bg-base border-b border-wade-border cursor-pointer px-2 pt-3 pb-3 flex gap-1.5 font-sans relative">
+                    {/* 作者头像 */}
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-wade-border" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                         <img src={avatar} className="w-full h-full object-cover" />
                       </div>
                     </div>
+                    {/* 作者名字、作者用户名、发布时间 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline mb-0.5">
                         <div className="flex items-center gap-1 text-[15px] overflow-hidden whitespace-nowrap">
