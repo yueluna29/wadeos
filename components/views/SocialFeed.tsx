@@ -369,7 +369,7 @@ export const SocialFeed: React.FC = () => {
         </div>
           
         {/* post详情页 */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-3 pb-3 max-w-full mx-auto w-full">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-3 pb-3 max-w-full mx-auto w-full max-h-[calc(100vh-56px)]">
             <div className="flex flex-row gap-1.5 mb-2.5 cursor-pointer items-start relative" onClick={() => setViewingProfile(author === 'Wade' ? 'Wade' : 'Luna')}>
               <div className="flex-shrink-0">
                <img src={author === 'Wade' ? settings.wadeAvatar : settings.lunaAvatar} className="w-12 h-12 rounded-full border border-wade-border hover:opacity-80 transition-opacity object-cover" />
