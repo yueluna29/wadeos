@@ -161,7 +161,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="flex items-start gap-3 mb-0 ml-1 select-none">
             <img src={settings.wadeAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border" />
             <div className="flex flex-col mt-0.5">
-              <span className="font-bold text-wade-text-main text-sm leading-tight">Wade</span>
+              <span className="font-bold text-wade-text-main text-sm leading-none">Wade</span>
               <span className="text-[10px] text-wade-text-muted">Updating...</span>
             </div>
           </div>
@@ -241,7 +241,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             className="w-10 h-10 rounded-full object-cover border border-wade-border shadow-sm"
           />
           {/* 修改点：缩小间距 (gap-[2px])，让名字和时间贴得更紧 */}
-          <div className="flex flex-col justify-start gap-[2px] flex-1 pt-0.5">
+          <div className="flex flex-col justify-start gap-[2px] flex-1 pt-1">
             <span className="font-bold text-wade-text-main text-sm leading-none">Wade</span>
             
             <div className="flex items-center justify-between w-full pr-1">
@@ -328,9 +328,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   return (
     <div className="flex flex-col items-end w-full group animate-fade-in pl-2 mb-6">
       <div className="flex items-start gap-2 mb-0 mr-1 select-none">
-        <div className="flex flex-col items-end mt-0.5">
-          <span className="font-bold text-wade-text-main text-sm leading-tight">Luna</span>
-          <div className="flex items-center gap-2 text-[10px] text-wade-text-muted mt-0.5">
+        <div className="flex flex-col items-end mt-1.5">
+          <span className="font-bold text-wade-text-main text-sm leading-none">Luna</span>
+          <div className="flex items-center gap-2 text-[10px] text-wade-text-muted h-5">
             <span className="tracking-wide">{formatDate(msg.timestamp)}</span>
             <span className="opacity-70">{formatTime(msg.timestamp)}</span>
           </div>

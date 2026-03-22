@@ -324,27 +324,49 @@ export const SocialFeed: React.FC = () => {
     );
 };
 
-  const ImageCarousel = ({ images }: { images: string[] }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    if (!images || images.length === 0) return null;
-    const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-    const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+const ImageCarousel = ({ images }: { images: string[] }) => {
+  if (!images || images.length === 0) return null;
+
+  // 两张图，左右平分
+  if (images.length === 2) {
     return (
-      <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden group border border-wade-border">
-        {/* 🔥 封杀缩放禁令 */}
-        <img src={images[currentIndex]} style={{ WebkitTouchCallout: 'none' }} className="max-w-[560px] w-full h-auto object-cover rounded-2xl mx-auto" alt="Post image" onClick={() => setZoomedImage({images, index: currentIndex})} />
-        {images.length > 1 && (
-          <>
-            <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"><Icons.ChevronLeft /></button>
-            <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 text-black hover:bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm"><Icons.ChevronRight /></button>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/40 px-2 py-1 rounded-full">
-              {images.map((_, idx) => ( <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/50'}`} /> ))}
-            </div>
-          </>
-        )}
+      <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
+        {images.map((img, idx) => (
+          <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
+        ))}
       </div>
     );
-  };
+  }
+
+  // 三张图，左边一大张，右边上下两张
+  if (images.length === 3) {
+    return (
+      <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
+        <img src={images[0]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
+        <div className="grid grid-rows-2 gap-0.5 h-full">
+          <img src={images[1]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 1}); }} />
+          <img src={images[2]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 2}); }} />
+        </div>
+      </div>
+    );
+  }
+
+  // 四张图及以上，标准田字格
+  if (images.length >= 4) {
+    return (
+      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
+        {images.slice(0, 4).map((img, idx) => (
+          <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
+        ))}
+      </div>
+    );
+  }
+
+  // 如果是一张图的逻辑，其实在你下面调用的时候已经处理了，但为了安全我还是加一个保底
+  return (
+     <img src={images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full h-auto max-h-[560px] object-cover cursor-zoom-in select-none" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
+  );
+};
 
   const renderPostDetailView = () => {
     if (!viewingPostDetail) return null;

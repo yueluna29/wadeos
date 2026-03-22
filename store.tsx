@@ -937,7 +937,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     setSocialPosts(prev => [p, ...prev]);
     await safeDbInsert('social_posts', {
       id: p.id, author: p.author, content: p.content, images: p.images, image: p.images && p.images.length > 0 ? p.images[0] : null,
-      created_at: new Date(p.timestamp).toISOString(), like: p.likes, comments: p.comments
+      created_at: new Date(p.timestamp).toISOString(), likes: p.likes, comments: p.comments
     });
   };
 
