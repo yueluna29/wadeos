@@ -520,7 +520,7 @@ export const SocialFeed: React.FC = () => {
             {userPosts.length === 0 ? (
               <div className="text-center py-20 text-wade-text-muted font-medium font-sans">No posts to see here yet.</div>
             ) : userPosts.map(post => (
-              <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex relative">
+              <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2 items-start relative">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
                     <img src={avatar} className="w-full h-full object-cover" />
