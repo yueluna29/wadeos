@@ -252,9 +252,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
           // 🌟 核心修复区 1：完美解析全新的打包盒结构
           const mapRow = (row: any, mode: ChatMode): Message => {
-            let r = row.role;
-            if (r === 'user') r = 'Luna';
-            if (r === 'model') r = 'Wade';
+            const r = row.role;
 
             let parsedVariants: any[] = [];
             if (Array.isArray(row.variants)) {
@@ -822,21 +820,21 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         .filter(m => m.sessionId === originalSession.id && m.timestamp <= targetMsg.timestamp)
         .sort((a,b) => a.timestamp - b.timestamp);
       
-      const tableName = getTableName(originalSession.mode);
-      const newMessagesPayload = msgsToCopy.map(m => {
-          const newMsgId = crypto.randomUUID(); 
-          const payload = {
-            id: newMsgId,
-            session_id: newSessionId,
-            role: m.role === 'Luna' ? 'user' : 'model',
-            content: m.text,
-            model: m.model,
-            variants: m.variants,
-            selected_index: m.selectedIndex,
-            created_at: new Date(m.timestamp).toISOString()
-          };
-          return { msg: { ...m, id: newMsgId, sessionId: newSessionId }, payload };
-      });
+        const tableName = getTableName(originalSession.mode);
+        const newMessagesPayload = msgsToCopy.map(m => {
+            const newMsgId = crypto.randomUUID(); 
+            const payload = {
+              id: newMsgId,
+              session_id: newSessionId,
+              role: m.role, // 👈 删掉那个 m.role === 'Luna' ? 'user' : 'model'，直接传 m.role
+              content: m.text,
+              model: m.model,
+              variants: m.variants,
+              selected_index: m.selectedIndex,
+              created_at: new Date(m.timestamp).toISOString()
+            };
+            return { msg: { ...m, id: newMsgId, sessionId: newSessionId }, payload };
+        });
 
       setMessages(prev => [...prev, ...newMessagesPayload.map(p => p.msg)]);
       await supabase.from(tableName).insert(newMessagesPayload.map(p => p.payload));
