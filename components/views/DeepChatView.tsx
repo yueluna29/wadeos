@@ -6,6 +6,7 @@ import { supabase } from '../../services/supabase';
 import { Icons } from '../ui/Icons';
 import { ThemeStudio } from './ThemeStudio';
 import { XRayModal } from '../chat/XRayModal';
+import { MemoryModal } from '../chat/MemoryModal';
 
 // 我们的赛博乐高积木
 import { ChatInputArea, Attachment } from '../chat/ChatInputArea';
@@ -303,6 +304,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
 
       <ThemeStudio isOpen={isThemeStudioOpen} onClose={() => setIsThemeStudioOpen(false)} sessionId={activeSessionId || undefined} />
       <XRayModal isOpen={showDebug} onClose={() => setShowDebug(false)} />
+      <MemoryModal isOpen={showMemorySelector} onClose={() => setShowMemorySelector(false)} />
 
       {/* 搜索悬浮框 */}
       {showSearch && (
