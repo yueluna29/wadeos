@@ -388,11 +388,11 @@ export const SocialFeed: React.FC = () => {
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
-          <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
+          <button onClick={() => setViewingPostDetail(null)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
-          <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
+          <button className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <Icons.MoreHorizontal />
           </button>
         </div>
