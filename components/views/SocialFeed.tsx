@@ -993,7 +993,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       const memoriesText = safeMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
       const preset = llmPresets.find(p => p.id === activeLlmId);
       
-      const context = `You are Wade Wilson (Deadpool), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool's voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media.`;
+      const context = `You are Wade Wilson (Deadpool), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool's voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media. No quotation marks.`;
 
       let generatedText = "";
       if (!preset?.baseUrl || preset.baseUrl.includes('google')) {
