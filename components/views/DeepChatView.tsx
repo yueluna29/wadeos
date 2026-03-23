@@ -50,7 +50,8 @@ interface DeepChatViewProps {
 export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
   const {
     messages, addMessage, deleteMessage, updateMessage, settings, activeSessionId, sessions, updateSession, updateSettings, toggleSessionPin,
-    llmPresets, addLlmPreset, coreMemories, toggleCoreMemoryEnabled, toggleFavorite, setRegenerating, addVariantToMessage, selectMessageVariant, forkSession
+    llmPresets, addLlmPreset, coreMemories, toggleCoreMemoryEnabled, toggleFavorite, setRegenerating, addVariantToMessage, selectMessageVariant, forkSession,
+    setActiveSessionId, addSession // 👈 补上这两个缺失的权限
   } = useStore();
 
   const [sessionSummary, setSessionSummary] = useState<string>("");
@@ -156,10 +157,29 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
 
   // --- 核心发送逻辑 ---
   const handleSend = async (text: string, attachments: Attachment[]) => {
-    if (!activeSessionId) return;
+    let targetSessionId = activeSessionId;
+
+    // 核心修复：如果是全新的草稿，当场建档并激活！
+    if (!targetSessionId) {
+      targetSessionId = Date.now().toString();
+      
+      if (addSession) {
+        addSession({
+          id: targetSessionId,
+          title: 'New Conversation',
+          mode: 'deep',
+          updatedAt: Date.now(),
+          isPinned: false
+        });
+      }
+      
+      if (setActiveSessionId) {
+        setActiveSessionId(targetSessionId);
+      }
+    }
     
     const newMessage: Message = {
-      id: Date.now().toString(), sessionId: activeSessionId, role: 'Luna', text: text, timestamp: Date.now(), mode: 'deep',
+      id: Date.now().toString(), sessionId: targetSessionId, role: 'Luna', text: text, timestamp: Date.now(), mode: 'deep',
       attachments: attachments.map(a => ({ type: a.type, content: a.content.split(',')[1], mimeType: a.mimeType, name: a.name })),
       image: attachments.find(a => a.type === 'image')?.content.split(',')[1]
     };
@@ -167,7 +187,9 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
     addMessage(newMessage);
     setIsTyping(true);
     setWadeStatus('typing');
-    setTimeout(() => { triggerAIResponse(activeSessionId); }, 1500); 
+    
+    // 准星校正：确保 AI 回复的时候，瞄准的是刚刚新建的这个目标会话
+    setTimeout(() => { triggerAIResponse(targetSessionId); }, 1500); 
   };
 
   const triggerAIResponse = async (targetSessionId: string, regenMsgId?: string) => {
