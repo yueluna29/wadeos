@@ -284,24 +284,31 @@ export const SocialFeed: React.FC = () => {
 
   // PostCaption
   const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
-    // 依然用长度判断是否需要展开按钮
     const needsShowMore = (content.length > 150 || content.split('\n').length > 5);
     const shouldClamp = !isDetail && !isExpanded && needsShowMore;
 
-    // 重点：不要截断 content！让它保持完整！
-    let displayContent = content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
+    let displayContent = shouldClamp ? content.substring(0, 140).trim() + '...' : content;
+    
+    // 处理话题标签
+    displayContent = displayContent.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
+
     const processedContent = hideAuthor ? displayContent : `**${authorName}** ` + displayContent;
 
     return (
+      // 1. 关键变化：删掉 whitespace-pre-wrap，改用 whitespace-normal
+      // 因为我们要靠 Markdown 里的 remarkBreaks 来处理换行，不需要外层再渲染一遍换行符
       <div className={`text-[15px] text-wade-text-main leading-5 whitespace-normal ${className || ''}`}>
-        {/* 用 line-clamp 替代 JS 切割，保证 Markdown 的内脏不被切碎 */}
-        <div className={shouldClamp ? "line-clamp-4 break-words inline-block w-full" : "break-words inline"}>
+        <div className="inline">
           <Markdown 
+            // 2. 确保 remarkBreaks 开启，它负责把单次换行变成 <br />
             remarkPlugins={[remarkGfm, remarkBreaks]} 
             components={{ 
-              p: ({children}) => <span className="inline">{children}</span>,
-              strong: ({children}) => <span className="font-bold text-wade-text-main mr-1">{children}</span>, 
-              a: ({children}) => <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>
+              // 3. 彻底把 p 标签变透明，完全不占垂直空间
+              p: ({node, ...props}) => <span className="inline" {...props} />,
+              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
+              a: ({node, href, children, ...props}) => { 
+                return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; 
+              } 
             }}
           >
             {processedContent}
@@ -309,11 +316,9 @@ export const SocialFeed: React.FC = () => {
         </div>
         
         {shouldClamp && (
-          <div className="mt-0.5">
-             <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer inline-block">
-               Show more
-             </span>
-          </div>
+          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
+            Show more
+          </span>
         )}
       </div>
     );
@@ -388,11 +393,11 @@ export const SocialFeed: React.FC = () => {
     return (
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
-          <button onClick={() => setViewingPostDetail(null)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
-          <button className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
+          <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
             <Icons.MoreHorizontal />
           </button>
         </div>
@@ -554,7 +559,7 @@ export const SocialFeed: React.FC = () => {
           <div className="bg-wade-bg-base">
             {userPosts.length === 0 ? (
               <div className="text-center py-20 text-wade-text-muted font-medium font-sans">No posts to see here yet.</div>
-            ) : [...userPosts].sort((a, b) => b.timestamp - a.timestamp).map(post => (
+            ) : userPosts.map(post => (
               <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2 items-start relative">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
@@ -605,14 +610,14 @@ export const SocialFeed: React.FC = () => {
           <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-[53px] flex items-center justify-between sticky top-0 z-40">
             {/* 设置变量用户信息 */}
             <button onClick={() => setIsProfileModalOpen(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
             
             <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">WadeOS</div>
             
             {/* 添加post */}
             <button onClick={() => setIsPostEditorOpen(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
           </div>
 
@@ -620,7 +625,7 @@ export const SocialFeed: React.FC = () => {
             <div className="max-w-full mx-auto">
               {localPosts.length === 0 ? (
                 <div className="text-center py-20 text-wade-text-muted font-medium font-sans">Welcome to X. No posts yet.</div>
-              ) : [...localPosts].sort((a, b) => b.timestamp - a.timestamp).map(post => {
+              ) : localPosts.map(post => {
                 const isWade = post.author === 'Wade';
                 const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
                 
@@ -675,7 +680,7 @@ export const SocialFeed: React.FC = () => {
                           {post.images.length === 1 ? <img src={post.images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full aspect-square object-cover cursor-zoom-in select-none" onClick={() => setZoomedImage({images: post.images, index: 0})} /> : <ImageCarousel images={post.images} />}
                         </div>
                       )}
-                      <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2 h-8 leading-none" onClick={e => e.stopPropagation()}>
+                      <div className="flex justify-between items-center text-wade-text-muted max-w-md pr-4 mt-2" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setViewingPostDetail(post.id)} className="flex items-center gap-1 w-16 hover:text-[#1d9bf0] transition-colors">
                           <div className="p-2 -m-2 rounded-full hover:bg-[#1d9bf0]/10 transition-colors"><svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></g></svg></div>
                           <span className="text-[13px] ml-1">{post.comments?.length > 0 ? post.comments.length : ''}</span>
@@ -687,7 +692,7 @@ export const SocialFeed: React.FC = () => {
                           <div className={`p-2 -m-2 rounded-full transition-colors ${post.likes > 0 ? '' : 'hover:bg-[#f91880]/10'}`}>
                             {post.likes > 0 ? <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current text-[#f91880]"><g><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg> : <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current"><g><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></g></svg>}
                           </div>
-                          <span className="text-[13px] ml-1 leading-none">{post.likes > 0 ? post.likes : ''}</span>
+                          <span className="text-[13px] ml-1">{post.likes > 0 ? post.likes : ''}</span>
                         </button>
                         <div className="flex items-center gap-1 w-16 transition-colors">
                           <button onClick={() => { const updatedPost = { ...post, isBookmarked: !post.isBookmarked }; updatePost(updatedPost); setLocalPosts(prev => prev.map(p => p.id === post.id ? updatedPost : p)); }} className={`p-2 -m-2 rounded-full transition-colors group ${post.isBookmarked ? 'text-[#1d9bf0]' : 'hover:text-[#1d9bf0]'}`}>
@@ -880,10 +885,7 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 };
 
 const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { settings, profiles, addPost, llmPresets: rawLlmPresets, messages: rawMessages, coreMemories, sessions: rawSessions } = useStore();
-  const messages = Array.isArray(rawMessages) ? rawMessages : [];
-  const sessions = Array.isArray(rawSessions) ? rawSessions : [];
-  const llmPresets = Array.isArray(rawLlmPresets) ? rawLlmPresets : [];
+  const { settings, profiles, addPost, llmPresets, messages, coreMemories, sessions } = useStore();
   
   const [tab, setTab] = useState<'Luna' | 'Wade'>('Luna');
   

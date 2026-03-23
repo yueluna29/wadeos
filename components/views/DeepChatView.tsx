@@ -51,7 +51,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
   const {
     messages, addMessage, deleteMessage, updateMessage, settings, activeSessionId, sessions, updateSession, updateSettings, toggleSessionPin,
     llmPresets, addLlmPreset, coreMemories, toggleCoreMemoryEnabled, toggleFavorite, setRegenerating, addVariantToMessage, selectMessageVariant, forkSession,
-    setActiveSessionId, addSession // 👈 补上这两个缺失的权限
+    setActiveSessionId // 👈 只留这个，把那个该死的 addSession 删干净
   } = useStore();
 
   const [sessionSummary, setSessionSummary] = useState<string>("");
@@ -159,23 +159,10 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
   const handleSend = async (text: string, attachments: Attachment[]) => {
     let targetSessionId = activeSessionId;
 
-    // 核心修复：如果是全新的草稿，当场建档并激活！
+    // 简单粗暴，没有 ID 就当场捏一个
     if (!targetSessionId) {
       targetSessionId = Date.now().toString();
-      
-      if (addSession) {
-        addSession({
-          id: targetSessionId,
-          title: 'New Conversation',
-          mode: 'deep',
-          updatedAt: Date.now(),
-          isPinned: false
-        });
-      }
-      
-      if (setActiveSessionId) {
-        setActiveSessionId(targetSessionId);
-      }
+      setActiveSessionId(targetSessionId);
     }
     
     const newMessage: Message = {
@@ -187,8 +174,6 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
     addMessage(newMessage);
     setIsTyping(true);
     setWadeStatus('typing');
-    
-    // 准星校正：确保 AI 回复的时候，瞄准的是刚刚新建的这个目标会话
     setTimeout(() => { triggerAIResponse(targetSessionId); }, 1500); 
   };
 
