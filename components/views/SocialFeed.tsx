@@ -299,9 +299,9 @@ export const SocialFeed: React.FC = () => {
           <Markdown 
             remarkPlugins={[remarkGfm, remarkBreaks]} 
             components={{ 
-              p: ({node, ...props}) => <span className="inline" {...props} />,
-              strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
-              a: ({node, href, children, ...props}) => <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>
+              p: ({children}) => <span className="inline">{children}</span>,
+              strong: ({children}) => <span className="font-bold text-wade-text-main mr-1">{children}</span>, 
+              a: ({children}) => <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>
             }}
           >
             {processedContent}
@@ -880,7 +880,10 @@ const ProfileEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 };
 
 const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { settings, profiles, addPost, llmPresets, messages, coreMemories, sessions } = useStore();
+  const { settings, profiles, addPost, llmPresets: rawLlmPresets, messages: rawMessages, coreMemories, sessions: rawSessions } = useStore();
+  const messages = Array.isArray(rawMessages) ? rawMessages : [];
+  const sessions = Array.isArray(rawSessions) ? rawSessions : [];
+  const llmPresets = Array.isArray(rawLlmPresets) ? rawLlmPresets : [];
   
   const [tab, setTab] = useState<'Luna' | 'Wade'>('Luna');
   
