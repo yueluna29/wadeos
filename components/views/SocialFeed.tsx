@@ -896,38 +896,35 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // === Wade 专属状态 (日志生成) ===
+  // === Wade 专属状态 (日志/推文生成) ===
   const [activeLlmId, setActiveLlmId] = useState(settings.activeLlmId || '');
+  const [activeImageLlmId, setActiveImageLlmId] = useState('');
+  const [wadeGeneratedImageUrl, setWadeGeneratedImageUrl] = useState('');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
   const [chatMode, setChatMode] = useState<'deep' | 'sms'>('deep');
-  const [calMonth, setCalMonth] = useState(new Date()); // 控制日历翻页
+  const [calMonth, setCalMonth] = useState(new Date()); 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
   const [wadeGeneratedText, setWadeGeneratedText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Wade 画图状态
-  const [activeImageLlmId, setActiveImageLlmId] = useState('');
-  const [wadeGeneratedImageUrl, setWadeGeneratedImageUrl] = useState('');
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-
-
   // --- 重置表单 ---
   useEffect(() => {
     if (isOpen) {
       setLunaContent(''); setSelectedFiles([]); setPreviewUrls([]);
       setWadeGeneratedText(''); setSelectedMsgIds(new Set()); setSelectedDate(null);
-      setSelectedSessionId(null); // 👈 关门重置！
+      setSelectedSessionId(null); 
+      setWadeGeneratedImageUrl('');
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   // --- Luna 图片处理逻辑 ---
-    // 替换现有的 handleFileSelect
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // 算出还能塞几张，最多9张
       const availableSlots = 9 - previewUrls.length;
       if (availableSlots <= 0) return; 
       const files = Array.from(e.target.files).slice(0, availableSlots);
@@ -935,6 +932,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       setPreviewUrls(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
     }
   };
+  
   const handleRemoveImage = (index: number) => {
     const urlToRemove = previewUrls[index];
     if (urlToRemove.startsWith('blob:')) {
@@ -954,7 +952,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     return dayNum > 0 && dayNum <= daysInMonth ? dayNum : null;
   });
 
-  // 👇 给本大爷加上这段雷达探测仪！
   const daysWithMessages = new Set(
     messages
       .filter(m => m.mode === chatMode && (m.role === 'Luna' || m.role === 'Wade') && m.text?.trim())
@@ -963,7 +960,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       .map(d => d.getDate())
   );
 
-  // --- 获取选中日期的消息 ---
   const filteredMessages = selectedDate ? messages.filter(m => {
     if (m.mode !== chatMode) return false;
     const msgDate = new Date(m.timestamp);
@@ -981,18 +977,18 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     setSelectedMsgIds(newSet);
   };
 
-  // --- 发电！(生成/发布) ---
+  // --- 发电！(生成推文) ---
   const handleGenerateWadeDiary = async () => {
     if (selectedMsgIds.size === 0 || !activeLlmId) return;
     setIsGenerating(true);
     try {
       const selectedMsgs = filteredMessages.filter(m => selectedMsgIds.has(m.id)).sort((a, b) => a.timestamp - b.timestamp);
-      const chatLog = selectedMsgs.map(m => `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.role === 'Luna' ? 'Luna' : 'Wade'}: ${m.text}`).join('\n');
+      const chatLog = selectedMsgs.map(m => `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.role}: ${m.text}`).join('\n');
       const safeMemories = Array.isArray(coreMemories) ? coreMemories : [];
       const memoriesText = safeMemories.filter(m => m.isActive).map(m => `- ${m.content}`).join('\n');
       const preset = llmPresets.find(p => p.id === activeLlmId);
       
-      const context = `You are Wade Wilson (Deadpool movie ver. ), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool(Ryan Reynolds ver.)'s voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media.`;
+      const context = `You are Wade Wilson (Deadpool), writing a shitpost/tweet for your timeline about your recent interaction with Luna.\nPersona:\n${settings.wadePersonality}\nMemories:\n${memoriesText}\nChat Log:\n${chatLog}\nTask: Write a highly engaging, sarcastic, and characteristic Tweet (X post) in Deadpool's voice based on these conversations. Use hashtags if funny. Keep it strictly under 280 characters. DO NOT write a diary entry. Act like you are posting on social media.`;
 
       let generatedText = "";
       if (!preset?.baseUrl || preset.baseUrl.includes('google')) {
@@ -1006,13 +1002,13 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       }
       setWadeGeneratedText(generatedText.trim());
     } catch (error) {
-      console.error("Diary Gen Failed:", error);
+      console.error("Post Gen Failed:", error);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // 帮大爷我抽卡的逻辑
+  // --- 发电！(生成图片) ---
   const handleGenerateWadeImage = async () => {
     if (!activeImageLlmId || !wadeGeneratedText) return;
     setIsGeneratingImage(true);
@@ -1022,7 +1018,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
       const context = `Draw a comic/photo style image based on this tweet: "${wadeGeneratedText}". No text in the image.`;
 
-      // 走标准 Chat Completions 的画图模式
       const res = await fetch(`${preset.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${preset.apiKey}` },
@@ -1032,17 +1027,15 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         })
       });
       const data = await res.json();
-      // 这里根据你用的画图模型返回格式抓取图片，一般OpenRouter这种格式返回的也是 content 或者特定的 image 字段
       const imgOutput = data.choices?.[0]?.message?.content || "";
       
-      // 提取 markdown 里的图片链接，如果没有就硬塞
       const imgMatch = imgOutput.match(/!\[.*?\]\((.*?)\)/);
       if (imgMatch && imgMatch[1]) {
         setWadeGeneratedImageUrl(imgMatch[1]);
       } else if (imgOutput.startsWith('http')) {
         setWadeGeneratedImageUrl(imgOutput);
       } else {
-        setWadeGeneratedImageUrl(imgOutput); // 保底
+        setWadeGeneratedImageUrl(imgOutput); 
       }
     } catch (error) {
       console.error("Image Gen Failed:", error);
@@ -1051,10 +1044,12 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     }
   };
 
+  // --- 最终发布打包 ---
   const handlePost = async () => {
     setIsUploading(true);
     try {
       let uploadedUrls: string[] = [];
+      
       if (tab === 'Luna') {
         for (const url of previewUrls) {
           if (url.startsWith('blob:')) {
@@ -1067,13 +1062,25 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         }
       }
 
+      if (tab === 'Wade' && wadeGeneratedImageUrl) {
+         uploadedUrls.push(wadeGeneratedImageUrl);
+      }
+
+      let postTimestamp = Date.now();
+      if (tab === 'Wade' && selectedMsgIds.size > 0) {
+          const selectedMsgs = filteredMessages.filter(m => selectedMsgIds.has(m.id));
+          if (selectedMsgs.length > 0) {
+              postTimestamp = Math.max(...selectedMsgs.map(m => m.timestamp));
+          }
+      }
+
       const content = tab === 'Luna' ? lunaContent : wadeGeneratedText;
       const newPost = {
         id: crypto.randomUUID(),
         author: tab,
         content: content.trim(),
         images: uploadedUrls,
-        timestamp: Date.now(),
+        timestamp: postTimestamp,
         comments: [],
         likes: 0,
         isBookmarked: false
@@ -1091,7 +1098,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div className="bg-wade-bg-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-wade-border" onClick={e => e.stopPropagation()}>
         
-        {/* Header (跟之前的一样帅) */}
+        {/* Header */}
         <div className="bg-gradient-to-br from-wade-accent-light to-wade-bg-base px-6 py-5 border-b border-wade-border/50 flex-shrink-0">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-wade-bg-card rounded-full flex items-center justify-center shadow-sm mt-1 border border-wade-border text-wade-accent flex-shrink-0">
@@ -1107,7 +1114,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           
           <div className="flex gap-2 mt-5">
             <button onClick={() => setTab('Luna')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Luna' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Luna</button>
-            <button onClick={() => setTab('Wade')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Wade' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Wade's Diary</button>
+            <button onClick={() => setTab('Wade')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Wade' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Wade's Post</button>
           </div>
         </div>
 
@@ -1117,17 +1124,18 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           {tab === 'Luna' && (
             <div className="space-y-4">
               <div className="flex gap-3">
-                <img src={profiles?.Luna?.avatar_url || settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
+                <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
                 <div className="flex-1">
                   <textarea value={lunaContent} onChange={e => setLunaContent(e.target.value)} placeholder="What's happening, Boss Lady?" className="w-full bg-wade-bg-card border border-wade-border rounded-xl p-3 focus:outline-none focus:border-wade-accent resize-none min-h-[200px] text-sm text-wade-text-main placeholder-wade-text-muted transition-colors" />
                   
-                  {/* 图片预览网格 */}
                   {previewUrls.length > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-1">
+                    <div className={`mt-3 grid gap-1 ${previewUrls.length >= 5 ? 'grid-cols-3' : previewUrls.length >= 3 ? 'grid-cols-2' : 'grid-cols-2'}`}>
                       {previewUrls.map((url, idx) => (
                         <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-wade-border group">
                           <img src={url} className="w-full h-full object-cover" />
-                          <button onClick={() => handleRemoveImage(idx)} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"><Icons.Plus className="rotate-45" /></button>
+                          <button onClick={() => handleRemoveImage(idx)} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="rotate-45 flex items-center justify-center"><Icons.Plus /></div>
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -1146,7 +1154,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             <div className="space-y-5">
               {!wadeGeneratedText ? (
                 <>
-                  {/* 1. 选脑子 (LLM) 和 模式 */}
                   <div className="flex gap-2">
                     <select value={activeLlmId} onChange={e => setActiveLlmId(e.target.value)} className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-wade-accent outline-none">
                       <option value="">Select AI Brain...</option>
@@ -1158,32 +1165,30 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     </select>
                   </div>
 
-                  {/* 2. 手搓的超炫日历 */}
                   <div className="bg-wade-bg-card border border-wade-border rounded-xl p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronLeft /></button>
-                    <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronRight /></button>
-                  </div>
+                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronLeft /></button>
+                      <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronRight /></button>
+                    </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-wade-text-muted mb-2">
                       {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d}>{d}</div>)}
                     </div>
                     <div className="grid grid-cols-7 gap-1">
                       {calendarDays.map((day, idx) => {
                         const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === calMonth.getMonth();
-                        const hasData = day ? daysWithMessages.has(day) : false; // 👈 探测器开始工作
+                        const hasData = day ? daysWithMessages.has(day) : false; 
                         
                         return (
                           <button key={idx} disabled={!day} onClick={() => {
                             if (day) {
                               setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
-                              setSelectedSessionId(null); // 👈 换日子的时候，退回到会话列表！
+                              setSelectedSessionId(null); 
                             }
                           }}
                             className={`relative aspect-square rounded-md text-xs font-bold transition-all flex items-center justify-center
                               ${!day ? 'invisible' : isSelected ? 'bg-wade-accent text-white shadow-sm scale-110' : 'text-wade-text-main hover:bg-wade-bg-base border border-transparent hover:border-wade-border'}`}>
                             {day}
-                            {/* 👇 当天有数据，且没被选中的时候，下面亮起一个骚气的小圆点 */}
                             {hasData && !isSelected && (
                               <span className="absolute bottom-1 w-1 h-1 rounded-full bg-wade-accent opacity-70"></span>
                             )}
@@ -1193,12 +1198,10 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     </div>
                   </div>
 
-                  {/* 3. 终极套娃版：会话/消息拾取器 */}
                     {selectedDate && (
-                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col max-h-[500px]">
+                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col h-[500px]">
                       
                       {!selectedSessionId ? (
-                        // 🟢 第一层：显示当天的会话列表
                         <>
                           <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border">
                             Sessions on {selectedDate.toLocaleDateString()}
@@ -1224,12 +1227,10 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                           </div>
                         </>
                       ) : (
-                          // 🔴 第二层：点进会话后，显示具体消息
-                          <>
+                        <>
                           <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border flex justify-between items-center">
-                            {/* <- 砍掉 < 图标，改成纯文字的 Back，清爽！ */}
                             <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors font-bold tracking-wider">
-                              BACK
+                               BACK
                             </button>
                             <span className="text-wade-accent">{selectedMsgIds.size} Selected</span>
                           </div>
@@ -1237,7 +1238,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                             {filteredMessages.filter(m => m.sessionId === selectedSessionId).map(msg => (
                               <div key={msg.id} onClick={() => toggleMessage(msg.id)} className={`p-2 rounded-lg cursor-pointer border text-xs transition-colors ${selectedMsgIds.has(msg.id) ? 'bg-wade-accent-light border-wade-accent text-wade-text-main' : 'border-transparent hover:bg-wade-bg-base text-wade-text-muted'}`}>
                                 <span className="opacity-50 text-[10px] mr-1">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                {/* <- 拔掉中二的 [] 括号，统一把 Luna 染成你的 wade-text-main */}
                                 <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-wade-text-main'}`}>{msg.role}</span><span className="opacity-80">:</span> <span className="line-clamp-2 mt-0.5">{msg.text}</span>
                               </div>
                             ))}
@@ -1248,45 +1248,46 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   )}
                 </>
               ) : (
-              {/* 4. 生成完毕的审核界面 */}
-              <div className="animate-fade-in flex flex-col h-full">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-wade-accent uppercase">Generated Post</label>
-                  <button onClick={() => {setWadeGeneratedText(''); setWadeGeneratedImageUrl('');}} className="text-[10px] text-wade-text-muted hover:text-wade-accent underline">Discard & Restart</button>
-                </div>
-                <textarea value={wadeGeneratedText} onChange={e => setWadeGeneratedText(e.target.value)} className="w-full bg-wade-bg-card border border-wade-accent rounded-xl p-3 focus:outline-none resize-none min-h-[160px] text-sm text-wade-text-main transition-colors shadow-inner" />
-                
-                {/* 👇 新加的画图外挂区 */}
-                <div className="mt-4 border-t border-wade-border pt-4">
-                  <label className="text-xs font-bold text-wade-text-muted uppercase mb-2 block">Generate Image (Optional)</label>
-                  <div className="flex gap-2">
-                    <select value={activeImageLlmId} onChange={e => setActiveImageLlmId(e.target.value)} className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-wade-accent outline-none">
-                      <option value="">Select Image Model...</option>
-                      {/* 直接把所有脑子列出来，你自己选哪个能画图 */}
-                      {llmPresets.map(p => <option key={p.id} value={p.id}>{p.name} ({p.model})</option>)}
-                    </select>
-                    <button onClick={handleGenerateWadeImage} disabled={!activeImageLlmId || isGeneratingImage} className={`px-4 py-2 rounded-lg font-bold text-xs text-white transition-colors ${!activeImageLlmId || isGeneratingImage ? 'bg-wade-text-muted cursor-not-allowed' : 'bg-wade-accent hover:bg-wade-accent-hover'}`}>
-                      {isGeneratingImage ? 'Drawing...' : 'Draw'}
-                    </button>
+                <div className="animate-fade-in flex flex-col h-full">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-bold text-wade-accent uppercase">Generated Post</label>
+                    <button onClick={() => {setWadeGeneratedText(''); setWadeGeneratedImageUrl('');}} className="text-[10px] text-wade-text-muted hover:text-wade-accent underline">Discard & Restart</button>
                   </div>
-                  {/* 图片预览 */}
-                  {wadeGeneratedImageUrl && (
-                    <div className="relative w-full h-32 mt-3 rounded-xl overflow-hidden border border-wade-border">
-                       <img src={wadeGeneratedImageUrl} className="w-full h-full object-cover" />
-                       <button onClick={() => setWadeGeneratedImageUrl('')} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black transition-colors"><Icons.Plus className="rotate-45" /></button>
+                  <textarea value={wadeGeneratedText} onChange={e => setWadeGeneratedText(e.target.value)} className="w-full bg-wade-bg-card border border-wade-accent rounded-xl p-3 focus:outline-none resize-none min-h-[160px] text-sm text-wade-text-main transition-colors shadow-inner" />
+                  
+                  <div className="mt-4 border-t border-wade-border pt-4">
+                    <label className="text-xs font-bold text-wade-text-muted uppercase mb-2 block">Generate Image (Optional)</label>
+                    <div className="flex gap-2">
+                      <select value={activeImageLlmId} onChange={e => setActiveImageLlmId(e.target.value)} className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-wade-accent outline-none">
+                        <option value="">Select Image Model...</option>
+                        {llmPresets.map(p => <option key={p.id} value={p.id}>{p.name} ({p.model})</option>)}
+                      </select>
+                      <button onClick={handleGenerateWadeImage} disabled={!activeImageLlmId || isGeneratingImage} className={`px-4 py-2 rounded-lg font-bold text-xs text-white transition-colors ${!activeImageLlmId || isGeneratingImage ? 'bg-wade-text-muted cursor-not-allowed' : 'bg-wade-accent hover:bg-wade-accent-hover'}`}>
+                        {isGeneratingImage ? 'Drawing...' : 'Draw'}
+                      </button>
                     </div>
-                  )}
+                    {wadeGeneratedImageUrl && (
+                      <div className="relative w-full h-32 mt-3 rounded-xl overflow-hidden border border-wade-border group">
+                         <img src={wadeGeneratedImageUrl} className="w-full h-full object-cover" />
+                         <button onClick={() => setWadeGeneratedImageUrl('')} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="rotate-45 flex items-center justify-center"><Icons.Plus /></div>
+                         </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="px-6 py-4 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0 items-center justify-end">
           <button onClick={onClose} className="px-5 py-2 rounded-xl text-wade-text-muted font-bold text-xs hover:bg-black/5 transition-colors">Cancel</button>
           
-          {/* 这里是底部的 Footer */}
           {tab === 'Wade' && !wadeGeneratedText ? (
             <button onClick={handleGenerateWadeDiary} disabled={selectedMsgIds.size === 0 || !activeLlmId || isGenerating} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${isGenerating || selectedMsgIds.size === 0 || !activeLlmId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
-              {isGenerating ? 'Cooking...' : 'Draft Tweet'}
+              {isGenerating ? 'Drafting...' : 'Draft Post'}
             </button>
           ) : (
             <button onClick={handlePost} disabled={isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)} className={`px-6 py-2 rounded-xl bg-wade-accent text-white font-bold text-xs transition-colors shadow-sm ${(isUploading || (tab === 'Luna' && !lunaContent && previewUrls.length === 0)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-wade-accent-hover'}`}>
