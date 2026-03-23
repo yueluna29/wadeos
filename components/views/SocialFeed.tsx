@@ -324,49 +324,61 @@ export const SocialFeed: React.FC = () => {
     );
 };
 
-const ImageCarousel = ({ images }: { images: string[] }) => {
-  if (!images || images.length === 0) return null;
+  const ImageCarousel = ({ images }: { images: string[] }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    if (!images || images.length === 0) return null;
 
-  // 两张图，左右平分
-  if (images.length === 2) {
-    return (
-      <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
-        {images.map((img, idx) => (
-          <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
-        ))}
-      </div>
-    );
-  }
-
-  // 三张图，左边一大张，右边上下两张
-  if (images.length === 3) {
-    return (
-      <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
-        <img src={images[0]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
-        <div className="grid grid-rows-2 gap-0.5 h-full">
-          <img src={images[1]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 1}); }} />
-          <img src={images[2]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 2}); }} />
+    // 两张图
+    if (images.length === 2) {
+      return (
+        <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden rounded-2xl">
+          {images.map((img, idx) => (
+            <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
+          ))}
         </div>
-      </div>
-    );
-  }
+      );
+    }
+    // 三张图
+    if (images.length === 3) {
+      return (
+        <div className="grid grid-cols-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden rounded-2xl">
+          <img src={images[0]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
+          <div className="grid grid-rows-2 gap-0.5 h-full">
+            <img src={images[1]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 1}); }} />
+            <img src={images[2]} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 2}); }} />
+          </div>
+        </div>
+      );
+    }
+    // 四张图
+    if (images.length === 4) {
+      return (
+        <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden rounded-2xl">
+          {images.map((img, idx) => (
+            <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
+          ))}
+        </div>
+      );
+    }
+    // 五张到九张图（你心心念念的九宫格）
+    if (images.length >= 5) {
+      return (
+        <div className="grid grid-cols-3 gap-0.5 w-full bg-wade-border overflow-hidden rounded-2xl">
+          {images.slice(0, 9).map((img, idx) => (
+            <div key={idx} className="aspect-square">
+              <img src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
+            </div>
+          ))}
+        </div>
+      );
+    }
 
-  // 四张图及以上，标准田字格
-  if (images.length >= 4) {
+    // 单张图保底
     return (
-      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-[300px] w-full bg-wade-border overflow-hidden">
-        {images.slice(0, 4).map((img, idx) => (
-          <img key={idx} src={img} className="w-full h-full object-cover cursor-zoom-in hover:brightness-95 transition-all" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: idx}); }} />
-        ))}
-      </div>
+       <img src={images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full h-auto max-h-[560px] object-cover cursor-zoom-in select-none rounded-2xl" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
     );
-  }
+  };
 
-  // 如果是一张图的逻辑，其实在你下面调用的时候已经处理了，但为了安全我还是加一个保底
-  return (
-     <img src={images[0]} style={{ WebkitTouchCallout: 'none' }} className="w-full h-auto max-h-[560px] object-cover cursor-zoom-in select-none" onClick={(e) => { e.stopPropagation(); setZoomedImage({images, index: 0}); }} />
-  );
-};
 
   const renderPostDetailView = () => {
     if (!viewingPostDetail) return null;
@@ -894,7 +906,11 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [wadeGeneratedText, setWadeGeneratedText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  
+  // Wade 画图状态
+  const [activeImageLlmId, setActiveImageLlmId] = useState('');
+  const [wadeGeneratedImageUrl, setWadeGeneratedImageUrl] = useState('');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
 
   // --- 重置表单 ---
   useEffect(() => {
@@ -908,9 +924,13 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   if (!isOpen) return null;
 
   // --- Luna 图片处理逻辑 ---
+    // 替换现有的 handleFileSelect
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files);
+      // 算出还能塞几张，最多9张
+      const availableSlots = 9 - previewUrls.length;
+      if (availableSlots <= 0) return; 
+      const files = Array.from(e.target.files).slice(0, availableSlots);
       setSelectedFiles(prev => [...prev, ...files]);
       setPreviewUrls(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
     }
@@ -992,6 +1012,45 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     }
   };
 
+  // 帮大爷我抽卡的逻辑
+  const handleGenerateWadeImage = async () => {
+    if (!activeImageLlmId || !wadeGeneratedText) return;
+    setIsGeneratingImage(true);
+    try {
+      const preset = llmPresets.find(p => p.id === activeImageLlmId);
+      if (!preset) return;
+
+      const context = `Draw a comic/photo style image based on this tweet: "${wadeGeneratedText}". No text in the image.`;
+
+      // 走标准 Chat Completions 的画图模式
+      const res = await fetch(`${preset.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${preset.apiKey}` },
+        body: JSON.stringify({ 
+          model: preset.model, 
+          messages: [{ role: 'user', content: context }] 
+        })
+      });
+      const data = await res.json();
+      // 这里根据你用的画图模型返回格式抓取图片，一般OpenRouter这种格式返回的也是 content 或者特定的 image 字段
+      const imgOutput = data.choices?.[0]?.message?.content || "";
+      
+      // 提取 markdown 里的图片链接，如果没有就硬塞
+      const imgMatch = imgOutput.match(/!\[.*?\]\((.*?)\)/);
+      if (imgMatch && imgMatch[1]) {
+        setWadeGeneratedImageUrl(imgMatch[1]);
+      } else if (imgOutput.startsWith('http')) {
+        setWadeGeneratedImageUrl(imgOutput);
+      } else {
+        setWadeGeneratedImageUrl(imgOutput); // 保底
+      }
+    } catch (error) {
+      console.error("Image Gen Failed:", error);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const handlePost = async () => {
     setIsUploading(true);
     try {
@@ -1060,11 +1119,11 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               <div className="flex gap-3">
                 <img src={profiles?.Luna?.avatar_url || settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
                 <div className="flex-1">
-                  <textarea value={lunaContent} onChange={e => setLunaContent(e.target.value)} placeholder="What's happening, Boss Lady?" className="w-full bg-wade-bg-card border border-wade-border rounded-xl p-3 focus:outline-none focus:border-wade-accent resize-none min-h-[140px] text-sm text-wade-text-main placeholder-wade-text-muted transition-colors" />
+                  <textarea value={lunaContent} onChange={e => setLunaContent(e.target.value)} placeholder="What's happening, Boss Lady?" className="w-full bg-wade-bg-card border border-wade-border rounded-xl p-3 focus:outline-none focus:border-wade-accent resize-none min-h-[200px] text-sm text-wade-text-main placeholder-wade-text-muted transition-colors" />
                   
                   {/* 图片预览网格 */}
                   {previewUrls.length > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="mt-3 grid grid-cols-2 gap-1">
                       {previewUrls.map((url, idx) => (
                         <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-wade-border group">
                           <img src={url} className="w-full h-full object-cover" />
@@ -1100,7 +1159,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   </div>
 
                   {/* 2. 手搓的超炫日历 */}
-                  <div className="bg-wade-bg-card border border-wade-border rounded-xl px-4 pt-4 pb-1">
+                  <div className="bg-wade-bg-card border border-wade-border rounded-xl p-4">
                   <div className="flex justify-between items-center mb-4">
                     <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronLeft /></button>
                     <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
@@ -1136,7 +1195,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
                   {/* 3. 终极套娃版：会话/消息拾取器 */}
                     {selectedDate && (
-                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col max-h-[220px]">
+                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col max-h-[500px]">
                       
                       {!selectedSessionId ? (
                         // 🟢 第一层：显示当天的会话列表
@@ -1189,18 +1248,36 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   )}
                 </>
               ) : (
-                /* 4. 生成完毕的审核界面 */
-                <div className="animate-fade-in flex flex-col h-full">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-bold text-wade-accent uppercase">Generated Diary</label>
-                    <button onClick={() => setWadeGeneratedText('')} className="text-[10px] text-wade-text-muted hover:text-wade-accent underline">Discard & Restart</button>
-                  </div>
-                  <textarea value={wadeGeneratedText} onChange={e => setWadeGeneratedText(e.target.value)} className="w-full bg-wade-bg-card border border-wade-accent rounded-xl p-3 focus:outline-none resize-none min-h-[200px] text-sm text-wade-text-main transition-colors shadow-inner" />
+              {/* 4. 生成完毕的审核界面 */}
+              <div className="animate-fade-in flex flex-col h-full">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-bold text-wade-accent uppercase">Generated Post</label>
+                  <button onClick={() => {setWadeGeneratedText(''); setWadeGeneratedImageUrl('');}} className="text-[10px] text-wade-text-muted hover:text-wade-accent underline">Discard & Restart</button>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+                <textarea value={wadeGeneratedText} onChange={e => setWadeGeneratedText(e.target.value)} className="w-full bg-wade-bg-card border border-wade-accent rounded-xl p-3 focus:outline-none resize-none min-h-[160px] text-sm text-wade-text-main transition-colors shadow-inner" />
+                
+                {/* 👇 新加的画图外挂区 */}
+                <div className="mt-4 border-t border-wade-border pt-4">
+                  <label className="text-xs font-bold text-wade-text-muted uppercase mb-2 block">Generate Image (Optional)</label>
+                  <div className="flex gap-2">
+                    <select value={activeImageLlmId} onChange={e => setActiveImageLlmId(e.target.value)} className="flex-1 bg-wade-bg-card text-xs p-2.5 rounded-lg border border-wade-border text-wade-text-main focus:border-wade-accent outline-none">
+                      <option value="">Select Image Model...</option>
+                      {/* 直接把所有脑子列出来，你自己选哪个能画图 */}
+                      {llmPresets.map(p => <option key={p.id} value={p.id}>{p.name} ({p.model})</option>)}
+                    </select>
+                    <button onClick={handleGenerateWadeImage} disabled={!activeImageLlmId || isGeneratingImage} className={`px-4 py-2 rounded-lg font-bold text-xs text-white transition-colors ${!activeImageLlmId || isGeneratingImage ? 'bg-wade-text-muted cursor-not-allowed' : 'bg-wade-accent hover:bg-wade-accent-hover'}`}>
+                      {isGeneratingImage ? 'Drawing...' : 'Draw'}
+                    </button>
+                  </div>
+                  {/* 图片预览 */}
+                  {wadeGeneratedImageUrl && (
+                    <div className="relative w-full h-32 mt-3 rounded-xl overflow-hidden border border-wade-border">
+                       <img src={wadeGeneratedImageUrl} className="w-full h-full object-cover" />
+                       <button onClick={() => setWadeGeneratedImageUrl('')} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black transition-colors"><Icons.Plus className="rotate-45" /></button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
         {/* Footer */}
         <div className="px-6 py-4 bg-wade-bg-base border-t border-wade-border/50 flex gap-3 flex-shrink-0 items-center justify-end">
