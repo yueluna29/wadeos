@@ -1113,7 +1113,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           </div>
           
           <div className="flex gap-2 mt-5">
-            <button onClick={() => setTab('Luna')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Luna' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Luna</button>
+            <button onClick={() => setTab('Luna')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Luna' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Luna's Post</button>
             <button onClick={() => setTab('Wade')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors border ${tab === 'Wade' ? 'bg-wade-accent text-white border-wade-accent shadow-sm' : 'bg-wade-bg-card/50 text-wade-text-muted border-transparent hover:border-wade-border hover:text-wade-text-main'}`}>Wade's Post</button>
           </div>
         </div>
@@ -1126,7 +1126,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               <div className="flex gap-3">
                 <img src={settings.lunaAvatar} className="w-10 h-10 rounded-full object-cover border border-wade-border shrink-0" />
                 <div className="flex-1">
-                  <textarea value={lunaContent} onChange={e => setLunaContent(e.target.value)} placeholder="What's happening, Boss Lady?" className="w-full bg-wade-bg-card border border-wade-border rounded-xl p-3 focus:outline-none focus:border-wade-accent resize-none min-h-[200px] text-sm text-wade-text-main placeholder-wade-text-muted transition-colors" />
+                  <textarea value={lunaContent} onChange={e => setLunaContent(e.target.value)} placeholder="What's happening, Boss Lady?" className="w-full bg-wade-bg-card border border-wade-border rounded-xl p-3 focus:outline-none focus:border-wade-accent resize-none min-h-[400px] text-sm text-wade-text-main placeholder-wade-text-muted transition-colors" />
                   
                   {previewUrls.length > 0 && (
                     <div className={`mt-3 grid gap-1 ${previewUrls.length >= 5 ? 'grid-cols-3' : previewUrls.length >= 3 ? 'grid-cols-2' : 'grid-cols-2'}`}>
