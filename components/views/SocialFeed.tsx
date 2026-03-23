@@ -284,31 +284,24 @@ export const SocialFeed: React.FC = () => {
 
   // PostCaption
   const PostCaption = ({ content, authorName, hideAuthor, isDetail = false, isExpanded = false, className }: { content: string, authorName: string, hideAuthor?: boolean, isDetail?: boolean, isExpanded?: boolean, className?: string }) => {
+    // 依然用长度判断是否需要展开按钮
     const needsShowMore = (content.length > 150 || content.split('\n').length > 5);
     const shouldClamp = !isDetail && !isExpanded && needsShowMore;
 
-    let displayContent = shouldClamp ? content.substring(0, 140).trim() + '...' : content;
-    
-    // 处理话题标签
-    displayContent = displayContent.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
-
+    // 重点：不要截断 content！让它保持完整！
+    let displayContent = content.replace(/(#[a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '[$1]($1)');
     const processedContent = hideAuthor ? displayContent : `**${authorName}** ` + displayContent;
 
     return (
-      // 1. 关键变化：删掉 whitespace-pre-wrap，改用 whitespace-normal
-      // 因为我们要靠 Markdown 里的 remarkBreaks 来处理换行，不需要外层再渲染一遍换行符
       <div className={`text-[15px] text-wade-text-main leading-5 whitespace-normal ${className || ''}`}>
-        <div className="inline">
+        {/* 用 line-clamp 替代 JS 切割，保证 Markdown 的内脏不被切碎 */}
+        <div className={shouldClamp ? "line-clamp-4 break-words inline-block w-full" : "break-words inline"}>
           <Markdown 
-            // 2. 确保 remarkBreaks 开启，它负责把单次换行变成 <br />
             remarkPlugins={[remarkGfm, remarkBreaks]} 
             components={{ 
-              // 3. 彻底把 p 标签变透明，完全不占垂直空间
               p: ({node, ...props}) => <span className="inline" {...props} />,
               strong: ({node, ...props}) => <span className="font-bold text-wade-text-main mr-1" {...props} />, 
-              a: ({node, href, children, ...props}) => { 
-                return <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>; 
-              } 
+              a: ({node, href, children, ...props}) => <span className="text-[#1d9bf0] cursor-pointer hover:underline">{children}</span>
             }}
           >
             {processedContent}
@@ -316,9 +309,11 @@ export const SocialFeed: React.FC = () => {
         </div>
         
         {shouldClamp && (
-          <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer ml-1 inline-block">
-            Show more
-          </span>
+          <div className="mt-0.5">
+             <span className="text-[#1d9bf0] text-[15px] hover:underline cursor-pointer inline-block">
+               Show more
+             </span>
+          </div>
         )}
       </div>
     );
@@ -394,7 +389,7 @@ export const SocialFeed: React.FC = () => {
       <div className="flex-1 bg-wade-bg-base flex flex-col font-sans relative">
         <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-14 flex items-center justify-between sticky top-0 z-40">
           <button onClick={() => setViewingPostDetail(null)} className="p-2 -ml-2 text-wade-text-main hover:text-wade-accent transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">Post</div>
           <button className="p-2 -mr-2 text-wade-text-main hover:text-wade-accent transition-colors">
@@ -559,7 +554,7 @@ export const SocialFeed: React.FC = () => {
           <div className="bg-wade-bg-base">
             {userPosts.length === 0 ? (
               <div className="text-center py-20 text-wade-text-muted font-medium font-sans">No posts to see here yet.</div>
-            ) : userPosts.map(post => (
+            ) : [...userPosts].sort((a, b) => b.timestamp - a.timestamp).map(post => (
               <div key={post.id} onClick={() => handlePostClick(post)} className="border-b border-wade-border cursor-pointer px-3 pt-3 pb-2 flex gap-2 items-start relative">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-wade-border hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewingProfile(isWade ? 'Wade' : 'Luna'); }}>
@@ -610,14 +605,14 @@ export const SocialFeed: React.FC = () => {
           <div className="flex-shrink-0 bg-wade-bg-base/90 backdrop-blur-md border-b border-wade-border px-4 h-[53px] flex items-center justify-between sticky top-0 z-40">
             {/* 设置变量用户信息 */}
             <button onClick={() => setIsProfileModalOpen(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
             
             <div className="font-hand text-2xl tracking-tight text-wade-accent absolute left-1/2 -translate-x-1/2">WadeOS</div>
             
             {/* 添加post */}
             <button onClick={() => setIsPostEditorOpen(true)} className="p-2 text-wade-text-main hover:text-wade-accent transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
           </div>
 
@@ -625,7 +620,7 @@ export const SocialFeed: React.FC = () => {
             <div className="max-w-full mx-auto">
               {localPosts.length === 0 ? (
                 <div className="text-center py-20 text-wade-text-muted font-medium font-sans">Welcome to X. No posts yet.</div>
-              ) : localPosts.map(post => {
+              ) : [...localPosts].sort((a, b) => b.timestamp - a.timestamp).map(post => {
                 const isWade = post.author === 'Wade';
                 const avatar = isWade ? settings.wadeAvatar : settings.lunaAvatar;
                 
