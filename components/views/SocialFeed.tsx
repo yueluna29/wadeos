@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { uploadToImgBB } from '../../services/imgbb';
 import { SocialPost, ArchiveMessage } from '../../types';
@@ -952,13 +952,18 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     return dayNum > 0 && dayNum <= daysInMonth ? dayNum : null;
   });
 
-  const daysWithMessages = new Set(
-    messages
-      .filter(m => m.mode === chatMode && (m.role === 'Luna' || m.role === 'Wade') && m.text?.trim())
-      .map(m => new Date(m.timestamp))
-      .filter(d => d.getFullYear() === calMonth.getFullYear() && d.getMonth() === calMonth.getMonth())
-      .map(d => d.getDate())
-  );
+  // 1. 先确保雷达存的是一串“年月日”的文字，而不是单一的数字
+  const daysWithMessages = useMemo(() => {
+    return new Set<string>( // 👈 强制告诉它，我们要存的是 string
+      messages
+        .filter(m => m.mode === chatMode && m.text?.trim())
+        .map(m => {
+          const d = new Date(m.timestamp);
+          // 这里的格式必须跟底下的 dateKey 一模一样！
+          return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        })
+    );
+  }, [messages, chatMode, calMonth]);
 
   const filteredMessages = selectedDate ? messages.filter(m => {
     if (m.mode !== chatMode) return false;
@@ -1164,30 +1169,45 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                       <option value="sms">SMS</option>
                     </select>
                   </div>
-
-                  <div className="bg-wade-bg-card border border-wade-border rounded-xl p-4">
-                  <div className="flex justify-between items-center mb-4">
-                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronLeft /></button>
-                      <span className="text-sm font-bold text-wade-text-main">{calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent p-1 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4"><Icons.ChevronRight /></button>
+                  {/* 2. 手搓的超炫日历 - 精修对齐版 */}
+                  <div className="bg-wade-bg-card border border-wade-border rounded-xl px-4 pt-4 pb-2">
+                    <div className="flex justify-between items-center mb-4 px-1">
+                      {/* 缩小了箭头并强制居中对齐 */}
+                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="text-wade-text-muted hover:text-wade-accent transition-colors p-1 flex items-center justify-center">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                      </button>
+                      
+                      <span className="text-[13px] font-bold text-wade-text-main tracking-tight leading-none">
+                        {calMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                      </span>
+                      
+                      <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="text-wade-text-muted hover:text-wade-accent transition-colors p-1 flex items-center justify-center">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
                     </div>
+
                     <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-wade-text-muted mb-2">
                       {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d}>{d}</div>)}
                     </div>
+
                     <div className="grid grid-cols-7 gap-1">
                       {calendarDays.map((day, idx) => {
-                        const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === calMonth.getMonth();
-                        const hasData = day ? daysWithMessages.has(day) : false; 
+                        // 修正：使用年月日组合的 Key 来判断，避免每个月都亮
+                        // 2. 这里的 dateKey 必须跟上面 map 出来的格式完全对齐
+                        const dateKey = `${calMonth.getFullYear()}-${calMonth.getMonth()}-${day}`;
+                        const hasData = day ? daysWithMessages.has(dateKey) : false; // 👈 这一行现在就不会报错了！
+                        const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === calMonth.getMonth() && selectedDate?.getFullYear() === calMonth.getFullYear();
                         
                         return (
-                          <button key={idx} disabled={!day} onClick={() => {
-                            if (day) {
-                              setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
-                              setSelectedSessionId(null); 
-                            }
-                          }}
+                          <button key={idx} disabled={!day} 
+                            onClick={() => {
+                              if (day) {
+                                setSelectedDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
+                                setSelectedSessionId(null); 
+                              }
+                            }}
                             className={`relative aspect-square rounded-md text-xs font-bold transition-all flex items-center justify-center
-                              ${!day ? 'invisible' : isSelected ? 'bg-wade-accent text-white shadow-sm scale-110' : 'text-wade-text-main hover:bg-wade-bg-base border border-transparent hover:border-wade-border'}`}>
+                              ${!day ? 'invisible' : isSelected ? 'bg-wade-accent text-white shadow-sm' : 'text-wade-text-main hover:bg-wade-bg-base border border-transparent hover:border-wade-border'}`}>
                             {day}
                             {hasData && !isSelected && (
                               <span className="absolute bottom-1 w-1 h-1 rounded-full bg-wade-accent opacity-70"></span>
@@ -1198,8 +1218,9 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     </div>
                   </div>
 
-                    {selectedDate && (
-                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col h-[500px]">
+                  {/* 3. 消息拾取器 - 高度增加 & 细节去噪版 */}
+                  {selectedDate && (
+                    <div className="border border-wade-border rounded-xl overflow-hidden bg-wade-bg-card flex flex-col h-[400px]">
                       
                       {!selectedSessionId ? (
                         <>
@@ -1208,7 +1229,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                           </div>
                           <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
                             {sessionsOnDate.length === 0 ? (
-                              <p className="text-xs text-wade-text-muted text-center py-4">It was a quiet day. We must have been busy... fighting.</p>
+                              <p className="text-xs text-wade-text-muted text-center py-8 italic">It was a quiet day...</p>
                             ) : sessionsOnDate.map(session => (
                               <div key={session.id} onClick={() => setSelectedSessionId(session.id)} className="p-3 rounded-lg cursor-pointer border border-transparent hover:bg-wade-bg-base hover:border-wade-border transition-colors flex justify-between items-center group">
                                 <div className="flex flex-col">
@@ -1219,7 +1240,7 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                                     {filteredMessages.filter(m => m.sessionId === session.id).length} messages
                                   </span>
                                 </div>
-                                <div className="text-wade-text-muted group-hover:text-wade-accent transition-colors">
+                                <div className="text-wade-text-muted group-hover:text-wade-accent transition-colors w-4 h-4">
                                   <Icons.ChevronRight />
                                 </div>
                               </div>
@@ -1228,17 +1249,25 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                         </>
                       ) : (
                         <>
+                          {/* 这里是点进会话后的界面 */}
                           <div className="bg-wade-bg-base px-3 py-2 text-[10px] font-bold text-wade-text-muted uppercase border-b border-wade-border flex justify-between items-center">
-                            <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors font-bold tracking-wider">
+                            <button onClick={() => setSelectedSessionId(null)} className="flex items-center gap-1 hover:text-wade-accent transition-colors text-[10px] font-bold tracking-tighter">
+                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
                                BACK
                             </button>
-                            <span className="text-wade-accent">{selectedMsgIds.size} Selected</span>
+                            <span className="text-wade-accent">{selectedMsgIds.size} SELECTED</span>
                           </div>
                           <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
                             {filteredMessages.filter(m => m.sessionId === selectedSessionId).map(msg => (
                               <div key={msg.id} onClick={() => toggleMessage(msg.id)} className={`p-2 rounded-lg cursor-pointer border text-xs transition-colors ${selectedMsgIds.has(msg.id) ? 'bg-wade-accent-light border-wade-accent text-wade-text-main' : 'border-transparent hover:bg-wade-bg-base text-wade-text-muted'}`}>
-                                <span className="opacity-50 text-[10px] mr-1">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                <span className={`font-bold ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-wade-text-main'}`}>{msg.role}</span><span className="opacity-80">:</span> <span className="line-clamp-2 mt-0.5">{msg.text}</span>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="opacity-40 text-[9px]">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                  {/* 重点：去掉了[]，名字全大写增加角色感，Luna色换成wade-text-main */}
+                                  <span className={`font-black uppercase text-[10px] tracking-widest ${msg.role === 'Wade' ? 'text-wade-accent' : 'text-wade-text-main'}`}>
+                                    {msg.role}
+                                  </span>
+                                </div>
+                                <div className="line-clamp-3 leading-relaxed">{msg.text}</div>
                               </div>
                             ))}
                           </div>
