@@ -918,8 +918,6 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   // --- Luna 图片处理逻辑 ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -1096,6 +1094,8 @@ const PostEditorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
       setIsUploading(false);
     }
   };
+
+if (!isOpen) return null; // ✅ 把它搬到这里来！这就完美符合 React 的规矩了！
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
