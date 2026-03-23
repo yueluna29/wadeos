@@ -208,7 +208,7 @@ export const DeepChatView: React.FC<DeepChatViewProps> = ({ onBack }) => {
         addMessage({
           id: (Date.now() + 1).toString(), sessionId: targetSessionId, role: 'Wade',
           text: response.text, model: activeLlm.model, timestamp: Date.now(), mode: 'deep',
-          variantsThinking: [response.thinking || null]
+          thinking: response.thinking // 👈 就在这里！把之前那行 variantsThinking: [...] 直接改成这个！
         });
       }
     } catch (err) {
